@@ -21,9 +21,10 @@ class GitHandler:
     def ensure_output_dir(self):
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def save_html(self, html_content, filename=None):
+    def save_html(self, html_content, filename=None, folder=None):
         """將 HTML 內容存成檔案"""
-        self.ensure_output_dir()
+        target_dir = (self.repo_dir / folder) if folder else self.output_dir
+        target_dir.mkdir(parents=True, exist_ok=True)
         if not filename:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"vocab_slide_{timestamp}.html"
@@ -31,7 +32,7 @@ class GitHandler:
         if not filename.endswith(".html"):
             filename += ".html"
 
-        file_path = self.output_dir / filename
+        file_path = target_dir / filename
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(html_content)
         
@@ -64,7 +65,24 @@ class GitHandler:
 
     def get_remote_url(self):
         code, out, _ = self._run_git(["remote", "get-url", self.git_cfg.get("remote_name", "origin")])
-        return out if code == 0 else ""
+        if code == 0:
+            return out
+        return ""
+
+    def set_remote_url(self, remote_url):
+        """設定或更新遠端 Git 倉庫 URL"""
+        if not self.is_git_repo():
+            self.init_repo_if_needed()
+
+        remote_url = remote_url.strip()
+        if remote_url:
+            code, stdout, _ = self._run_git(["remote", "get-url", self.git_cfg.get("remote_name", "origin")])
+            if code != 0:
+                self._log(f"設定遠端 Repo: {remote_url}")
+                self._run_git(["remote", "add", self.git_cfg.get("remote_name", "origin"), remote_url])
+            else:
+                self._log(f"更新遠端 Repo: {remote_url}")
+                self._run_git(["remote", "set-url", self.git_cfg.get("remote_name", "origin"), remote_url])
 
     def init_repo_if_needed(self, remote_url=None):
         """若尚未是 Git repo，則協助初始化"""
@@ -82,15 +100,9 @@ class GitHandler:
             self._run_git(["config", "user.email", "vocab@generator.local"])
 
         if remote_url:
-            code, stdout, _ = self._run_git(["remote", "get-url", self.git_cfg.get("remote_name", "origin")])
-            if code != 0:
-                self._log(f"設定遠端 Repo: {remote_url}")
-                self._run_git(["remote", "add", self.git_cfg.get("remote_name", "origin"), remote_url])
-            else:
-                self._log(f"現有遠端 Repo: {stdout}")
-                self._run_git(["remote", "set-url", self.git_cfg.get("remote_name", "origin"), remote_url])
+            self.set_remote_url(remote_url)
 
-    def commit_and_push(self, target_file, commit_msg=None):
+    def commit_and_push(self, target_file, commit_msg=None, track="slide"):
         """自動執行 git add, commit, push"""
         if not self.is_git_repo():
             self.init_repo_if_needed()
@@ -107,8 +119,11 @@ class GitHandler:
         # 2. git commit
         self._status("正在提交變更 (git commit)...", 0.95)
         if not commit_msg:
-            tpl = self.git_cfg.get("commit_msg_template", "feat: add vocabulary slide {filename}")
-            commit_msg = tpl.format(filename=rel_path.name)
+            tpl = self.git_cfg.get("commit_msg_template", "feat({track}): add vocabulary slide {filename}")
+            try:
+                commit_msg = tpl.format(filename=rel_path.name, track=track)
+            except Exception:
+                commit_msg = f"feat({track}): add vocabulary slide {rel_path.name}"
 
         code, out, err = self._run_git(["commit", "-m", commit_msg])
         if code != 0:

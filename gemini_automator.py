@@ -154,11 +154,13 @@ class GeminiAutomator:
                 pass
             return logged_in
 
-    def generate_html(self, prompt, headless=False, timeout_seconds=300):
+    def generate_html(self, prompt, target_url=None, headless=False, timeout_seconds=300):
         """傳送提示詞並等待抽取生成好的 HTML"""
         self._ensure_profile_dir()
         self._status("啟動 Chrome 瀏覽器中...", 0.1)
         self._log("啟動瀏覽器實例...")
+
+        dest_url = target_url or self.gemini_url
 
         with sync_playwright() as p:
             context = p.chromium.launch_persistent_context(
@@ -176,8 +178,8 @@ class GeminiAutomator:
 
             page = context.pages[0] if context.pages else context.new_page()
             self._status("連線至 Gemini 網頁中...", 0.25)
-            self._log(f"開啟網頁: {self.gemini_url}")
-            page.goto(self.gemini_url, wait_until="domcontentloaded")
+            self._log(f"開啟網頁: {dest_url}")
+            page.goto(dest_url, wait_until="domcontentloaded")
             time.sleep(3)
 
             # 檢查登入狀態
