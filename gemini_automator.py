@@ -154,7 +154,7 @@ class GeminiAutomator:
                 pass
             return logged_in
 
-    def generate_html(self, prompt, headless=False, timeout_seconds=180):
+    def generate_html(self, prompt, headless=False, timeout_seconds=300):
         """傳送提示詞並等待抽取生成好的 HTML"""
         self._ensure_profile_dir()
         self._status("啟動 Chrome 瀏覽器中...", 0.1)
