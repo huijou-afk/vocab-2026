@@ -10,7 +10,7 @@ import webview
 from gemini_automator import GeminiAutomator
 from git_handler import GitHandler
 
-BASE_DIR = Path(__file__).parent.resolve()
+BASE_DIR = Path(os.environ.get("VOCAB_PROJECT_DIR", Path(__file__).parent.resolve()))
 CONFIG_FILE = BASE_DIR / "config.json"
 WORDS_FILE = BASE_DIR / "words.txt"
 VERSION_FILE = BASE_DIR / "VERSION"
