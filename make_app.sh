@@ -9,7 +9,7 @@ if [ -f "VERSION" ]; then
     VERSION="$(cat VERSION | tr -d '[:space:]')"
 fi
 
-echo "正在建置 VocabGenerator.app (版本: v$VERSION)..."
+echo "正在更新 VocabGenerator.app (版本: v$VERSION)..."
 
 APP_BUNDLE="VocabGenerator.app"
 CONTENTS="$APP_BUNDLE/Contents"
@@ -17,18 +17,19 @@ MACOS="$CONTENTS/MacOS"
 RESOURCES="$CONTENTS/Resources"
 PLIST="$CONTENTS/Info.plist"
 
-# 1. 建立目錄結構
-rm -rf "$APP_BUNDLE"
+# 1. 建立目錄（增量更新，不刪除現有 App Bundle，保留 macOS 授權記錄）
 mkdir -p "$MACOS" "$RESOURCES"
 
-# 2. 複製所有原始碼進 Resources（使 Python 從 App 內部載入，徹底避開 macOS 桌面權限阻擋）
+# 2. 複製最新 Python 原始碼與設定進 Resources
 for f in app.py gemini_automator.py git_handler.py config.json words.txt VERSION; do
-    [ -f "$f" ] && cp "$f" "$RESOURCES/" && echo "  Copying $f -> Resources/"
+    [ -f "$f" ] && cp "$f" "$RESOURCES/" && echo "  Syncing $f -> Resources/"
 done
 [ -f ".gitignore" ] && cp ".gitignore" "$RESOURCES/" 2>/dev/null || true
 
-# 3. 編譯 C 啟動器
-cat << 'CSRC' > /tmp/vocab_launcher.c
+# 3. 只有當可執行檔不存在時才編譯 C 啟動引擎（保持 binary hash 穩定，macOS 授權不失效）
+if [ ! -f "$MACOS/VocabGenerator" ]; then
+    echo "  正在編譯原生 C 啟動引擎..."
+    cat << 'CSRC' > /tmp/vocab_launcher.c
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -68,11 +69,9 @@ int main(int argc, char *argv[]) {
     char script_path[4096];
     snprintf(script_path, sizeof(script_path), "%s/app.py", resources_dir);
 
-    // 工作目錄與環境變數指向專案目錄（確保 slides/ 與 git 在專案根目錄生效）
     chdir(project_dir);
     setenv("VOCAB_PROJECT_DIR", project_dir, 1);
 
-    // Python 執行檔路徑 (~/.gemini_vocab_env)
     const char *home = getenv("HOME");
     if (!home) home = "/tmp";
     char python_path[4096];
@@ -85,10 +84,13 @@ int main(int argc, char *argv[]) {
     return 1;
 }
 CSRC
-
-clang /tmp/vocab_launcher.c -o "$MACOS/VocabGenerator"
-chmod +x "$MACOS/VocabGenerator"
-echo "  Compiled native C launcher -> Contents/MacOS/VocabGenerator"
+    clang /tmp/vocab_launcher.c -o "$MACOS/VocabGenerator"
+    chmod +x "$MACOS/VocabGenerator"
+    rm -f /tmp/vocab_launcher.c
+    echo "  Compiled native C launcher -> Contents/MacOS/VocabGenerator"
+else
+    echo "  原生 C 啟動引擎已存在，保留既有二進位檔案以維持 macOS 授權狀態。"
+fi
 
 # 4. 寫入 Info.plist
 cat << PLISTEOF > "$PLIST"
@@ -122,8 +124,9 @@ cat << PLISTEOF > "$PLIST"
 </plist>
 PLISTEOF
 
-# 5. 移除隔離屬性並加上永久本機簽署
+# 5. 移除隔離屬性並使用固定的本地授權憑證簽署
 xattr -cr "$APP_BUNDLE" 2>/dev/null || true
+codesign --force --deep --sign "Vocab Developer" "$APP_BUNDLE" 2>/dev/null || \
 codesign --force --deep --sign - --identifier "com.vocab.generator" "$APP_BUNDLE" 2>/dev/null || true
 
-echo "✅ VocabGenerator.app (v$VERSION) 打包與簽署完成！"
+echo "✅ VocabGenerator.app (v$VERSION) 增量更新與持久簽署完成！"
