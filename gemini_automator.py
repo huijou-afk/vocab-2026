@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import re
+import threading
 from pathlib import Path
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
@@ -256,23 +257,54 @@ class GeminiAutomator:
                 'button[mattooltip*="停止"]'
             ]
 
+            # 等待 Gemini 開始生成（給予 5 秒緩衝）
+            time.sleep(5)
+            start_time = time.time()
+            stop_btn_selectors = [
+                'button[aria-label*="停止"]',
+                'button[aria-label*="Stop"]',
+                'button[mattooltip*="停止"]'
+            ]
+
+            saw_generating = False
+            last_content_len = 0
+            stable_count = 0
+
             while time.time() - start_time < timeout_seconds:
                 is_generating = False
                 for sel in stop_btn_selectors:
                     try:
                         if page.locator(sel).first.is_visible(timeout=500):
                             is_generating = True
+                            saw_generating = True
                             break
                     except Exception:
                         pass
 
-                if not is_generating:
-                    code_blocks = page.locator('pre code, pre').all()
-                    if code_blocks:
-                        self._log("偵測到代碼區塊生成完成，稍作緩衝以確保渲染...")
-                        time.sleep(3)
-                        break
-                
+                if is_generating:
+                    stable_count = 0
+                else:
+                    # 檢查當前 Monaco / DOM 長度是否穩定
+                    try:
+                        curr_len = page.evaluate('''() => {
+                            if (window.monaco && window.monaco.editor) {
+                                const models = window.monaco.editor.getModels();
+                                if (models.length > 0) return models[models.length - 1].getValue().length;
+                            }
+                            return document.body.innerText.length;
+                        }''')
+                    except Exception:
+                        curr_len = 0
+
+                    if curr_len > 1000 and curr_len == last_content_len:
+                        stable_count += 1
+                        if stable_count >= 3:
+                            self._log("偵測到生成內容已完成並穩定，開始提取程式碼...")
+                            break
+                    else:
+                        last_content_len = curr_len
+                        stable_count = 0
+
                 elapsed = int(time.time() - start_time)
                 self._status(f"Gemini 生成中... ({elapsed}s)", min(0.6 + (elapsed / timeout_seconds) * 0.25, 0.85))
                 time.sleep(2)
@@ -302,14 +334,35 @@ class GeminiAutomator:
 
     def _extract_html_content(self, page):
         """從頁面中提取最新生成的純 HTML 程式碼（支援 Gemini Canvas / Monaco Editor 與常規 Code Block）"""
-        # 1. 優先檢查 Gemini Canvas (Monaco Editor)：Gemini Pro 生成 HTML 投影片時通常放入 Canvas
+        # 1. 若有 Canvas 入口晶片，確保先點擊開啟它以載入最新 Monaco Editor 內容
+        try:
+            chip_selectors = [
+                'gem-processing-card',
+                'immersive-entry-chip',
+                'button:has-text("開啟")',
+                'button[aria-label*="Canvas"]'
+            ]
+            for sel in chip_selectors:
+                chips = page.locator(sel).all()
+                if chips:
+                    self._log("偵測到 Canvas 入口晶片，正在開啟 Canvas 面板...")
+                    try:
+                        chips[-1].click(timeout=2000)
+                        time.sleep(2.5)
+                    except Exception:
+                        pass
+                    break
+        except Exception:
+            pass
+
+        # 2. 從 Gemini Canvas (Monaco Editor) 讀取完整 HTML
         try:
             monaco_code = page.evaluate('''() => {
                 if (window.monaco && window.monaco.editor) {
                     const models = window.monaco.editor.getModels();
                     for (let i = models.length - 1; i >= 0; i--) {
                         const val = models[i].getValue();
-                        if (val && (val.toLowerCase().includes('<!doctype html') || val.toLowerCase().includes('<html'))) {
+                        if (val && (val.toLowerCase().includes('<!doctype html') || val.toLowerCase().includes('<html')) && val.length > 500) {
                             return val;
                         }
                     }
@@ -317,39 +370,11 @@ class GeminiAutomator:
                 }
                 return null;
             }''')
-            if monaco_code and ("<html" in monaco_code.lower() or "<!doctype html>" in monaco_code.lower()):
+            if monaco_code and ("<html" in monaco_code.lower() or "<!doctype html>" in monaco_code.lower()) and len(monaco_code) > 500:
                 self._log(f"成功從 Gemini Canvas (Monaco Editor) 提取投影片程式碼（共 {len(monaco_code)} 字元）！")
                 return self._clean_markdown_codeblock(monaco_code)
         except Exception as e:
             self._log(f"檢查 Canvas Monaco 時: {e}")
-
-        # 2. 若 Canvas 面板尚未展開，點選「開啟 Canvas」晶片展開它
-        try:
-            chip_selectors = [
-                'immersive-entry-chip',
-                'gem-processing-card',
-                'button[aria-label*="Canvas"]',
-                'button:has-text("開啟")'
-            ]
-            for sel in chip_selectors:
-                chips = page.locator(sel).all()
-                if chips:
-                    self._log("偵測到 Canvas 入口晶片，正在開啟 Canvas 面板以讀取程式碼...")
-                    chips[-1].click()
-                    time.sleep(2)
-                    monaco_retry = page.evaluate('''() => {
-                        if (window.monaco && window.monaco.editor) {
-                            const models = window.monaco.editor.getModels();
-                            if (models.length > 0) return models[models.length - 1].getValue();
-                        }
-                        return null;
-                    }''')
-                    if monaco_retry and ("<html" in monaco_retry.lower() or "<!doctype html>" in monaco_retry.lower()):
-                        self._log(f"展開 Canvas 後成功提取程式碼（共 {len(monaco_retry)} 字元）！")
-                        return self._clean_markdown_codeblock(monaco_retry)
-                    break
-        except Exception:
-            pass
 
         # 3. 檢查常規對話訊息中的代碼區塊 (pre code)
         code_elements = page.locator('pre code, pre, .code-block').all()
