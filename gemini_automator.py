@@ -284,28 +284,22 @@ class GeminiAutomator:
             return extracted_html
 
     def _extract_html_content(self, page):
-        """從頁面中的 code block 或 pre 元素提取純 HTML 程式碼"""
-        code_elements = page.locator('pre code, pre').all()
-        candidates = []
-        for elem in code_elements:
+        """從頁面中的 code block 或 pre 元素提取最新生成的純 HTML 程式碼"""
+        code_elements = page.locator('pre code, pre, .code-block').all()
+        # 從最新（最後面）的程式碼區塊開始尋找，確保多輪對話中取得本次最新產出
+        for elem in reversed(code_elements):
             try:
                 text = elem.inner_text()
                 if "<html" in text.lower() or "<!doctype html>" in text.lower():
-                    candidates.append(text)
+                    return self._clean_markdown_codeblock(text)
             except Exception:
                 continue
-
-        if candidates:
-            candidates.sort(key=len, reverse=True)
-            raw_html = candidates[0]
-            return self._clean_markdown_codeblock(raw_html)
 
         try:
             content = page.content()
             matches = re.findall(r'```(?:html)?\s*(<!DOCTYPE html[\s\S]*?)```', content, re.IGNORECASE)
             if matches:
-                matches.sort(key=len, reverse=True)
-                return self._clean_markdown_codeblock(matches[0])
+                return self._clean_markdown_codeblock(matches[-1])
         except Exception:
             pass
 

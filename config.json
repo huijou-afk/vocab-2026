@@ -1,7 +1,7 @@
 {
   "chrome_profile_dir": "~/.gemini-automation-profile",
   "chrome_executable_path": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-  "gemini_url": "https://gemini.google.com/app",
+  "gemini_url": "https://gemini.google.com/app/8c6e1caf5a46ef4b",
   "output_dir": "slides",
   "git": {
     "auto_push": true,
