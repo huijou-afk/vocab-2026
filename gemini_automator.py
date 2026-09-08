@@ -284,22 +284,76 @@ class GeminiAutomator:
             return extracted_html
 
     def _extract_html_content(self, page):
-        """從頁面中的 code block 或 pre 元素提取最新生成的純 HTML 程式碼"""
+        """從頁面中提取最新生成的純 HTML 程式碼（支援 Gemini Canvas / Monaco Editor 與常規 Code Block）"""
+        # 1. 優先檢查 Gemini Canvas (Monaco Editor)：Gemini Pro 生成 HTML 投影片時通常放入 Canvas
+        try:
+            monaco_code = page.evaluate('''() => {
+                if (window.monaco && window.monaco.editor) {
+                    const models = window.monaco.editor.getModels();
+                    for (let i = models.length - 1; i >= 0; i--) {
+                        const val = models[i].getValue();
+                        if (val && (val.toLowerCase().includes('<!doctype html') || val.toLowerCase().includes('<html'))) {
+                            return val;
+                        }
+                    }
+                    if (models.length > 0) return models[models.length - 1].getValue();
+                }
+                return null;
+            }''')
+            if monaco_code and ("<html" in monaco_code.lower() or "<!doctype html>" in monaco_code.lower()):
+                self._log(f"成功從 Gemini Canvas (Monaco Editor) 提取投影片程式碼（共 {len(monaco_code)} 字元）！")
+                return self._clean_markdown_codeblock(monaco_code)
+        except Exception as e:
+            self._log(f"檢查 Canvas Monaco 時: {e}")
+
+        # 2. 若 Canvas 面板尚未展開，點選「開啟 Canvas」晶片展開它
+        try:
+            chip_selectors = [
+                'immersive-entry-chip',
+                'gem-processing-card',
+                'button[aria-label*="Canvas"]',
+                'button:has-text("開啟")'
+            ]
+            for sel in chip_selectors:
+                chips = page.locator(sel).all()
+                if chips:
+                    self._log("偵測到 Canvas 入口晶片，正在開啟 Canvas 面板以讀取程式碼...")
+                    chips[-1].click()
+                    time.sleep(2)
+                    monaco_retry = page.evaluate('''() => {
+                        if (window.monaco && window.monaco.editor) {
+                            const models = window.monaco.editor.getModels();
+                            if (models.length > 0) return models[models.length - 1].getValue();
+                        }
+                        return null;
+                    }''')
+                    if monaco_retry and ("<html" in monaco_retry.lower() or "<!doctype html>" in monaco_retry.lower()):
+                        self._log(f"展開 Canvas 後成功提取程式碼（共 {len(monaco_retry)} 字元）！")
+                        return self._clean_markdown_codeblock(monaco_retry)
+                    break
+        except Exception:
+            pass
+
+        # 3. 檢查常規對話訊息中的代碼區塊 (pre code)
         code_elements = page.locator('pre code, pre, .code-block').all()
-        # 從最新（最後面）的程式碼區塊開始尋找，確保多輪對話中取得本次最新產出
         for elem in reversed(code_elements):
             try:
                 text = elem.inner_text()
                 if "<html" in text.lower() or "<!doctype html>" in text.lower():
+                    self._log("從對話框代碼區塊提取成功！")
                     return self._clean_markdown_codeblock(text)
             except Exception:
                 continue
 
+        # 4. 備用方案：整頁 HTML 正則比對
         try:
             content = page.content()
             matches = re.findall(r'```(?:html)?\s*(<!DOCTYPE html[\s\S]*?)```', content, re.IGNORECASE)
             if matches:
                 return self._clean_markdown_codeblock(matches[-1])
+            doc_matches = re.findall(r'(<!DOCTYPE html[\s\S]*?<\/html>)', content, re.IGNORECASE)
+            if doc_matches:
+                return self._clean_markdown_codeblock(doc_matches[-1])
         except Exception:
             pass
 
