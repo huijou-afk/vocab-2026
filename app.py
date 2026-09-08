@@ -19,6 +19,7 @@ class AppAPI:
         self.window = None
         self.is_running = False
         self.latest_html_file = None
+        self.is_logged_in = False
 
     def set_window(self, window):
         self.window = window
@@ -58,40 +59,60 @@ class AppAPI:
             "has_remote": bool(remote_url)
         }
 
-    def login_google(self):
-        """開啟 Chrome 進行 Google 帳號登入"""
+    def auto_init_login(self):
+        """啟動程式時自動執行的登入檢測與自動登入引導"""
         if self.is_running:
-            return {"status": "busy", "message": "已有工作正在執行中"}
-
-        self.is_running = True
-        self.window.evaluate_js("window.setRunningState(true, '正在開啟 Chrome 登入...')")
+            return
 
         def _worker():
-            try:
-                cfg = {}
-                if CONFIG_FILE.exists():
-                    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-                        cfg = json.load(f)
+            cfg = {}
+            if CONFIG_FILE.exists():
+                with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                    cfg = json.load(f)
 
-                automator = GeminiAutomator(
-                    cfg,
-                    status_callback=self._status_js,
-                    log_callback=self._log_js
-                )
-                success = automator.launch_browser_for_login()
-                if success:
-                    self._status_js("Google 帳號已成功登入！", 1.0)
-                    self._log_js("Google 帳號登入狀態已確認並儲存。")
+            automator = GeminiAutomator(
+                cfg,
+                status_callback=self._status_js,
+                log_callback=self._log_js
+            )
+
+            self._log_js("正在自動檢查 Google 帳號登入狀態...")
+            self._status_js("正在自動檢查 Google 登入狀態...", 0.15)
+            self.window.evaluate_js("window.setLoginState('checking')")
+
+            logged = automator.check_login_status_headless()
+            if logged:
+                self.is_logged_in = True
+                self._log_js("✅ Google 帳號已自動登入！Gemini 連線正常。")
+                self._status_js("準備就緒 (Google 帳號已自動登入)", 1.0)
+                self.window.evaluate_js("window.setLoginState('logged_in')")
+            else:
+                self.is_logged_in = False
+                self._log_js("⚠️ 尚未偵測到 Google 登入憑證，正在自動為您彈出 Chrome 登入視窗...")
+                self._status_js("請在彈出的 Chrome 視窗中完成 Google 登入...", 0.4)
+                self.window.evaluate_js("window.setLoginState('logging_in')")
+                
+                # 自動彈出 Chrome 視窗引導登入
+                automator.launch_browser_for_login(auto_click_signin=True)
+                
+                # 登入結束後重新檢測
+                recheck = automator.check_login_status_headless()
+                if recheck:
+                    self.is_logged_in = True
+                    self._log_js("🎉 恭喜！Google 帳號已登入成功並永久記住！日後打開本程式都將自動保持登入。")
+                    self._status_js("登入成功！已就緒，可直接生成投影片", 1.0)
+                    self.window.evaluate_js("window.setLoginState('logged_in')")
                 else:
-                    self._status_js("尚未完成登入", 0.0)
-            except Exception as e:
-                self._log_js(f"登入流程發生錯誤: {str(e)}")
-                self._status_js(f"登入失敗: {str(e)}", 0.0)
-            finally:
-                self.is_running = False
-                self.window.evaluate_js("window.setRunningState(false)")
+                    self.is_logged_in = False
+                    self._log_js("尚未完成登入，您可以隨時點擊右上角「重新登入 Google」按鈕。")
+                    self._status_js("尚未登入 Google", 0.0)
+                    self.window.evaluate_js("window.setLoginState('logged_out')")
 
         threading.Thread(target=_worker, daemon=True).start()
+
+    def manual_login_google(self):
+        """使用者主動點擊登入按鈕"""
+        self.auto_init_login()
         return {"status": "started"}
 
     def set_repo(self, url):
@@ -202,6 +223,7 @@ HTML_UI = """
     --primary: #3b82f6;
     --primary-hover: #2563eb;
     --success: #10b981;
+    --warning: #f59e0b;
     --danger: #ef4444;
     --text: #f8fafc;
     --text-muted: #94a3b8;
@@ -228,7 +250,28 @@ HTML_UI = """
   }
   .title-group h1 { font-size: 1.3rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
   .title-group p { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
-  .header-actions { display: flex; gap: 10px; }
+  .header-actions { display: flex; align-items: center; gap: 10px; }
+
+  .account-status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #1e293b;
+    border: 1px solid var(--border);
+  }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .state-logged_in { color: var(--success); border-color: rgba(16, 185, 129, 0.4); }
+  .state-logged_in .status-dot { background: var(--success); box-shadow: 0 0 8px var(--success); }
+  .state-checking, .state-logging_in { color: var(--warning); border-color: rgba(245, 158, 11, 0.4); }
+  .state-checking .status-dot, .state-logging_in .status-dot { background: var(--warning); animation: pulse 1s infinite alternate; }
+  .state-logged_out { color: var(--danger); border-color: rgba(239, 68, 68, 0.4); }
+  .state-logged_out .status-dot { background: var(--danger); }
+
+  @keyframes pulse { from { opacity: 0.4; } to { opacity: 1; } }
 
   button {
     background: var(--card);
@@ -383,7 +426,11 @@ HTML_UI = """
     <p>自動呼叫網頁版 Gemini 產出自包含 HTML 投影片並推送到 GitHub</p>
   </div>
   <div class="header-actions">
-    <button id="btnLogin" onclick="onLoginClicked()">🔑 Google 登入設定</button>
+    <div id="accountBadge" class="account-status-badge state-checking">
+      <span class="status-dot"></span>
+      <span id="accountBadgeText">正在自動檢查 Google 登入...</span>
+    </div>
+    <button id="btnManualLogin" onclick="onManualLogin()" style="display:none;">重新登入</button>
     <button id="btnRepo" onclick="onRepoClicked()">⚙️ 設定 GitHub Repo</button>
   </div>
 </div>
@@ -412,7 +459,7 @@ HTML_UI = """
   <div class="card" style="flex: 1; min-height: 0;">
     <div class="status-section">
       <div class="status-header">
-        <span id="statusText">準備就緒</span>
+        <span id="statusText">啟動中...</span>
         <span id="statusPercent">0%</span>
       </div>
       <div class="progress-bg">
@@ -420,7 +467,7 @@ HTML_UI = """
       </div>
     </div>
     <div class="log-box" id="logBox">
-      <div class="log-line" style="color: #64748b;">[系統] 應用程式已就緒。請確認已登入 Google 帳號後點擊開始生成。</div>
+      <div class="log-line" style="color: #64748b;">[系統] 應用程式已就緒。程式已自動啟動 Google 帳號連線程序...</div>
     </div>
   </div>
 </div>
@@ -446,8 +493,37 @@ HTML_UI = """
         document.getElementById('wordsInput').value = data.words;
       }
       updateRepoDisplay(data.remote_url);
+      
+      // 打開程式時，自動執行登入檢測與登入流程！
+      pywebview.api.auto_init_login();
     });
   });
+
+  function setLoginState(state) {
+    const badge = document.getElementById('accountBadge');
+    const text = document.getElementById('accountBadgeText');
+    const btnReLogin = document.getElementById('btnManualLogin');
+
+    badge.className = 'account-status-badge state-' + state;
+
+    if (state === 'logged_in') {
+      text.textContent = 'Google 帳號：已自動登入';
+      btnReLogin.style.display = 'none';
+    } else if (state === 'checking') {
+      text.textContent = '正在驗證 Google 登入...';
+      btnReLogin.style.display = 'none';
+    } else if (state === 'logging_in') {
+      text.textContent = 'Chrome 登入進行中...';
+      btnReLogin.style.display = 'none';
+    } else {
+      text.textContent = 'Google 尚未登入';
+      btnReLogin.style.display = 'inline-flex';
+    }
+  }
+
+  function onManualLogin() {
+    pywebview.api.manual_login_google();
+  }
 
   function updateRepoDisplay(url) {
     const badge = document.getElementById('repoBadge');
@@ -468,10 +544,6 @@ HTML_UI = """
 
   function onClearWords() {
     document.getElementById('wordsInput').value = '';
-  }
-
-  function onLoginClicked() {
-    pywebview.api.login_google();
   }
 
   function onRepoClicked() {
@@ -497,15 +569,12 @@ HTML_UI = """
 
   window.setRunningState = function(isRunning, title) {
     const btn = document.getElementById('btnGenerate');
-    const btnLogin = document.getElementById('btnLogin');
     if (isRunning) {
       btn.disabled = true;
       btn.textContent = '⏳ ' + (title || '正在自動化執行中...');
-      btnLogin.disabled = true;
     } else {
       btn.disabled = false;
       btn.textContent = '🚀 開始自動生成單字投影片並同步至 GitHub';
-      btnLogin.disabled = false;
     }
   };
 

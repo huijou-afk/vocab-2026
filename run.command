@@ -9,8 +9,4 @@ if [ ! -d ".venv" ]; then
 fi
 
 source .venv/bin/activate
-python3 main.py
-
-echo ""
-echo "程式已結束。按下任一鍵即可關閉視窗..."
-read -n 1
+exec python3 app.py
