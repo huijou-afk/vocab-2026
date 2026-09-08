@@ -42,14 +42,7 @@ cat << 'LAUNCHER' > "$APP_DIR/Contents/MacOS/$APP_NAME"
 #!/bin/bash
 DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
 cd "$DIR"
-
-# 確保虛擬環境存在
-if [ ! -d ".venv" ]; then
-    ./setup.sh
-fi
-
-source .venv/bin/activate
-exec python3 app.py
+exec "$DIR/.venv/bin/python3" "$DIR/app.py"
 LAUNCHER
 
 chmod +x "$APP_DIR/Contents/MacOS/$APP_NAME"

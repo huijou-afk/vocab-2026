@@ -6,326 +6,545 @@ import subprocess
 from pathlib import Path
 from datetime import datetime
 
-import customtkinter as ctk
+import webview
 from gemini_automator import GeminiAutomator
 from git_handler import GitHandler
 
-CONFIG_FILE = Path(__file__).parent / "config.json"
+BASE_DIR = Path(__file__).parent.resolve()
+CONFIG_FILE = BASE_DIR / "config.json"
+WORDS_FILE = BASE_DIR / "words.txt"
 
-class VocabApp(ctk.CTk):
+class AppAPI:
     def __init__(self):
-        super().__init__()
-
-        # 主視窗設定
-        self.title("Gemini 單字投影片生成器 (Mac)")
-        self.geometry("900x720")
-        self.minsize(800, 600)
-
-        # 設定風格
-        ctk.set_appearance_mode("system")
-        ctk.set_default_color_theme("blue")
-
-        self.config = self.load_config()
-        self.latest_html_file = None
+        self.window = None
         self.is_running = False
+        self.latest_html_file = None
 
-        self._build_ui()
-        self._refresh_git_status()
+    def set_window(self, window):
+        self.window = window
 
-    def load_config(self):
-        if not CONFIG_FILE.exists():
-            return {}
-        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+    def _log_js(self, msg):
+        if not self.window:
+            return
+        ts = datetime.now().strftime("%H:%M:%S")
+        safe_msg = json.dumps(f"[{ts}] {msg}")
+        self.window.evaluate_js(f"window.appendLog({safe_msg})")
 
-    def save_config(self):
-        with open(CONFIG_FILE, "w", encoding="utf-8") as f:
-            json.dump(self.config, f, ensure_ascii=False, indent=2)
+    def _status_js(self, text, prog=None):
+        if not self.window:
+            return
+        safe_text = json.dumps(text)
+        p_val = prog if prog is not None else -1
+        self.window.evaluate_js(f"window.updateStatus({safe_text}, {p_val})")
 
-    def _build_ui(self):
-        # 總容器 Grid
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(2, weight=1)
-
-        # 1. 頂部標題與狀態列
-        top_frame = ctk.CTkFrame(self, corner_radius=12)
-        top_frame.grid(row=0, column=0, padx=20, pady=(15, 10), sticky="ew")
-        top_frame.grid_columnconfigure(1, weight=1)
-
-        title_label = ctk.CTkLabel(
-            top_frame,
-            text="📚 Gemini 單字投影片自動化生成器",
-            font=ctk.CTkFont(size=20, weight="bold")
-        )
-        title_label.grid(row=0, column=0, padx=15, pady=10, sticky="w")
-
-        # 頂部操作按鈕 (Google 登入、設定 Repo)
-        top_btn_frame = ctk.CTkFrame(top_frame, fg_color="transparent")
-        top_btn_frame.grid(row=0, column=2, padx=15, pady=10, sticky="e")
-
-        self.btn_login = ctk.CTkButton(
-            top_btn_frame,
-            text="🔑 Google 登入設定",
-            width=130,
-            command=self._handle_login_clicked
-        )
-        self.btn_login.pack(side="left", padx=5)
-
-        self.btn_repo = ctk.CTkButton(
-            top_btn_frame,
-            text="⚙️ 設定 GitHub Repo",
-            width=140,
-            fg_color="#4A5568",
-            hover_color="#2D3748",
-            command=self._handle_repo_clicked
-        )
-        self.btn_repo.pack(side="left", padx=5)
-
-        # 2. 中間輸入區塊 (單字輸入與選項)
-        input_frame = ctk.CTkFrame(self, corner_radius=12)
-        input_frame.grid(row=1, column=0, padx=20, pady=5, sticky="ew")
-        input_frame.grid_columnconfigure(0, weight=1)
-
-        words_label = ctk.CTkLabel(
-            input_frame,
-            text="請輸入要學習的單字清單 (每行一個，可附帶中文註解或例句)：",
-            font=ctk.CTkFont(size=14, weight="bold")
-        )
-        words_label.grid(row=0, column=0, padx=15, pady=(10, 2), sticky="w")
-
-        # 單字多行文字框
-        self.txt_words = ctk.CTkTextbox(input_frame, height=130, font=("Menlo", 13))
-        self.txt_words.grid(row=1, column=0, columnspan=2, padx=15, pady=5, sticky="ew")
+    def get_initial_data(self):
+        """提供前端初始化所需的資料"""
+        cfg = {}
+        if CONFIG_FILE.exists():
+            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
         
-        # 載入預設範例文字
-        sample_file = Path(__file__).parent / "words.txt"
-        if sample_file.exists():
-            with open(sample_file, "r", encoding="utf-8") as f:
-                self.txt_words.insert("1.0", f.read().strip())
+        sample_words = ""
+        if WORDS_FILE.exists():
+            with open(WORDS_FILE, "r", encoding="utf-8") as f:
+                sample_words = f.read().strip()
 
-        # 檔名與選項列
-        opt_frame = ctk.CTkFrame(input_frame, fg_color="transparent")
-        opt_frame.grid(row=2, column=0, columnspan=2, padx=15, pady=(5, 10), sticky="ew")
-        opt_frame.grid_columnconfigure(1, weight=1)
+        git = GitHandler(cfg, repo_dir=BASE_DIR)
+        remote_url = git.get_remote_url()
 
-        lbl_fn = ctk.CTkLabel(opt_frame, text="自訂檔名 (選填)：")
-        lbl_fn.grid(row=0, column=0, padx=(0, 5), sticky="w")
+        return {
+            "words": sample_words,
+            "remote_url": remote_url,
+            "has_remote": bool(remote_url)
+        }
 
-        self.entry_filename = ctk.CTkEntry(opt_frame, placeholder_text="例如：vocab_day1 (未填寫則自動使用時間戳記)")
-        self.entry_filename.grid(row=0, column=1, padx=5, sticky="ew")
-
-        self.btn_sample = ctk.CTkButton(
-            opt_frame,
-            text="📄 載入範例",
-            width=90,
-            fg_color="#718096",
-            command=self._load_sample_words
-        )
-        self.btn_sample.grid(row=0, column=2, padx=5)
-
-        self.btn_clear = ctk.CTkButton(
-            opt_frame,
-            text="🧹 清空",
-            width=70,
-            fg_color="#E53E3E",
-            hover_color="#C53030",
-            command=lambda: self.txt_words.delete("1.0", "end")
-        )
-        self.btn_clear.grid(row=0, column=3, padx=5)
-
-        # 3. 執行按鈕與進度資訊
-        action_frame = ctk.CTkFrame(self, corner_radius=12)
-        action_frame.grid(row=2, column=0, padx=20, pady=5, sticky="nsew")
-        action_frame.grid_columnconfigure(0, weight=1)
-        action_frame.grid_rowconfigure(3, weight=1)
-
-        # 大顆生成按鈕
-        self.btn_generate = ctk.CTkButton(
-            action_frame,
-            text="🚀 開始自動生成單字投影片並同步至 GitHub",
-            font=ctk.CTkFont(size=16, weight="bold"),
-            height=45,
-            fg_color="#2B6CB0",
-            hover_color="#1A4971",
-            command=self._start_generation_thread
-        )
-        self.btn_generate.grid(row=0, column=0, columnspan=3, padx=15, pady=(15, 10), sticky="ew")
-
-        # 進度條與狀態文字
-        self.status_label = ctk.CTkLabel(action_frame, text="準備就緒", font=ctk.CTkFont(size=13))
-        self.status_label.grid(row=1, column=0, columnspan=3, padx=15, pady=(2, 4), sticky="w")
-
-        self.progress_bar = ctk.CTkProgressBar(action_frame)
-        self.progress_bar.grid(row=2, column=0, columnspan=3, padx=15, pady=(0, 10), sticky="ew")
-        self.progress_bar.set(0)
-
-        # 即時 Log 輸出區
-        self.txt_log = ctk.CTkTextbox(action_frame, font=("Menlo", 12))
-        self.txt_log.grid(row=3, column=0, columnspan=3, padx=15, pady=5, sticky="nsew")
-
-        # 4. 底部快捷操作列
-        bottom_frame = ctk.CTkFrame(self, fg_color="transparent")
-        bottom_frame.grid(row=3, column=0, padx=20, pady=(5, 15), sticky="ew")
-        bottom_frame.grid_columnconfigure(0, weight=1)
-
-        self.lbl_repo_info = ctk.CTkLabel(bottom_frame, text="GitHub Repo: 檢查中...", text_color="gray")
-        self.lbl_repo_info.grid(row=0, column=0, sticky="w")
-
-        btn_open_slides = ctk.CTkButton(
-            bottom_frame,
-            text="📂 開啟投影片資料夾",
-            width=150,
-            fg_color="#4A5568",
-            hover_color="#2D3748",
-            command=self._open_slides_folder
-        )
-        btn_open_slides.grid(row=0, column=1, padx=5)
-
-        self.btn_preview = ctk.CTkButton(
-            bottom_frame,
-            text="🌐 預覽最新投影片",
-            width=140,
-            fg_color="#319795",
-            hover_color="#234E52",
-            command=self._preview_latest_slide
-        )
-        self.btn_preview.grid(row=0, column=2, padx=5)
-
-    def _log(self, message):
-        """向文字框追加 Log"""
-        def _update():
-            self.txt_log.insert("end", f"[{datetime.now().strftime('%H:%M:%S')}] {message}\n")
-            self.txt_log.see("end")
-        self.after(0, _update)
-
-    def _set_status(self, text, progress=None):
-        def _update():
-            self.status_label.configure(text=text)
-            if progress is not None:
-                self.progress_bar.set(progress)
-        self.after(0, _update)
-
-    def _refresh_git_status(self):
-        git = GitHandler(self.config)
-        remote = git.get_remote_url()
-        if remote:
-            self.lbl_repo_info.configure(text=f"GitHub: {remote}", text_color="#38A169")
-        else:
-            self.lbl_repo_info.configure(text="GitHub: 尚未綁定遠端倉庫 (點擊上方設定)", text_color="#E53E3E")
-
-    def _load_sample_words(self):
-        sample_file = Path(__file__).parent / "words.txt"
-        if sample_file.exists():
-            with open(sample_file, "r", encoding="utf-8") as f:
-                self.txt_words.delete("1.0", "end")
-                self.txt_words.insert("1.0", f.read().strip())
-
-    def _handle_login_clicked(self):
+    def login_google(self):
+        """開啟 Chrome 進行 Google 帳號登入"""
         if self.is_running:
-            return
-        self.is_running = True
-        self.btn_login.configure(state="disabled")
-        self.btn_generate.configure(state="disabled")
-
-        def _run():
-            try:
-                automator = GeminiAutomator(
-                    self.config,
-                    status_callback=self._set_status,
-                    log_callback=self._log
-                )
-                automator.launch_browser_for_login()
-            finally:
-                self.is_running = False
-                self.after(0, lambda: self.btn_login.configure(state="normal"))
-                self.after(0, lambda: self.btn_generate.configure(state="normal"))
-
-        threading.Thread(target=_run, daemon=True).start()
-
-    def _handle_repo_clicked(self):
-        dialog = ctk.CTkInputDialog(
-            text="請輸入遠端 GitHub Repo URL：\n(如 git@github.com:user/repo.git 或 https://github.com/user/repo.git)",
-            title="設定 GitHub 儲存庫"
-        )
-        url = dialog.get_input()
-        if url and url.strip():
-            git = GitHandler(self.config, log_callback=self._log)
-            git.init_repo_if_needed(remote_url=url.strip())
-            self._refresh_git_status()
-            self._log(f"已更新 GitHub 遠端倉庫至：{url.strip()}")
-
-    def _open_slides_folder(self):
-        slides_dir = Path(__file__).parent / self.config.get("output_dir", "slides")
-        slides_dir.mkdir(parents=True, exist_ok=True)
-        subprocess.run(["open", str(slides_dir)])
-
-    def _preview_latest_slide(self):
-        if self.latest_html_file and Path(self.latest_html_file).exists():
-            subprocess.run(["open", str(self.latest_html_file)])
-        else:
-            # 尋找 slides 目錄中最新的 html
-            slides_dir = Path(__file__).parent / self.config.get("output_dir", "slides")
-            htmls = list(slides_dir.glob("*.html"))
-            if htmls:
-                latest = max(htmls, key=os.path.getmtime)
-                subprocess.run(["open", str(latest)])
-            else:
-                self._log("⚠️ 尚未找到任何已生成的投影片檔案。")
-
-    def _start_generation_thread(self):
-        if self.is_running:
-            return
-        words = self.txt_words.get("1.0", "end").strip()
-        if not words:
-            self._set_status("請先輸入要生成的單字！", 0.0)
-            return
-
-        custom_name = self.entry_filename.get().strip()
+            return {"status": "busy", "message": "已有工作正在執行中"}
 
         self.is_running = True
-        self.btn_generate.configure(state="disabled", text="⏳ 正在自動化執行中...")
-        self.btn_login.configure(state="disabled")
+        self.window.evaluate_js("window.setRunningState(true, '正在開啟 Chrome 登入...')")
 
         def _worker():
             try:
+                cfg = {}
+                if CONFIG_FILE.exists():
+                    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                        cfg = json.load(f)
+
                 automator = GeminiAutomator(
-                    self.config,
-                    status_callback=self._set_status,
-                    log_callback=self._log
+                    cfg,
+                    status_callback=self._status_js,
+                    log_callback=self._log_js
+                )
+                success = automator.launch_browser_for_login()
+                if success:
+                    self._status_js("Google 帳號已成功登入！", 1.0)
+                    self._log_js("Google 帳號登入狀態已確認並儲存。")
+                else:
+                    self._status_js("尚未完成登入", 0.0)
+            except Exception as e:
+                self._log_js(f"登入流程發生錯誤: {str(e)}")
+                self._status_js(f"登入失敗: {str(e)}", 0.0)
+            finally:
+                self.is_running = False
+                self.window.evaluate_js("window.setRunningState(false)")
+
+        threading.Thread(target=_worker, daemon=True).start()
+        return {"status": "started"}
+
+    def set_repo(self, url):
+        """更新遠端 GitHub Repo URL"""
+        if not url:
+            return {"success": False, "message": "網址不能為空"}
+        url = url.strip()
+        cfg = {}
+        if CONFIG_FILE.exists():
+            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+
+        git = GitHandler(cfg, repo_dir=BASE_DIR, log_callback=self._log_js)
+        git.init_repo_if_needed(remote_url=url)
+        self._log_js(f"已更新 GitHub 遠端倉庫：{url}")
+        return {"success": True, "remote_url": url}
+
+    def start_generation(self, words, custom_filename):
+        """開始生成投影片"""
+        if self.is_running:
+            return {"status": "busy", "message": "已有工作正在執行中"}
+
+        if not words or not words.strip():
+            return {"status": "error", "message": "請輸入單字清單！"}
+
+        self.is_running = True
+        self.window.evaluate_js("window.setRunningState(true, '準備啟動中...')")
+
+        def _worker():
+            try:
+                cfg = {}
+                if CONFIG_FILE.exists():
+                    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                        cfg = json.load(f)
+
+                automator = GeminiAutomator(
+                    cfg,
+                    status_callback=self._status_js,
+                    log_callback=self._log_js
                 )
                 git = GitHandler(
-                    self.config,
-                    status_callback=self._set_status,
-                    log_callback=self._log
+                    cfg,
+                    repo_dir=BASE_DIR,
+                    status_callback=self._status_js,
+                    log_callback=self._log_js
                 )
 
-                template = self.config.get("default_prompt_template", "請製作單字投影片：\n{words}")
-                prompt = template.replace("{words}", words)
+                template = cfg.get("default_prompt_template", "請製作單字投影片：\n{words}")
+                prompt = template.replace("{words}", words.strip())
 
-                # 呼叫自動化生成
                 html = automator.generate_html(prompt, headless=False)
                 if not html:
-                    self._set_status("生成失敗或未能擷取 HTML", 0.0)
-                    self._log("❌ 生成流程未能成功完成。")
+                    self._status_js("生成失敗或未能擷取 HTML", 0.0)
+                    self._log_js("❌ 未能成功取得投影片內容。")
                     return
 
-                self._log(f"成功擷取 HTML 投影片！總長度 {len(html)} 字元。")
-                saved_file = git.save_html(html, filename=custom_name if custom_name else None)
+                self._log_js(f"成功擷取 HTML 投影片！總長度 {len(html)} 字元。")
+                filename = custom_filename.strip() if custom_filename else None
+                saved_file = git.save_html(html, filename=filename)
                 self.latest_html_file = saved_file
 
                 # 同步到 GitHub
                 git.commit_and_push(saved_file)
 
             except Exception as e:
-                self._log(f"❌ 發生例外錯誤: {str(e)}")
-                self._set_status(f"錯誤: {str(e)}", 0.0)
+                self._log_js(f"❌ 發生例外錯誤: {str(e)}")
+                self._status_js(f"錯誤: {str(e)}", 0.0)
             finally:
                 self.is_running = False
-                self.after(0, lambda: self.btn_generate.configure(state="normal", text="🚀 開始自動生成單字投影片並同步至 GitHub"))
-                self.after(0, lambda: self.btn_login.configure(state="normal"))
+                self.window.evaluate_js("window.setRunningState(false)")
 
         threading.Thread(target=_worker, daemon=True).start()
+        return {"status": "started"}
+
+    def open_slides(self):
+        slides_dir = BASE_DIR / "slides"
+        slides_dir.mkdir(parents=True, exist_ok=True)
+        subprocess.run(["open", str(slides_dir)])
+        return True
+
+    def preview_latest(self):
+        if self.latest_html_file and Path(self.latest_html_file).exists():
+            subprocess.run(["open", str(self.latest_html_file)])
+            return True
+        
+        slides_dir = BASE_DIR / "slides"
+        htmls = list(slides_dir.glob("*.html"))
+        if htmls:
+            latest = max(htmls, key=os.path.getmtime)
+            subprocess.run(["open", str(latest)])
+            return True
+        else:
+            self._log_js("⚠️ 尚未找到任何已生成的投影片。")
+            return False
+
+HTML_UI = """
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gemini 單字投影片生成器</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card-hover: #334155;
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --success: #10b981;
+    --danger: #ef4444;
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+    --border: #334155;
+    --input-bg: #090d16;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    padding: 20px;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border);
+  }
+  .title-group h1 { font-size: 1.3rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+  .title-group p { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
+  .header-actions { display: flex; gap: 10px; }
+
+  button {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  button:hover { background: var(--card-hover); border-color: #475569; }
+  button:active { transform: scale(0.98); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--primary-hover); }
+
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 15px;
+    min-height: 0;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .label-bar { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 600; color: #e2e8f0; }
+  .label-bar .tools { display: flex; gap: 8px; }
+
+  textarea {
+    background: var(--input-bg);
+    color: #e2e8f0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.88rem;
+    font-family: "Menlo", "SF Mono", monospace;
+    resize: none;
+    height: 120px;
+    outline: none;
+  }
+  textarea:focus { border-color: var(--primary); }
+
+  .options-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  input[type="text"] {
+    flex: 1;
+    background: var(--input-bg);
+    color: #e2e8f0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    outline: none;
+  }
+  input[type="text"]:focus { border-color: var(--primary); }
+
+  .big-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    justify-content: center;
+    border-radius: 10px;
+  }
+
+  .status-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .status-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+  .progress-bg {
+    width: 100%;
+    height: 8px;
+    background: var(--input-bg);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    width: 0%;
+    height: 100%;
+    background: var(--primary);
+    transition: width 0.3s ease;
+  }
+
+  .log-box {
+    flex: 1;
+    background: #020617;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: "Menlo", "SF Mono", monospace;
+    font-size: 0.78rem;
+    color: #cbd5e1;
+    overflow-y: auto;
+    min-height: 120px;
+    line-height: 1.5;
+  }
+  .log-line { margin-bottom: 2px; }
+
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .footer-actions { display: flex; gap: 8px; }
+  .badge {
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    background: #1e293b;
+    border: 1px solid var(--border);
+  }
+  .badge.connected { color: var(--success); border-color: rgba(16, 185, 129, 0.4); }
+  .badge.disconnected { color: var(--danger); border-color: rgba(239, 68, 68, 0.4); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="title-group">
+    <h1>📚 Gemini 單字投影片生成器</h1>
+    <p>自動呼叫網頁版 Gemini 產出自包含 HTML 投影片並推送到 GitHub</p>
+  </div>
+  <div class="header-actions">
+    <button id="btnLogin" onclick="onLoginClicked()">🔑 Google 登入設定</button>
+    <button id="btnRepo" onclick="onRepoClicked()">⚙️ 設定 GitHub Repo</button>
+  </div>
+</div>
+
+<div class="main-content">
+  <div class="card">
+    <div class="label-bar">
+      <span>請輸入單字清單 (每行一個單字，可附帶中文註解)：</span>
+      <div class="tools">
+        <button onclick="onLoadSample()" style="padding: 4px 8px; font-size: 0.75rem;">📄 載入範例</button>
+        <button onclick="onClearWords()" style="padding: 4px 8px; font-size: 0.75rem; color: var(--danger);">🧹 清空</button>
+      </div>
+    </div>
+    <textarea id="wordsInput" placeholder="例如：&#10;ephemeral - 短暫的&#10;resilience - 韌性&#10;serendipity - 意外的美好"></textarea>
+    
+    <div class="options-row">
+      <span style="font-size: 0.85rem; color: var(--text-muted); white-space: nowrap;">自訂檔名 (選填)：</span>
+      <input type="text" id="filenameInput" placeholder="例如：vocab_day1 (預設以時間戳記命名)">
+    </div>
+  </div>
+
+  <button id="btnGenerate" class="btn-primary big-btn" onclick="onGenerateClicked()">
+    🚀 開始自動生成單字投影片並同步至 GitHub
+  </button>
+
+  <div class="card" style="flex: 1; min-height: 0;">
+    <div class="status-section">
+      <div class="status-header">
+        <span id="statusText">準備就緒</span>
+        <span id="statusPercent">0%</span>
+      </div>
+      <div class="progress-bg">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+    </div>
+    <div class="log-box" id="logBox">
+      <div class="log-line" style="color: #64748b;">[系統] 應用程式已就緒。請確認已登入 Google 帳號後點擊開始生成。</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <div>
+    <span>GitHub 狀態：</span>
+    <span id="repoBadge" class="badge disconnected">尚未設定</span>
+  </div>
+  <div class="footer-actions">
+    <button onclick="pywebview.api.open_slides()">📂 開啟投影片資料夾</button>
+    <button onclick="pywebview.api.preview_latest()" class="btn-primary" style="background:#059669; border-color:#059669;">🌐 預覽最新投影片</button>
+  </div>
+</div>
+
+<script>
+  let cachedWords = "";
+
+  window.addEventListener('pywebviewready', function() {
+    pywebview.api.get_initial_data().then(function(data) {
+      if (data.words) {
+        cachedWords = data.words;
+        document.getElementById('wordsInput').value = data.words;
+      }
+      updateRepoDisplay(data.remote_url);
+    });
+  });
+
+  function updateRepoDisplay(url) {
+    const badge = document.getElementById('repoBadge');
+    if (url) {
+      badge.textContent = url;
+      badge.className = 'badge connected';
+    } else {
+      badge.textContent = '尚未設定 (點擊上方設定)';
+      badge.className = 'badge disconnected';
+    }
+  }
+
+  function onLoadSample() {
+    if (cachedWords) {
+      document.getElementById('wordsInput').value = cachedWords;
+    }
+  }
+
+  function onClearWords() {
+    document.getElementById('wordsInput').value = '';
+  }
+
+  function onLoginClicked() {
+    pywebview.api.login_google();
+  }
+
+  function onRepoClicked() {
+    const url = prompt("請輸入您的 GitHub Repo URL (例如 git@github.com:user/repo.git 或 https://github.com/user/repo.git)：");
+    if (url && url.trim()) {
+      pywebview.api.set_repo(url.trim()).then(res => {
+        if (res.success) {
+          updateRepoDisplay(res.remote_url);
+        }
+      });
+    }
+  }
+
+  function onGenerateClicked() {
+    const words = document.getElementById('wordsInput').value;
+    const filename = document.getElementById('filenameInput').value;
+    if (!words || !words.trim()) {
+      alert("請先輸入要生成的單字！");
+      return;
+    }
+    pywebview.api.start_generation(words, filename);
+  }
+
+  window.setRunningState = function(isRunning, title) {
+    const btn = document.getElementById('btnGenerate');
+    const btnLogin = document.getElementById('btnLogin');
+    if (isRunning) {
+      btn.disabled = true;
+      btn.textContent = '⏳ ' + (title || '正在自動化執行中...');
+      btnLogin.disabled = true;
+    } else {
+      btn.disabled = false;
+      btn.textContent = '🚀 開始自動生成單字投影片並同步至 GitHub';
+      btnLogin.disabled = false;
+    }
+  };
+
+  window.updateStatus = function(text, prog) {
+    document.getElementById('statusText').textContent = text;
+    if (prog !== undefined && prog >= 0) {
+      const pct = Math.round(prog * 100);
+      document.getElementById('progressBar').style.width = pct + '%';
+      document.getElementById('statusPercent').textContent = pct + '%';
+    }
+  };
+
+  window.appendLog = function(msg) {
+    const logBox = document.getElementById('logBox');
+    const line = document.createElement('div');
+    line.className = 'log-line';
+    line.textContent = msg;
+    logBox.appendChild(line);
+    logBox.scrollTop = logBox.scrollHeight;
+  };
+</script>
+
+</body>
+</html>
+"""
+
+def main():
+    api = AppAPI()
+    window = webview.create_window(
+        title="Gemini 單字投影片生成器",
+        html=HTML_UI,
+        js_api=api,
+        width=920,
+        height=720,
+        min_size=(800, 600),
+        text_select=True
+    )
+    api.set_window(window)
+    webview.start(debug=False)
 
 if __name__ == "__main__":
-    app = VocabApp()
-    app.mainloop()
+    main()
