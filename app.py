@@ -491,11 +491,16 @@ HTML_UI = """
       if (data.words) {
         cachedWords = data.words;
         document.getElementById('wordsInput').value = data.words;
+        tryAutoFilename(data.words);
       }
       updateRepoDisplay(data.remote_url);
       
       // 打開程式時，自動執行登入檢測與登入流程！
       pywebview.api.auto_init_login();
+    });
+
+    document.getElementById('wordsInput').addEventListener('input', function(e) {
+      tryAutoFilename(e.target.value);
     });
   });
 
@@ -536,14 +541,30 @@ HTML_UI = """
     }
   }
 
+  function tryAutoFilename(text) {
+    if (!text) return;
+    const fnInput = document.getElementById('filenameInput');
+    // 如果使用者已經手動輸入過且不是自動生成的，可以判斷，或者自動建議
+    const match = text.match(/(?:日期[：:])?\\s*\\[?([Ww]\\d{1,2})\\]?\\s*(\\d{4})[\\/\\-](\\d{1,2})[\\/\\-](\\d{1,2})/);
+    if (match) {
+      const week = match[1].toUpperCase();
+      const year = match[2];
+      const month = match[3].padStart(2, '0');
+      const day = match[4].padStart(2, '0');
+      fnInput.value = `${week}_${year}${month}${day}`;
+    }
+  }
+
   function onLoadSample() {
     if (cachedWords) {
       document.getElementById('wordsInput').value = cachedWords;
+      tryAutoFilename(cachedWords);
     }
   }
 
   function onClearWords() {
     document.getElementById('wordsInput').value = '';
+    document.getElementById('filenameInput').value = '';
   }
 
   function onRepoClicked() {
