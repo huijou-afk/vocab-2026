@@ -572,14 +572,20 @@ HTML_UI = """
   function tryAutoFilename(text) {
     if (!text) return;
     const fnInput = document.getElementById('filenameInput');
-    // 如果使用者已經手動輸入過且不是自動生成的，可以判斷，或者自動建議
-    const match = text.match(/(?:日期[：:])?\\s*\\[?([Ww]\\d{1,2})\\]?\\s*(\\d{4})[\\/\\-](\\d{1,2})[\\/\\-](\\d{1,2})/);
+    // 支援 [W03]2026/09/18(五) -> 2026_w03d5 (符合 GitHub 既有命名規範)
+    const match = text.match(/(?:日期[：:])?\s*\[?([Ww]\d{1,2})\]?\s*(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})(?:\(([\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u65e5])\))?/);
     if (match) {
-      const week = match[1].toUpperCase();
+      const week = match[1].toLowerCase();
       const year = match[2];
-      const month = match[3].padStart(2, '0');
-      const day = match[4].padStart(2, '0');
-      fnInput.value = `${week}_${year}${month}${day}`;
+      const weekdayMap = {'一':'d1', '二':'d2', '三':'d3', '四':'d4', '五':'d5', '六':'d6', '日':'d7'};
+      const daySuffix = match[5] && weekdayMap[match[5]] ? weekdayMap[match[5]] : '';
+      if (daySuffix) {
+        fnInput.value = `${year}_${week}${daySuffix}`;
+      } else {
+        const month = match[3].padStart(2, '0');
+        const day = match[4].padStart(2, '0');
+        fnInput.value = `${year}_${week}_${month}${day}`;
+      }
     }
   }
 
