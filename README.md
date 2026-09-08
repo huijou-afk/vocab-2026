@@ -52,6 +52,19 @@ python3 main.py --remote git@github.com:your-username/your-vocab-repo.git
   python3 main.py --file words.txt
   ```
 
+## 🏷 版本管理與打包發布 (Git & App Bundle)
+
+每次修改完程式碼需要升級版本時，只需執行一鍵發布腳本：
+```bash
+./bump_and_build.sh
+```
+此腳本會全自動：
+1. 自動累加版本號（例如 `1.0.1` -> `1.0.2`，或傳入特定版號 `./bump_and_build.sh 1.1.0`）。
+2. 更新 `VERSION` 與 `VocabGenerator.app/Contents/Info.plist`。
+3. 自動進行 Git Commit 並建立 Git Tag（如 `v1.0.2`）。
+4. 重新編譯打包 `VocabGenerator.app`。
+5. 重新啟動最新版本應用程式，APP 頂部會直接顯示最新版本號標籤。
+
 ## 📁 檔案結構說明
 
 - `config.json`：全域設定檔（Chrome Profile 路徑、Prompt 範本、Git 倉庫設定）。
