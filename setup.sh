@@ -14,17 +14,18 @@ if ! command -v python3 &> /dev/null; then
     exit 1
 fi
 
-# 2. 建立虛擬環境
-if [ ! -d ".venv" ]; then
-    echo "[1/4] 正在建立 Python 虛擬環境 (.venv)..."
-    python3 -m venv .venv
+# 2. 建立虛擬環境 (放在使用者根目錄 ~/.gemini_vocab_env，避開 macOS 桌面權限阻擋)
+VENV_DIR="$HOME/.gemini_vocab_env"
+if [ ! -d "$VENV_DIR" ]; then
+    echo "[1/4] 正在建立 Python 虛擬環境 ($VENV_DIR)..."
+    python3 -m venv "$VENV_DIR"
 else
-    echo "[1/4] 虛擬環境 .venv 已存在，跳過建立。"
+    echo "[1/4] 虛擬環境 $VENV_DIR 已存在。"
 fi
 
 # 3. 啟用虛擬環境並安裝依賴
-echo "[2/4] 安裝必要套件 (Playwright 等)..."
-source .venv/bin/activate
+echo "[2/4] 安裝必要套件 (Playwright, pywebview 等)..."
+source "$VENV_DIR/bin/activate"
 pip install --upgrade pip
 pip install -r requirements.txt
 

@@ -2,11 +2,11 @@
 DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$DIR"
 
-# 若尚未建立虛擬環境，自動執行 setup
-if [ ! -d ".venv" ]; then
+VENV_DIR="$HOME/.gemini_vocab_env"
+if [ ! -d "$VENV_DIR" ]; then
     echo "⚠️ 尚未偵測到 Python 虛擬環境，開始執行自動初始化..."
     ./setup.sh
 fi
 
-source .venv/bin/activate
+source "$VENV_DIR/bin/activate"
 exec python3 app.py
