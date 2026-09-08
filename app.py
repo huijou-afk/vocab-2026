@@ -13,6 +13,12 @@ from git_handler import GitHandler
 BASE_DIR = Path(__file__).parent.resolve()
 CONFIG_FILE = BASE_DIR / "config.json"
 WORDS_FILE = BASE_DIR / "words.txt"
+VERSION_FILE = BASE_DIR / "VERSION"
+
+def get_app_version():
+    if VERSION_FILE.exists():
+        return VERSION_FILE.read_text(encoding="utf-8").strip()
+    return "1.0.0"
 
 class AppAPI:
     def __init__(self):
@@ -54,6 +60,7 @@ class AppAPI:
         remote_url = git.get_remote_url()
 
         return {
+            "version": get_app_version(),
             "words": sample_words,
             "remote_url": remote_url,
             "has_remote": bool(remote_url)
@@ -250,6 +257,15 @@ HTML_UI = """
   }
   .title-group h1 { font-size: 1.3rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
   .title-group p { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
+  .version-tag {
+    font-size: 0.72rem;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    font-weight: 600;
+  }
   .header-actions { display: flex; align-items: center; gap: 10px; }
 
   .account-status-badge {
@@ -422,7 +438,7 @@ HTML_UI = """
 
 <div class="header">
   <div class="title-group">
-    <h1>📚 Gemini 單字投影片生成器</h1>
+    <h1>📚 Gemini 單字投影片生成器 <span class="version-tag" id="appVersion">v1.0.0</span></h1>
     <p>自動呼叫網頁版 Gemini 產出自包含 HTML 投影片並推送到 GitHub</p>
   </div>
   <div class="header-actions">
@@ -488,6 +504,9 @@ HTML_UI = """
 
   window.addEventListener('pywebviewready', function() {
     pywebview.api.get_initial_data().then(function(data) {
+      if (data.version) {
+        document.getElementById('appVersion').textContent = 'v' + data.version;
+      }
       if (data.words) {
         cachedWords = data.words;
         document.getElementById('wordsInput').value = data.words;
