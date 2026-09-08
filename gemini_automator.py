@@ -219,6 +219,14 @@ class GeminiAutomator:
             input_box.click()
             time.sleep(0.5)
 
+            # 確保輸入框為乾淨空白狀態（全選並刪除可能殘留的舊文字）
+            try:
+                page.keyboard.press("Meta+A")
+                page.keyboard.press("Backspace")
+                time.sleep(0.3)
+            except Exception:
+                pass
+
             # 注入提示詞文字
             page.keyboard.insert_text(prompt)
             time.sleep(1)
