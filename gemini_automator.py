@@ -280,7 +280,22 @@ class GeminiAutomator:
             self._log("從頁面 DOM 提取 HTML 內容...")
             extracted_html = self._extract_html_content(page)
 
-            context.close()
+            # 安全快速關閉瀏覽器，使用守護執行緒加逾時保護，避免 Playwright context.close() 卡死
+            def _quick_close():
+                try:
+                    if not page.is_closed():
+                        page.close()
+                except Exception:
+                    pass
+                try:
+                    context.close()
+                except Exception:
+                    pass
+
+            close_thread = threading.Thread(target=_quick_close, daemon=True)
+            close_thread.start()
+            close_thread.join(timeout=2.0)
+
             return extracted_html
 
     def _extract_html_content(self, page):

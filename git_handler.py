@@ -38,17 +38,23 @@ class GitHandler:
         self._log(f"💾 已成功儲存投影片檔案：{file_path.relative_to(self.repo_dir)}")
         return file_path
 
-    def _run_git(self, args):
+    def _run_git(self, args, timeout=15):
         """執行 Git 指令並回傳 (returncode, stdout, stderr)"""
         try:
+            env = dict(os.environ)
+            env["GIT_TERMINAL_PROMPT"] = "0"
             res = subprocess.run(
                 ["git"] + args,
                 cwd=self.repo_dir,
                 capture_output=True,
                 text=True,
-                check=False
+                check=False,
+                timeout=timeout,
+                env=env
             )
             return res.returncode, res.stdout.strip(), res.stderr.strip()
+        except subprocess.TimeoutExpired:
+            return -1, "", "Git 指令逾時 (已自動取消避免凍結)"
         except FileNotFoundError:
             return -1, "", "未安裝 git 命令列工具。"
 
