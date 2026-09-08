@@ -28,10 +28,23 @@ class GeminiAutomator:
         url = page.url
         if "accounts.google.com" in url:
             return False
-        
-        # 檢查是否有登入按鈕
+
+        # 1. 優先檢查輸入框是否存在：若輸入框可見，代表 100% 已登入！
+        input_selectors = [
+            'div[role="textbox"]',
+            'rich-textarea div[contenteditable="true"]',
+            'div[contenteditable="true"]'
+        ]
+        for sel in input_selectors:
+            try:
+                loc = page.locator(sel).first
+                if loc.is_visible(timeout=1500):
+                    return True
+            except Exception:
+                pass
+
+        # 2. 檢查是否明確出現未登入的按鈕
         sign_in_selectors = [
-            'a[href*="accounts.google.com"]',
             'button:has-text("Sign in")',
             'button:has-text("登入")',
             'a:has-text("登入")',
@@ -40,23 +53,11 @@ class GeminiAutomator:
         for sel in sign_in_selectors:
             try:
                 loc = page.locator(sel).first
-                if loc.is_visible(timeout=1000):
-                    return False
-            except Exception:
-                pass
-        
-        # 檢查是否有輸入框存在
-        input_selectors = [
-            'div[role="textbox"]',
-            'rich-textarea div[contenteditable="true"]',
-            'textarea',
-            '[contenteditable="true"]'
-        ]
-        for sel in input_selectors:
-            try:
-                loc = page.locator(sel).first
-                if loc.is_visible(timeout=2000):
-                    return True
+                # 排除頭像中的連結
+                if loc.is_visible(timeout=500):
+                    txt = loc.inner_text().strip()
+                    if txt in ["登入", "Sign in"]:
+                        return False
             except Exception:
                 pass
 
@@ -177,14 +178,12 @@ class GeminiAutomator:
             self._status("連線至 Gemini 網頁中...", 0.25)
             self._log(f"開啟網頁: {self.gemini_url}")
             page.goto(self.gemini_url, wait_until="domcontentloaded")
-            time.sleep(2)
+            time.sleep(3)
 
             # 檢查登入狀態
             if not self.is_logged_in(page):
-                self._log("❌ 尚未登入 Google 帳號！正在為您開啟登入視窗...")
-                self._status("請先登入 Google 帳號...", 0.0)
-                # 自動觸發登入
-                self.launch_browser_for_login(auto_click_signin=True)
+                self._log("❌ 尚未登入 Google 帳號！請先點選「重新登入」完成登入。")
+                self._status("錯誤：尚未登入 Google", 0.0)
                 context.close()
                 return None
 

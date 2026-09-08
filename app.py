@@ -70,50 +70,59 @@ class AppAPI:
         """啟動程式時自動執行的登入檢測與自動登入引導"""
         if self.is_running:
             return
+        self.is_running = True
+        self.window.evaluate_js("window.setRunningState(true, '連線檢查中...')")
 
         def _worker():
-            cfg = {}
-            if CONFIG_FILE.exists():
-                with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-                    cfg = json.load(f)
+            try:
+                cfg = {}
+                if CONFIG_FILE.exists():
+                    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                        cfg = json.load(f)
 
-            automator = GeminiAutomator(
-                cfg,
-                status_callback=self._status_js,
-                log_callback=self._log_js
-            )
+                automator = GeminiAutomator(
+                    cfg,
+                    status_callback=self._status_js,
+                    log_callback=self._log_js
+                )
 
-            self._log_js("正在自動檢查 Google 帳號登入狀態...")
-            self._status_js("正在自動檢查 Google 登入狀態...", 0.15)
-            self.window.evaluate_js("window.setLoginState('checking')")
+                self._log_js("正在自動檢查 Google 帳號登入狀態...")
+                self._status_js("正在自動檢查 Google 登入狀態...", 0.15)
+                self.window.evaluate_js("window.setLoginState('checking')")
 
-            logged = automator.check_login_status_headless()
-            if logged:
-                self.is_logged_in = True
-                self._log_js("✅ Google 帳號已自動登入！Gemini 連線正常。")
-                self._status_js("準備就緒 (Google 帳號已自動登入)", 1.0)
-                self.window.evaluate_js("window.setLoginState('logged_in')")
-            else:
-                self.is_logged_in = False
-                self._log_js("⚠️ 尚未偵測到 Google 登入憑證，正在自動為您彈出 Chrome 登入視窗...")
-                self._status_js("請在彈出的 Chrome 視窗中完成 Google 登入...", 0.4)
-                self.window.evaluate_js("window.setLoginState('logging_in')")
-                
-                # 自動彈出 Chrome 視窗引導登入
-                automator.launch_browser_for_login(auto_click_signin=True)
-                
-                # 登入結束後重新檢測
-                recheck = automator.check_login_status_headless()
-                if recheck:
+                logged = automator.check_login_status_headless()
+                if logged:
                     self.is_logged_in = True
-                    self._log_js("🎉 恭喜！Google 帳號已登入成功並永久記住！日後打開本程式都將自動保持登入。")
-                    self._status_js("登入成功！已就緒，可直接生成投影片", 1.0)
+                    self._log_js("✅ Google 帳號已自動登入！Gemini 連線正常。")
+                    self._status_js("準備就緒 (Google 帳號已自動登入)", 1.0)
                     self.window.evaluate_js("window.setLoginState('logged_in')")
                 else:
                     self.is_logged_in = False
-                    self._log_js("尚未完成登入，您可以隨時點擊右上角「重新登入 Google」按鈕。")
-                    self._status_js("尚未登入 Google", 0.0)
-                    self.window.evaluate_js("window.setLoginState('logged_out')")
+                    self._log_js("⚠️ 尚未偵測到 Google 登入憑證，正在自動為您彈出 Chrome 登入視窗...")
+                    self._status_js("請在彈出的 Chrome 視窗中完成 Google 登入...", 0.4)
+                    self.window.evaluate_js("window.setLoginState('logging_in')")
+                    
+                    # 自動彈出 Chrome 視窗引導登入
+                    automator.launch_browser_for_login(auto_click_signin=True)
+                    
+                    # 登入結束後重新檢測
+                    recheck = automator.check_login_status_headless()
+                    if recheck:
+                        self.is_logged_in = True
+                        self._log_js("🎉 恭喜！Google 帳號已登入成功並永久記住！日後打開本程式都將自動保持登入。")
+                        self._status_js("登入成功！已就緒，可直接生成投影片", 1.0)
+                        self.window.evaluate_js("window.setLoginState('logged_in')")
+                    else:
+                        self.is_logged_in = False
+                        self._log_js("尚未完成登入，您可以隨時點擊右上角「重新登入」按鈕。")
+                        self._status_js("尚未登入 Google", 0.0)
+                        self.window.evaluate_js("window.setLoginState('logged_out')")
+            except Exception as e:
+                self._log_js(f"檢查登入時發生錯誤: {str(e)}")
+                self._status_js(f"錯誤: {str(e)}", 0.0)
+            finally:
+                self.is_running = False
+                self.window.evaluate_js("window.setRunningState(false)")
 
         threading.Thread(target=_worker, daemon=True).start()
 
