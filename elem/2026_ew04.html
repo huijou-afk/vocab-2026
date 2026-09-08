@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>2026 一起背單字 (國小組) - [W03]</title>
+  <title>2026 一起背單字 (國小組) - [W04]</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -29,8 +29,8 @@
               cream: '#fffdf7',
               yellow: '#fef08a',
               yellowBorder: '#facc15',
-              orange: '#f97316',
-              orangeDark: '#ea580c',
+              orange: '#ea580c',
+              orangeDark: '#c2410c',
               sky: '#38bdf8',
               skyDark: '#0284c7',
               skyLight: '#e0f2fe',
@@ -66,7 +66,7 @@
       position: absolute;
       pointer-events: none;
       z-index: 0;
-      opacity: 0.6;
+      opacity: 0.65;
     }
 
     /* Fixed 16:9 Stage scaling for desktop/landscape */
@@ -106,7 +106,7 @@
     @keyframes popIn {
       0% {
         opacity: 0;
-        transform: scale(0.97) translateY(10px);
+        transform: scale(0.97) translateY(8px);
       }
       100% {
         opacity: 1;
@@ -131,7 +131,6 @@
 </head>
 <body class="h-screen w-screen flex flex-col bg-[#fffdf7]">
 
-  <!-- Cute Background Decors -->
   <div class="bg-decor top-4 left-6 text-yellow-300 text-3xl animate-bounce" style="animation-duration: 3s;">
     <i class="fa-solid fa-star"></i>
   </div>
@@ -145,16 +144,15 @@
     <i class="fa-solid fa-cloud"></i>
   </div>
 
-  <!-- Main Presentation Area (No top header) -->
+  <!-- Main Presentation Stage Area (No top header) -->
   <main id="stage-container" class="flex-1">
     <div id="presentation-stage" class="relative">
       <div id="slide-viewport" class="w-full h-full p-4 md:p-6 flex items-center justify-center">
-        <!-- Slide content will be rendered here dynamically -->
+        <!-- Dynamic slide content injected here -->
       </div>
     </div>
   </main>
 
-  <!-- Bottom Control Bar (Compact anti-overflow design) -->
   <footer class="h-[68px] w-full bg-white/95 backdrop-blur-md border-t-2 border-yellow-300 z-50 px-3 md:px-6 flex items-center justify-between shadow-control shrink-0">
     <!-- Left: Prev & Next buttons -->
     <div class="flex items-center space-x-2 shrink-0">
@@ -168,7 +166,7 @@
       </button>
     </div>
 
-    <!-- Center: Select Jump & Progress Bar -->
+    <!-- Center: Jump Select & Progress Bar -->
     <div class="flex items-center space-x-2 md:space-x-4 max-w-[480px] w-full mx-2 md:mx-4">
       <!-- Jump Dropdown Select -->
       <div class="relative shrink-0">
@@ -190,7 +188,7 @@
       </div>
     </div>
 
-    <!-- Right: Manual Pronounce, Auto Audio Switch & Fullscreen -->
+    <!-- Right: Pronounce, Auto Audio Switch & Fullscreen -->
     <div class="flex items-center space-x-1.5 md:space-x-2 shrink-0">
       <!-- Manual Word Pronunciation Button -->
       <button id="btn-manual-speak" onclick="speakCurrentWord()" title="朗讀目前單字" class="pulse-btn p-2 md:px-3 md:py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl border-2 border-orange-600 shadow-[0_3px_0_#c2410c] text-sm md:text-base flex items-center gap-1.5 transition-all">
@@ -204,7 +202,7 @@
         <span class="hidden lg:inline">自動朗讀</span>
       </button>
 
-      <!-- Fullscreen Button -->
+      <!-- Fullscreen Toggle -->
       <button id="btn-fullscreen" onclick="toggleFullscreen()" title="切換全螢幕 (快速鍵: F)" class="pulse-btn p-2 md:px-3 md:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border-2 border-slate-300 text-sm md:text-base transition-all">
         <i id="fullscreen-icon" class="fa-solid fa-expand"></i>
       </button>
@@ -213,314 +211,312 @@
 
   <script>
     /**
-     * Week 03 Vocabulary Dataset
-     * Date: [W03]2026/09/14~09/21
+     * Week 04 Vocabulary Dataset
+     * Date: [W04]2026/09/21~09/28
      */
     const weekData = {
       title: "2026 一起背單字 (國小組)",
-      dateTag: "[W03]2026/09/14~09/21",
-      categories: ["人物與稱謂", "地點與建築"],
+      dateTag: "[W04]2026/09/21~09/28",
+      categories: ["人物與稱謂", "介系詞與位置", "地點與建築"],
       words: [
         {
           id: 1,
-          word: "girl",
-          chinese: "女孩",
+          word: "grandfather",
+          chinese: "祖父（外公）",
           pos: "n.",
           category: "人物與稱謂",
-          collocations: "little girl (小女孩) / teenage girl (青少女)",
-          sentenceEn: "The little girl is drawing a picture of a cat.",
-          sentenceZh: "那個小女孩正在畫一隻貓。",
-          icon: "fa-solid fa-child-dress",
-          iconColor: "text-rose-500",
-          situation: "校園與家庭",
-          mascotTip: "💡 綁著可愛雙馬尾的小女孩在草地上開心畫畫！"
+          collocations: "visit grandfather (拜訪祖父) / grandfather clock (老式擺鐘)",
+          sentenceEn: "My grandfather loves planting vegetables in his garden.",
+          sentenceZh: "我的祖父喜歡在他的花園裡種蔬菜。",
+          icon: "fa-solid fa-user-clock",
+          iconColor: "text-amber-700",
+          situation: "親情時光",
+          mascotTip: "💡 祖父的花園裡種了鮮甜的青菜，綠意盎然！"
         },
         {
           id: 2,
-          word: "home",
-          chinese: "家",
-          pos: "n. / adv.",
+          word: "grandpa",
+          chinese: "祖父（爺爺；外公）",
+          pos: "n.",
           category: "人物與稱謂",
-          collocations: "go home (回家) / at home (在家)",
-          sentenceEn: "I usually get home at five o'clock every afternoon.",
-          sentenceZh: "我通常每天下午五點到家。",
-          icon: "fa-solid fa-house-chimney-user",
-          iconColor: "text-amber-600",
-          situation: "溫馨歸所",
-          mascotTip: "💡 家是世界上最溫暖、隨時迎接你的避風港！"
+          collocations: "dear grandpa (親愛的爺爺) / grandpa and grandma (爺爺奶奶)",
+          sentenceEn: "Grandpa tells us interesting stories every evening.",
+          sentenceZh: "爺爺每天晚上都給我們講有趣的故事。",
+          icon: "fa-solid fa-glasses",
+          iconColor: "text-blue-600",
+          situation: "床邊故事",
+          mascotTip: "💡 爺爺戴著老花眼鏡，講的民間童話故事最精彩！"
         },
         {
           id: 3,
-          word: "father",
-          chinese: "爸爸",
+          word: "grandmother",
+          chinese: "祖母（外婆）",
           pos: "n.",
           category: "人物與稱謂",
-          collocations: "proud father (驕傲的父親) / father and son (父子)",
-          sentenceEn: "His father works hard to support the whole family.",
-          sentenceZh: "他的父親努力工作以撫養全家。",
-          icon: "fa-solid fa-user-tie",
-          iconColor: "text-blue-600",
-          situation: "家庭支柱",
-          mascotTip: "💡 父親就像一座巍峨的大山，默默保護我們長大！"
+          collocations: "visit grandmother (拜訪祖母) / loving grandmother (慈愛的祖母)",
+          sentenceEn: "My grandmother makes the most delicious apple pie.",
+          sentenceZh: "我的外婆做最美味的蘋果派。",
+          icon: "fa-solid fa-cake-candles",
+          iconColor: "text-rose-500",
+          situation: "烘焙香味",
+          mascotTip: "💡 外婆烤的熱騰騰蘋果派，飄散著肉桂與甜甜香氣！"
         },
         {
           id: 4,
-          word: "dad",
-          chinese: "爸爸",
+          word: "grandma",
+          chinese: "祖母（奶奶；外婆）",
           pos: "n.",
           category: "人物與稱謂",
-          collocations: "good dad (好爸爸) / stay-at-home dad (家庭主夫)",
-          sentenceEn: "Dad bought me a new schoolbag yesterday.",
-          sentenceZh: "爸爸昨天買了一個新書包給我。",
-          icon: "fa-solid fa-person",
-          iconColor: "text-indigo-600",
-          situation: "親切日常",
-          mascotTip: "💡 dad 是日常最親暱的叫法：謝謝爸爸送的新書包！"
+          collocations: "dear grandma (親愛的奶奶) / grandma's cooking (奶奶煮的飯菜)",
+          sentenceEn: "Grandma taught me how to knit a warm scarf.",
+          sentenceZh: "奶奶教我如何織一條溫暖的圍巾。",
+          icon: "fa-solid fa-mitten",
+          iconColor: "text-pink-500",
+          situation: "暖心手作",
+          mascotTip: "💡 奶奶手巧又慈祥，幫我們織了軟綿綿的毛線圍巾！"
         },
         {
           id: 5,
-          word: "daddy",
-          chinese: "爸爸",
+          word: "baby",
+          chinese: "嬰兒",
           pos: "n.",
           category: "人物與稱謂",
-          collocations: "call daddy (叫爸爸) / daddy's girl (爸爸的掌上明珠)",
-          sentenceEn: "The child ran happily into her daddy's arms.",
-          sentenceZh: "孩子開心地跑進爸爸的懷裡。",
-          icon: "fa-solid fa-heart",
-          iconColor: "text-red-500",
-          situation: "甜蜜撒嬌",
-          mascotTip: "💡 小朋友甜甜撒嬌時叫 daddy，給爸爸一個大大擁抱！"
+          collocations: "baby boy (男嬰) / take care of a baby (照顧嬰兒)",
+          sentenceEn: "The baby fell asleep peacefully in the crib.",
+          sentenceZh: "小嬰兒在嬰兒床裡安詳地睡著了。",
+          icon: "fa-solid fa-baby-carriage",
+          iconColor: "text-sky-500",
+          situation: "安靜甜睡",
+          mascotTip: "💡 噓！小寶寶在小床裡抱著玩偶甜甜入睡囉！"
         },
         {
           id: 6,
-          word: "mother",
-          chinese: "媽媽",
+          word: "family",
+          chinese: "家人/家庭",
           pos: "n.",
           category: "人物與稱謂",
-          collocations: "caring mother (細心的母親) / Mother's Day (母親節)",
-          sentenceEn: "Mother cooked a delicious dinner for all of us.",
-          sentenceZh: "媽媽為我們大家煮了美味的晚餐。",
-          icon: "fa-solid fa-person-dress",
-          iconColor: "text-pink-600",
-          situation: "溫柔守護",
-          mascotTip: "💡 每年五月第二個星期日是敬愛的 Mother's Day！"
+          collocations: "family member (家庭成員) / family dinner (家庭聚餐)",
+          sentenceEn: "I have a happy family with four members.",
+          sentenceZh: "我有一個四口之家的幸福家庭。",
+          icon: "fa-solid fa-people-roof",
+          iconColor: "text-orange-500",
+          situation: "幸福團聚",
+          mascotTip: "💡 全家聚在一起吃晚餐、分享日常是最幸福的事！"
         },
         {
           id: 7,
-          word: "mom",
-          chinese: "媽媽",
-          pos: "n.",
-          category: "人物與稱謂",
-          collocations: "call mom (打電話給媽媽) / help mom (幫媽媽忙)",
-          sentenceEn: "Mom reminded me to bring my umbrella this morning.",
-          sentenceZh: "媽媽今天早上提醒我要帶雨傘。",
-          icon: "fa-solid fa-umbrella",
-          iconColor: "text-teal-600",
-          situation: "日常叮嚀",
-          mascotTip: "💡 下雨天出門前，聽媽媽的叮嚀別忘了帶雨傘喔！"
+          word: "out",
+          chinese: "向外",
+          pos: "adv. / prep.",
+          category: "介系詞與位置",
+          collocations: "go out (外出) / find out (查明；找出)",
+          sentenceEn: "He took his wallet out of his pocket.",
+          sentenceZh: "他從口袋裡拿出錢包。",
+          icon: "fa-solid fa-arrow-right-from-bracket",
+          iconColor: "text-emerald-600",
+          situation: "方向動作",
+          mascotTip: "💡 伸出手從書包拿出來，由內朝外動起來！"
         },
         {
           id: 8,
-          word: "mommy",
-          chinese: "媽媽",
-          pos: "n.",
-          category: "人物與稱謂",
-          collocations: "sweet mommy (親愛的媽咪) / mommy and me (媽咪和我)",
-          sentenceEn: "The baby smiled sweetly at his mommy.",
-          sentenceZh: "小嬰兒對著他的媽咪甜甜地笑。",
-          icon: "fa-solid fa-baby",
-          iconColor: "text-rose-400",
-          situation: "愛與微笑",
-          mascotTip: "💡 小寶寶看到最愛的 mommy 就會露出甜甜笑臉！"
+          word: "outside",
+          chinese: "外面",
+          pos: "prep. / adv.",
+          category: "介系詞與位置",
+          collocations: "stay outside (待在戶外) / outside the box (跳脫常規)",
+          sentenceEn: "The children are playing badminton outside the house.",
+          sentenceZh: "孩子們正在房子外面打羽毛球。",
+          icon: "fa-solid fa-sun",
+          iconColor: "text-amber-500",
+          situation: "戶外活動",
+          mascotTip: "💡 走出戶外，在明媚陽光下開心地跑跳運動！"
         },
         {
           id: 9,
-          word: "sister",
-          chinese: "姊妹",
-          pos: "n.",
-          category: "人物與稱謂",
-          collocations: "elder sister (姐姐) / younger sister (妹妹)",
-          sentenceEn: "My sister and I enjoy listening to music together.",
-          sentenceZh: "我和我姐姐喜歡一起聽音樂。",
-          icon: "fa-solid fa-headphones-simple",
-          iconColor: "text-purple-500",
-          situation: "手足分享",
-          mascotTip: "💡 和 sister 戴同一副耳機，分享最喜歡的英文兒歌！"
+          word: "under",
+          chinese: "在下面",
+          pos: "prep.",
+          category: "介系詞與位置",
+          collocations: "under the table (在桌子底下) / under control (在掌控中)",
+          sentenceEn: "The cat is sleeping under the wooden table.",
+          sentenceZh: "貓咪正睡在木桌底下。",
+          icon: "fa-solid fa-cat",
+          iconColor: "text-purple-600",
+          situation: "位置躲藏",
+          mascotTip: "💡 調皮的貓咪最喜歡縮在桌子底下打盹！"
         },
         {
           id: 10,
-          word: "brother",
-          chinese: "兄弟",
-          pos: "n.",
-          category: "人物與稱謂",
-          collocations: "big brother (哥哥) / little brother (弟弟)",
-          sentenceEn: "His brother is a member of the basketball team.",
-          sentenceZh: "他的哥哥是籃球隊的成員。",
-          icon: "fa-solid fa-basketball",
-          iconColor: "text-orange-600",
-          situation: "熱血運動",
-          mascotTip: "💡 big brother 是帥氣的大哥哥，打籃球跳得好高！"
+          word: "in",
+          chinese: "在…裡面",
+          pos: "prep.",
+          category: "介系詞與位置",
+          collocations: "in time (及時) / in the morning (在早晨)",
+          sentenceEn: "We stayed in the classroom during the rain.",
+          sentenceZh: "下雨時我們待在教室裡面。",
+          icon: "fa-solid fa-box-open",
+          iconColor: "text-teal-600",
+          situation: "室內空間",
+          mascotTip: "💡 下大雨時躲在溫暖的教室裡面，安靜專心讀書！"
         },
         {
           id: 11,
-          word: "bookstore",
-          chinese: "書店",
+          word: "movie theater",
+          chinese: "電影院",
           pos: "n.",
           category: "地點與建築",
-          collocations: "local bookstore (當地書店) / online bookstore (網路書店)",
-          sentenceEn: "I like spending my Sunday afternoons browsing books in the bookstore.",
-          sentenceZh: "我喜歡在週日下午泡在書店裡翻閱書籍。",
-          icon: "fa-solid fa-book-open-reader",
-          iconColor: "text-emerald-600",
-          situation: "知識寶庫",
-          mascotTip: "💡 書店裡瀰漫著書香味，安靜尋找奇妙的童話冒險！"
+          collocations: "go to the movie theater (去電影院) / local movie theater (當地戲院)",
+          sentenceEn: "We bought tickets at the movie theater to watch the latest animation.",
+          sentenceZh: "我們在電影院買了票去看最新的動畫電影。",
+          icon: "fa-solid fa-film",
+          iconColor: "text-indigo-600",
+          situation: "娛樂觀影",
+          mascotTip: "💡 大銀幕配上香脆爆米花，電影院裡充滿歡笑聲！"
         },
         {
           id: 12,
-          word: "bus stop",
-          chinese: "公車站",
+          word: "museum",
+          chinese: "博物館",
           pos: "n.",
           category: "地點與建築",
-          collocations: "wait at the bus stop (在公車站等車) / next bus stop (下一站公車站)",
-          sentenceEn: "Several passengers are waiting patiently at the bus stop.",
-          sentenceZh: "幾位乘客正在公車站耐心地等車。",
-          icon: "fa-solid fa-bus-simple",
-          iconColor: "text-amber-500",
-          situation: "日常通勤",
-          mascotTip: "💡 看到黃色公車站牌，記得排隊有序排好等上車！"
+          collocations: "visit a museum (參觀博物館) / history museum (歷史博物館)",
+          sentenceEn: "The National Palace Museum houses thousands of precious ancient artworks.",
+          sentenceZh: "故宮博物院收藏了數千件珍貴的古代藝術品。",
+          icon: "fa-solid fa-landmark-dome",
+          iconColor: "text-amber-800",
+          situation: "文化寶庫",
+          mascotTip: "💡 走進博物館就像坐上時光機，探索奇妙歷史文物！"
         },
         {
           id: 13,
-          word: "class",
-          chinese: "班級",
+          word: "office",
+          chinese: "辦公室",
           pos: "n.",
           category: "地點與建築",
-          collocations: "in class (在課堂上) / take a class (上一門課)",
-          sentenceEn: "Our class worked together to win the school singing contest.",
-          sentenceZh: "我們班同心協力贏得了全校合唱比賽。",
-          icon: "fa-solid fa-trophy",
-          iconColor: "text-yellow-500",
-          situation: "團隊合作",
-          mascotTip: "💡 全班 class 同學齊心協力，抱回閃亮第一名獎盃！"
+          collocations: "post office (郵局) / head office (總部；總辦公室)",
+          sentenceEn: "My father works hard at his computer in the office every day.",
+          sentenceZh: "我父親每天都在辦公室的電腦前努力工作。",
+          icon: "fa-solid fa-briefcase",
+          iconColor: "text-blue-500",
+          situation: "認真辦公",
+          mascotTip: "💡 辦公室裡電腦敲擊聲此起彼落，大家都在認真上班！"
         },
         {
           id: 14,
-          word: "classroom",
-          chinese: "教室",
+          word: "police station",
+          chinese: "警察局",
           pos: "n.",
           category: "地點與建築",
-          collocations: "clean the classroom (打掃教室) / in the classroom (在教室裡)",
-          sentenceEn: "Please keep our classroom tidy by throwing garbage into the bin.",
-          sentenceZh: "請將垃圾扔進桶子裡以保持教室整潔。",
-          icon: "fa-solid fa-chalkboard-user",
-          iconColor: "text-blue-500",
-          situation: "學習天地",
-          mascotTip: "💡 教室是大家學習的小天地，隨手撿垃圾保持乾淨！"
+          collocations: "near the police station (在警察局附近) / report to the police station (向警局報案)",
+          sentenceEn: "The lost little girl was brought safely to the police station.",
+          sentenceZh: "走失的小女孩被安全送到了警察局。",
+          icon: "fa-solid fa-shield-halved",
+          iconColor: "text-sky-600",
+          situation: "守護安全",
+          mascotTip: "💡 遇到困難找警察叔叔，警察局是保護大家的城堡！"
         },
         {
           id: 15,
-          word: "department store",
-          chinese: "百貨公司",
+          word: "post office",
+          chinese: "郵局",
           pos: "n.",
           category: "地點與建築",
-          collocations: "shopping at the department store (在百貨公司購物) / department store sale (百貨公司週年慶特賣)",
-          sentenceEn: "We went to the department store to buy a winter jacket for dad.",
-          sentenceZh: "我們去百貨公司為爸爸挑選一件保暖的冬季大衣。",
-          icon: "fa-solid fa-bag-shopping",
-          iconColor: "text-pink-500",
-          situation: "逛街購物",
-          mascotTip: "💡 百貨公司裡有玩具樓層和美食街，逛起來超好玩！"
+          collocations: "go to the post office (去郵局) / nearest post office (最近的郵局)",
+          sentenceEn: "I need to go to the post office to mail a birthday gift to my cousin.",
+          sentenceZh: "我需要去郵局寄一份生日禮物給我的表哥。",
+          icon: "fa-solid fa-envelope",
+          iconColor: "text-emerald-500",
+          situation: "寄送信件",
+          mascotTip: "💡 貼上郵票投入綠色郵筒，綠衣郵差幫你快遞心意！"
         },
         {
           id: 16,
-          word: "fire station",
-          chinese: "消防站",
+          word: "restaurant",
+          chinese: "餐廳",
           pos: "n.",
           category: "地點與建築",
-          collocations: "near the fire station (在消防局附近) / call the fire station (聯絡消防隊)",
-          sentenceEn: "The fire engine rushed out of the fire station with its sirens on.",
-          sentenceZh: "消防車鳴著警笛從消防局疾馳而出。",
-          icon: "fa-solid fa-truck-fire",
-          iconColor: "text-red-600",
-          situation: "英勇守護",
-          mascotTip: "💡 警笛響起，紅色的消防車從 fire station 迅速出動！"
+          collocations: "Italian restaurant (義大利餐廳) / eat at a restaurant (在餐廳用餐)",
+          sentenceEn: "We reserved a table at our favorite seafood restaurant for mom's birthday.",
+          sentenceZh: "我們為媽媽的生日在最喜歡的海鮮餐廳訂了一桌。",
+          icon: "fa-solid fa-utensils",
+          iconColor: "text-orange-500",
+          situation: "美味享用",
+          mascotTip: "💡 服務生送上熱騰騰佳餚，全家在餐廳開心慶祝！"
         },
         {
           id: 17,
-          word: "garden",
-          chinese: "花園",
+          word: "school",
+          chinese: "學校",
           pos: "n.",
           category: "地點與建築",
-          collocations: "flower garden (花園) / botanical garden (植物園)",
-          sentenceEn: "Grandpa loves watering the colorful roses in his garden every morning.",
-          sentenceZh: "爺爺每天早晨都喜歡給花園裡五彩斑斕的玫瑰澆水。",
-          icon: "fa-solid fa-seedling",
-          iconColor: "text-emerald-500",
-          situation: "芬芳自然",
-          mascotTip: "💡 早晨在 garden 幫花朵澆水，蝴蝶蜜蜂都在花瓣上飛舞！"
+          collocations: "go to school (去上學) / after school (放學後)",
+          sentenceEn: "Students walk happily into the school gate every morning.",
+          sentenceZh: "學生們每天早晨開心地走進校門。",
+          icon: "fa-solid fa-school",
+          iconColor: "text-blue-600",
+          situation: "快樂學習",
+          mascotTip: "💡 背著書包走進校門，和同學老師一起快樂探索新知識！"
         },
         {
           id: 18,
-          word: "hospital",
-          chinese: "醫院",
-          pos: "n.",
+          word: "shop",
+          chinese: "商店",
+          pos: "n. / v.",
           category: "地點與建築",
-          collocations: "go to the hospital (去醫院看病) / hospital bed (病床)",
-          sentenceEn: "The injured driver was sent to the nearest hospital immediately.",
-          sentenceZh: "受傷的司機被立刻送往了最近的醫院。",
-          icon: "fa-solid fa-hospital",
-          iconColor: "text-sky-600",
-          situation: "健康守護",
-          mascotTip: "💡 白衣天使與醫生叔叔阿姨在 hospital 守護大家的健康！"
+          collocations: "gift shop (禮品店) / open a shop (開一家店)",
+          sentenceEn: "She bought a lovely postcard from the souvenir shop.",
+          sentenceZh: "她從紀念品商店買了一張可愛的明信片。",
+          icon: "fa-solid fa-store",
+          iconColor: "text-pink-600",
+          situation: "開心採買",
+          mascotTip: "💡 精品店櫥窗裡擺滿了可愛文具，令人目不暇給！"
         },
         {
           id: 19,
-          word: "library",
-          chinese: "圖書館",
+          word: "station",
+          chinese: "車站",
           pos: "n.",
           category: "地點與建築",
-          collocations: "public library (公共圖書館) / borrow books from the library (從圖書館借書)",
-          sentenceEn: "Students love studying quietly in the school library after class.",
-          sentenceZh: "放學後學生們喜歡在學校圖書館裡安靜地自習。",
-          icon: "fa-solid fa-book",
-          iconColor: "text-indigo-500",
-          situation: "安靜閱讀",
-          mascotTip: "💡 進入 library 記得輕聲細語，享受沉浸在書海的樂趣！"
+          collocations: "train station (火車站) / gas station (加油站)",
+          sentenceEn: "We will meet our teacher at the station entrance at eight o'clock.",
+          sentenceZh: "我們八點整在車站門口和老師會合。",
+          icon: "fa-solid fa-train-subway",
+          iconColor: "text-teal-600",
+          situation: "交通樞紐",
+          mascotTip: "💡 列車進站發出嘟嘟聲，車站裡每個人都有新旅程！"
         },
         {
           id: 20,
-          word: "market",
-          chinese: "市場；市集",
-          pos: "n.",
+          word: "stop",
+          chinese: "公車站牌；停止",
+          pos: "n. / v.",
           category: "地點與建築",
-          collocations: "night market (夜市) / traditional market (傳統市場)",
-          sentenceEn: "Foreign tourists always enjoy visiting Taiwan's vibrant night markets.",
-          sentenceZh: "外國遊客總是熱衷於逛台灣熱鬧的夜市。",
-          icon: "fa-solid fa-store",
-          iconColor: "text-amber-600",
-          situation: "人情美味",
-          mascotTip: "💡 台灣的 night market 有好多香噴噴的美食和小遊戲！"
+          collocations: "bus stop (公車站牌) / full stop (句號；完全停止)",
+          sentenceEn: "Please stop talking and pay attention to what the teacher is explaining.",
+          sentenceZh: "請停止講話，專心聽老師的講解。",
+          icon: "fa-solid fa-hand",
+          iconColor: "text-red-500",
+          situation: "停步等待",
+          mascotTip: "💡 紅燈停、綠燈行，看到站牌也要停下腳步排隊！"
         }
       ]
     };
 
-    // Speech Synthesis and Pronunciation Correction Map
     const pronunciationCorrection = {
       "I": "eye",
       "Mr.": "Mister",
       "Mrs.": "Missus",
       "Ms.": "Miz",
       "MRT": "M R T",
-      "dad": "dad",
-      "mom": "mom",
-      "bus stop": "bus stop",
-      "fire station": "fire station"
+      "post office": "post office",
+      "police station": "police station",
+      "movie theater": "movie theater",
+      "bus stop": "bus stop"
     };
 
     let currentIndex = 0; // 0 is Cover, 1~20 are words
     let autoSpeakEnabled = true;
     let synth = window.speechSynthesis;
-    let isSpeaking = false;
 
     // Normalizing text for TTS
     function cleanPronunciationText(text) {
@@ -540,7 +536,7 @@
       const cleaned = cleanPronunciationText(text);
       const utterance = new SpeechSynthesisUtterance(cleaned);
       utterance.lang = 'en-US';
-      utterance.rate = 0.88; // friendly slightly slower pace for kids
+      utterance.rate = 0.88; // gentle slightly slower speed for children
       utterance.pitch = 1.05;
 
       const waves = document.querySelectorAll('.audio-wave');
@@ -558,7 +554,6 @@
       synth.speak(utterance);
     }
 
-    // Render the slide based on currentIndex
     function renderSlide() {
       const viewport = document.getElementById('slide-viewport');
       
@@ -566,14 +561,14 @@
         // Cover Slide
         viewport.innerHTML = `
           <div class="slide-enter w-full h-full bg-white rounded-3xl md:rounded-[36px] border-4 md:border-8 border-brand-yellow shadow-3d-yellow p-6 md:p-12 flex flex-col items-center justify-center text-center relative overflow-hidden">
-            <!-- Decorative corner tags -->
+            <!-- Top corner tag -->
             <div class="absolute top-6 left-6 flex items-center gap-2">
               <span class="bg-yellow-100 text-yellow-800 text-sm md:text-base font-black px-4 py-1.5 rounded-full border-2 border-yellow-400">
                 <i class="fa-solid fa-sparkles text-amber-500 mr-1"></i>每週精選
               </span>
             </div>
 
-            <!-- Big Title -->
+            <!-- Big Title & Subtitle -->
             <div class="space-y-4 my-auto">
               <div class="inline-flex items-center justify-center p-3 bg-amber-100 text-amber-600 rounded-2xl mb-2">
                 <i class="fa-solid fa-graduation-cap text-3xl md:text-5xl"></i>
@@ -582,12 +577,12 @@
                 ${weekData.title}
               </h1>
               
-              <!-- Subtitle: Strictly unmodified date format -->
+              <!-- Subtitle: Strictly unmodified format -->
               <div class="inline-block bg-amber-500 text-white font-extrabold text-xl sm:text-2xl md:text-3xl px-6 py-2.5 rounded-2xl shadow-[0_4px_0_#b45309] font-fredoka">
                 ${weekData.dateTag}
               </div>
 
-              <!-- Topic Category Capsule Badges (No slogans) -->
+              <!-- Topic Category Capsule Badges (No redundant slogans) -->
               <div class="pt-6 flex flex-wrap items-center justify-center gap-3 md:gap-4">
                 ${weekData.categories.map(cat => `
                   <span class="bg-brand-skyLight text-brand-skyDark border-2 md:border-3 border-brand-sky text-lg md:text-2xl font-bold px-6 py-2.5 rounded-full shadow-sm">
@@ -605,7 +600,7 @@
           </div>
         `;
       } else {
-        // Word Slide
+        // Word Card Slide
         const wordObj = weekData.words[currentIndex - 1];
         const pageNumber = String(currentIndex).padStart(2, '0');
         const totalWords = String(weekData.words.length).padStart(2, '0');
@@ -629,10 +624,10 @@
               <!-- LEFT COLUMN: Word Header + Collocations + Sentence -->
               <div class="flex-1 flex flex-col justify-between space-y-4">
                 
-                <!-- Word Title + Speaker + POS/Chinese Pill -->
+                <!-- Word Title (64px) + Speaker + POS/Chinese Pill (26px) -->
                 <div class="flex flex-wrap items-center gap-3 md:gap-4 shrink-0">
                   <h2 class="font-fredoka font-black text-brand-orange leading-tight tracking-tight hover:scale-105 transition-transform cursor-pointer" 
-                      style="font-size: 58px;" 
+                      style="font-size: 64px;" 
                       onclick="speakText('${wordObj.word}')" 
                       title="點擊朗讀單字">
                     ${wordObj.word}
@@ -697,12 +692,12 @@
                 </div>
 
                 <!-- Center Cute Vector Illustration/Badge -->
-                <div class="my-auto flex flex-col items-center justify-center p-4">
+                <div class="my-auto flex flex-col items-center justify-center p-3">
                   <div class="w-28 h-28 md:w-36 md:h-36 bg-white rounded-full border-4 border-amber-300 shadow-inner flex items-center justify-center transform hover:rotate-6 transition-transform">
                     <i class="${wordObj.icon} ${wordObj.iconColor} text-5xl md:text-7xl"></i>
                   </div>
-                  <div class="mt-3 font-fredoka font-black text-amber-900 text-2xl tracking-wide">
-                    ${wordObj.word.toUpperCase()}
+                  <div class="mt-3 font-fredoka font-black text-amber-900 text-2xl tracking-wide uppercase">
+                    ${wordObj.word}
                   </div>
                 </div>
 
@@ -730,7 +725,6 @@
       }
     }
 
-    // Update toolbar buttons, progress bar and jump select
     function updateControls() {
       const totalSlides = weekData.words.length; // 20
       const select = document.getElementById('slide-select');
@@ -761,7 +755,7 @@
         progressText.innerText = `封面 (${weekData.dateTag})`;
       } else {
         const currentWord = weekData.words[currentIndex - 1];
-        progressText.innerText = `${currentIndex}/${totalSlides} · ${currentWord.word}`;
+        progressText.innerText = `${currentIndex}/${totalWords} · ${currentWord.word}`;
       }
     }
 
@@ -773,7 +767,7 @@
       // Cover Option
       const coverOpt = document.createElement('option');
       coverOpt.value = 0;
-      coverOpt.textContent = '🌟 封面頁 (W03)';
+      coverOpt.textContent = '🌟 封面頁 (W04)';
       select.appendChild(coverOpt);
 
       // Words Options
@@ -785,7 +779,6 @@
       });
     }
 
-    // Navigation helpers
     function goToPrevSlide() {
       if (currentIndex > 0) {
         currentIndex--;
@@ -832,7 +825,6 @@
       }
     }
 
-    // Dynamic 16:9 stage scaling for desktop & natural flow on mobile
     function fitPresentationStage() {
       const container = document.getElementById('stage-container');
       const stage = document.getElementById('presentation-stage');
@@ -882,7 +874,7 @@
 
     // Keyboard Shortcuts (Left / Right / Space / F)
     window.addEventListener('keydown', (e) => {
-      // Don't trigger if user is selecting dropdown
+      // Don't trigger if user is interacting with select dropdown
       if (document.activeElement && document.activeElement.tagName === 'SELECT') return;
 
       if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
