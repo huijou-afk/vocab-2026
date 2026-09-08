@@ -1,0 +1,13 @@
+{
+  "chrome_profile_dir": "~/.gemini-automation-profile",
+  "chrome_executable_path": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "gemini_url": "https://gemini.google.com/app",
+  "output_dir": "slides",
+  "git": {
+    "auto_push": true,
+    "remote_name": "origin",
+    "branch": "main",
+    "commit_msg_template": "feat: add vocabulary slide {filename}"
+  },
+  "default_prompt_template": "請幫我製作一份自包含 (Self-contained) 且設計精美的單字教學投影片 HTML 網頁。\n\n單字列表：\n{words}\n\n設計與功能需求：\n1. 單一 HTML 檔案，所有 CSS 與 JS 直接內嵌，無外部依賴。\n2. 每個單字一頁投影片（卡片），包含：\n   - 單字本身（字體顯眼）\n   - 音標（IPA）\n   - 詞性與繁體中文解釋\n   - 實用例句（包含英文與繁體中文對照翻譯）\n   - 記憶小提示（聯想記憶、詞根詞綴或搭配詞）\n3. 互動功能：\n   - 提供「上一頁 / 下一頁」按鈕，並支援鍵盤左右方向鍵（ArrowLeft / ArrowRight）切換。\n   - 點擊喇叭圖示或單字時，使用瀏覽器原生 Web Speech API (speechSynthesis) 朗讀英文單字發音。\n   - 頁面頂部或底部顯示進度指示（如：1 / 10）。\n4. 視覺設計：採用現代簡潔風格（深色/淺色和諧色彩、圓角卡片陰影、良好的排版階層）。\n5. 請直接提供完整的 HTML 程式碼區塊（使用 ```html ... ``` 包覆），請勿輸出其他無關的對話文字。"
+}
