@@ -122,7 +122,8 @@ cat << PLISTEOF > "$PLIST"
 </plist>
 PLISTEOF
 
-# 5. 移除隔離屬性
+# 5. 移除隔離屬性並加上永久本機簽署
 xattr -cr "$APP_BUNDLE" 2>/dev/null || true
+codesign --force --deep --sign - --identifier "com.vocab.generator" "$APP_BUNDLE" 2>/dev/null || true
 
-echo "✅ VocabGenerator.app (v$VERSION) 打包完成！"
+echo "✅ VocabGenerator.app (v$VERSION) 打包與簽署完成！"
