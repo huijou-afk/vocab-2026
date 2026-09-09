@@ -168,6 +168,72 @@ class GeminiAutomator:
                 pass
             return logged_in
 
+    def _activate_canvas_mode(self, page):
+        """主動檢查並啟用 Gemini 的 Canvas (畫布) 模式"""
+        try:
+            # 1. 檢查是否已經處於 Canvas 模式或 Canvas 面板已開啟
+            canvas_indicators = [
+                'canvas-container',
+                'immersive-container',
+                'div[aria-label*="Canvas"]',
+                '.monaco-editor'
+            ]
+            for ind in canvas_indicators:
+                if page.locator(ind).first.is_visible(timeout=500):
+                    self._log("ℹ️ 當前對話已處於 Canvas 模式。")
+                    return True
+
+            # 2. 尋找輸入框下方的 Canvas 按鈕或工具選單
+            canvas_btn_selectors = [
+                'button[aria-label*="Canvas"]',
+                'button[mattooltip*="Canvas"]',
+                'button[aria-label*="畫布"]',
+                'button[mattooltip*="畫布"]',
+                'button:has-text("Canvas")',
+                'button:has-text("畫布")'
+            ]
+            for sel in canvas_btn_selectors:
+                btn = page.locator(sel).first
+                try:
+                    if btn.is_visible(timeout=800) and btn.is_enabled():
+                        self._log("🎨 偵測到 Canvas 切換按鈕，正在主動啟動 Canvas 模式...")
+                        btn.click()
+                        time.sleep(1.5)
+                        return True
+                except Exception:
+                    continue
+
+            # 3. 若 Canvas 按鈕收在「更多工具 (+)」或「工具箱」選單中，嘗試開啟選單尋找
+            tool_menu_selectors = [
+                'button[aria-label*="工具"]',
+                'button[aria-label*="Tools"]',
+                'button[aria-label*="新增"]',
+                'button[aria-label*="Add"]',
+                'button[mattooltip*="工具"]'
+            ]
+            for menu_sel in tool_menu_selectors:
+                menu_btn = page.locator(menu_sel).first
+                try:
+                    if menu_btn.is_visible(timeout=600):
+                        menu_btn.click()
+                        time.sleep(0.6)
+                        # 在開啟的選單中點選 Canvas
+                        for sel in canvas_btn_selectors:
+                            opt = page.locator(sel).first
+                            if opt.is_visible(timeout=600):
+                                self._log("🎨 從工具選單中成功選取並啟動 Canvas 模式！")
+                                opt.click()
+                                time.sleep(1.5)
+                                return True
+                        # 若沒找到則關閉選單
+                        menu_btn.click()
+                except Exception:
+                    continue
+
+        except Exception as e:
+            self._log(f"嘗試啟動 Canvas 模式時: {e}")
+        return False
+
     def generate_html(self, prompt, target_url=None, headless=False, timeout_seconds=300, expected_keywords=None):
         """傳送提示詞並等待抽取生成好的 HTML"""
         self._ensure_profile_dir()
@@ -253,6 +319,9 @@ class GeminiAutomator:
             if self.is_cancelled:
                 context.close()
                 return None
+
+            # 檢查並主動切換為 Canvas (畫布) 模式
+            self._activate_canvas_mode(page)
 
             # 注入提示詞文字
             page.keyboard.insert_text(prompt)
