@@ -351,6 +351,7 @@ class GeminiAutomator:
             ]
 
             saw_generating = False
+            refusal_detected = False
             last_content_len = 0
             stable_count = 0
 
@@ -384,6 +385,7 @@ class GeminiAutomator:
                     if refusal:
                         self._log(f"⚠️ 偵測到 Gemini 拒絕回應語句（{refusal}），終止流程！")
                         self._status("Gemini 拒絕回答", 0.0)
+                        refusal_detected = True
                         break
 
                     try:
@@ -426,6 +428,16 @@ class GeminiAutomator:
             # 若根本沒看到生成過程（使用者未提交即逾時或跳出），嚴格禁止提取舊檔案
             if not saw_generating:
                 self._log("❌ 尚未在網頁偵測到送出與生成行為，放棄提取以防誤讀舊 Canvas。")
+                try:
+                    context.close()
+                except Exception:
+                    pass
+                return None
+
+            # 若偵測到 Gemini 拒絕回應，完全終止流程，不提取任何內容
+            if refusal_detected:
+                self._log("❌ Gemini 拒絕回應，完全終止本次生成流程，不提取任何內容。")
+                self._log("💡 建議：請在 Gemini 介面開啟新對話後重試。")
                 try:
                     context.close()
                 except Exception:
@@ -484,6 +496,8 @@ class GeminiAutomator:
         if refusal:
             self._log(f"⚠️ 偵測到 Gemini 拒絕回應語句（觸發規則: {refusal}）！")
             self._log("💡 建議：請點擊 Gemini 介面左上角開新對話，或稍後再試。")
+            self._log("❌ 因偵測到拒絕語句，跳過所有內容提取，直接終止。")
+            return None
 
         # 1. 若有 Canvas 入口晶片，確保先點擊開啟它以載入最新 Monaco Editor 內容
         try:
