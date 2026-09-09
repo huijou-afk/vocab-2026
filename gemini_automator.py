@@ -155,7 +155,7 @@ class GeminiAutomator:
                 pass
             return logged_in
 
-    def generate_html(self, prompt, target_url=None, headless=False, timeout_seconds=300):
+    def generate_html(self, prompt, target_url=None, headless=False, timeout_seconds=300, expected_keywords=None):
         """傳送提示詞並等待抽取生成好的 HTML"""
         self._ensure_profile_dir()
         self._status("啟動 Chrome 瀏覽器中...", 0.1)
@@ -319,8 +319,8 @@ class GeminiAutomator:
 
             # 抓取生成的 HTML
             self._status("正在提取產生的 HTML 代碼...", 0.9)
-            self._log("從頁面 DOM 提取 HTML 內容...")
-            extracted_html = self._extract_html_content(page)
+            self._log("從頁面 DOM 提取 HTML 內容並進行品質校驗...")
+            extracted_html = self._extract_html_content(page, expected_keywords=expected_keywords)
 
             # 安全快速關閉瀏覽器，使用守護執行緒加逾時保護，避免 Playwright context.close() 卡死
             def _quick_close():
@@ -340,8 +340,36 @@ class GeminiAutomator:
 
             return extracted_html
 
-    def _extract_html_content(self, page):
+    def _check_gemini_refusal(self, page):
+        """檢查頁面上是否出現 Gemini 的拒絕回應或安全限制"""
+        try:
+            body_text = page.evaluate('() => document.body.innerText')
+            refusal_patterns = [
+                r"我只是一个文本\s*AI",
+                r"我只是一个语言模型",
+                r"我是一個文本\s*AI",
+                r"我是一個語言模型",
+                r"在这方面没法帮到你",
+                r"在這方面沒法幫到你",
+                r"超出了我的设计用途",
+                r"無法協助處理",
+                r"不能協助處理"
+            ]
+            for pattern in refusal_patterns:
+                if re.search(pattern, body_text):
+                    return pattern
+        except Exception:
+            pass
+        return None
+
+    def _extract_html_content(self, page, expected_keywords=None):
         """從頁面中提取最新生成的純 HTML 程式碼（支援 Gemini Canvas / Monaco Editor 與常規 Code Block）"""
+        # 0. 優先檢查是否觸發了 Gemini 拒絕回答
+        refusal = self._check_gemini_refusal(page)
+        if refusal:
+            self._log(f"⚠️ 偵測到 Gemini 拒絕回應語句（觸發規則: {refusal}）！")
+            self._log("💡 建議：請點擊 Gemini 介面左上角開新對話，或稍後再試。")
+
         # 1. 若有 Canvas 入口晶片，確保先點擊開啟它以載入最新 Monaco Editor 內容
         try:
             chip_selectors = [
@@ -363,6 +391,24 @@ class GeminiAutomator:
         except Exception:
             pass
 
+        # 輔助驗證函數：檢查 HTML 是否有效且符合當前任務預期關鍵字
+        def is_valid_html(code):
+            if not code or len(code) < 500:
+                return False
+            low = code.lower()
+            if "<html" not in low and "<!doctype html>" not in low:
+                return False
+            
+            # 若有提供預期關鍵字（例如當週單字），進行驗證防止誤抓上一週的舊 Canvas
+            if expected_keywords:
+                matched_kw = [kw for kw in expected_keywords if kw.lower() in low]
+                if not matched_kw:
+                    self._log(f"⚠️ 提取之程式碼未包含當次指定關鍵單字 ({expected_keywords[:3]})，可能為歷史舊 Canvas，跳過此候選內容。")
+                    return False
+                else:
+                    self._log(f"✅ 關鍵單字驗證通過（包含: {', '.join(matched_kw[:3])}）！")
+            return True
+
         # 2. 從 Gemini Canvas (Monaco Editor) 讀取完整 HTML
         try:
             monaco_code = page.evaluate('''() => {
@@ -378,7 +424,7 @@ class GeminiAutomator:
                 }
                 return null;
             }''')
-            if monaco_code and ("<html" in monaco_code.lower() or "<!doctype html>" in monaco_code.lower()) and len(monaco_code) > 500:
+            if monaco_code and is_valid_html(monaco_code):
                 self._log(f"成功從 Gemini Canvas (Monaco Editor) 提取投影片程式碼（共 {len(monaco_code)} 字元）！")
                 return self._clean_markdown_codeblock(monaco_code)
         except Exception as e:
@@ -389,7 +435,7 @@ class GeminiAutomator:
         for elem in reversed(code_elements):
             try:
                 text = elem.inner_text()
-                if "<html" in text.lower() or "<!doctype html>" in text.lower():
+                if is_valid_html(text):
                     self._log("從對話框代碼區塊提取成功！")
                     return self._clean_markdown_codeblock(text)
             except Exception:
@@ -399,14 +445,16 @@ class GeminiAutomator:
         try:
             content = page.content()
             matches = re.findall(r'```(?:html)?\s*(<!DOCTYPE html[\s\S]*?)```', content, re.IGNORECASE)
-            if matches:
+            if matches and is_valid_html(matches[-1]):
                 return self._clean_markdown_codeblock(matches[-1])
             doc_matches = re.findall(r'(<!DOCTYPE html[\s\S]*?<\/html>)', content, re.IGNORECASE)
-            if doc_matches:
+            if doc_matches and is_valid_html(doc_matches[-1]):
                 return self._clean_markdown_codeblock(doc_matches[-1])
         except Exception:
             pass
 
+        if refusal:
+            self._log("❌ 因 Gemini 出現拒絕語句且未生成對應內容，終止本次保存。")
         return None
 
     def _clean_markdown_codeblock(self, text):

@@ -242,10 +242,30 @@ class AppAPI:
 
                 prompt = prompt_template.replace("{words}", words.strip())
 
-                html = automator.generate_html(prompt, target_url=gemini_url, headless=False)
+                # 提取前幾個目標英文單字作為防抓舊 Canvas 的校驗關鍵字
+                expected_keywords = []
+                for line in words.strip().splitlines():
+                    line = line.strip()
+                    if not line or line.startswith("日期") or line.startswith("單字清單"):
+                        continue
+                    parts = re.split(r'[\t,]', line)
+                    if parts and parts[0].strip():
+                        w = parts[0].strip()
+                        # 僅抓取英文字母組成的單字詞彙
+                        if re.match(r'^[a-zA-Z\s\-]+$', w):
+                            expected_keywords.append(w)
+                    if len(expected_keywords) >= 5:
+                        break
+
+                html = automator.generate_html(
+                    prompt,
+                    target_url=gemini_url,
+                    headless=False,
+                    expected_keywords=expected_keywords
+                )
                 if not html:
                     self._status_js("生成失敗或未能擷取 HTML", 0.0)
-                    self._log_js("❌ 未能成功取得投影片內容。")
+                    self._log_js("❌ 未能成功取得符合規格的投影片內容。")
                     return
 
                 self._log_js(f"🎉 成功擷取 HTML 投影片！總長度 {len(html)} 字元。")
