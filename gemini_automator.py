@@ -86,10 +86,12 @@ class GeminiAutomator:
                     user_data_dir=self.profile_dir,
                     executable_path=self.chrome_path if os.path.exists(self.chrome_path) else None,
                     headless=True,
+                    ignore_default_args=['--no-sandbox'],
                     args=[
                         '--disable-blink-features=AutomationControlled',
                         '--no-first-run',
-                        '--no-default-browser-check'
+                        '--no-default-browser-check',
+                        '--test-type'
                     ],
                     viewport={"width": 1280, "height": 900},
                     locale="zh-TW"
@@ -115,10 +117,12 @@ class GeminiAutomator:
                 user_data_dir=self.profile_dir,
                 executable_path=self.chrome_path if os.path.exists(self.chrome_path) else None,
                 headless=False,
+                ignore_default_args=['--no-sandbox'],
                 args=[
                     '--disable-blink-features=AutomationControlled',
                     '--no-first-run',
-                    '--no-default-browser-check'
+                    '--no-default-browser-check',
+                    '--test-type'
                 ],
                 viewport={"width": 1280, "height": 900},
                 locale="zh-TW"
@@ -248,10 +252,12 @@ class GeminiAutomator:
                 user_data_dir=self.profile_dir,
                 executable_path=self.chrome_path if os.path.exists(self.chrome_path) else None,
                 headless=headless,
+                ignore_default_args=['--no-sandbox'],
                 args=[
                     '--disable-blink-features=AutomationControlled',
                     '--no-first-run',
-                    '--no-default-browser-check'
+                    '--no-default-browser-check',
+                    '--test-type'
                 ],
                 viewport={"width": 1280, "height": 900},
                 locale="zh-TW"
