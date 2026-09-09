@@ -377,8 +377,8 @@ class GeminiAutomator:
 
                 if is_generating:
                     stable_count = 0
-                else:
-                    # 檢查當前 Monaco / DOM 長度是否穩定
+                elif saw_generating:
+                    # 只有在確認使用者「已經送出」且「Gemini 已經開始生成過（看過停止按鈕）」之後，才判定生成結束
                     try:
                         curr_len = page.evaluate('''() => {
                             if (window.monaco && window.monaco.editor) {
@@ -398,9 +398,15 @@ class GeminiAutomator:
                     else:
                         last_content_len = curr_len
                         stable_count = 0
+                else:
+                    # 還沒送出，繼續安靜等待使用者在網頁上點擊送出
+                    pass
 
                 elapsed = int(time.time() - start_time)
-                self._status(f"Gemini 生成中... ({elapsed}s)", min(0.6 + (elapsed / timeout_seconds) * 0.25, 0.85))
+                if not saw_generating:
+                    self._status(f"等待您在瀏覽器點擊送出... ({elapsed}s)", 0.5)
+                else:
+                    self._status(f"Gemini 生成中... ({elapsed}s)", min(0.6 + (elapsed / timeout_seconds) * 0.25, 0.85))
                 time.sleep(2)
 
             if self.is_cancelled:
