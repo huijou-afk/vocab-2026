@@ -27,6 +27,28 @@ class AppAPI:
         self.latest_html_file = None
         self.is_logged_in = False
         self.active_track = "junior"
+        self.current_automator = None
+
+    def stop_generation(self):
+        """強制中斷當前生成作業"""
+        self._log_js("⚠️ 收到強制中斷請求！正在終止執行...")
+        if self.current_automator:
+            try:
+                self.current_automator.cancel()
+            except Exception as e:
+                self._log_js(f"終止自動化實例時: {e}")
+        
+        # 確保關閉可能殘留的自動化瀏覽器進程
+        try:
+            import subprocess
+            subprocess.run(["pkill", "-f", "Google Chrome.*--disable-blink-features"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except Exception:
+            pass
+
+        self.is_running = False
+        self.window.evaluate_js("window.setRunningState(false)")
+        self._status_js("已強制中斷", 0.0)
+        return {"status": "ok"}
 
     def set_window(self, window):
         self.window = window
@@ -230,6 +252,7 @@ class AppAPI:
                     status_callback=self._status_js,
                     log_callback=self._log_js
                 )
+                self.current_automator = automator
                 git = GitHandler(
                     cfg,
                     repo_dir=BASE_DIR,
@@ -561,6 +584,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
     .btn-secondary:hover:not(:disabled) { background: #475569; }
 
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      color: white;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+    .btn-danger:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+
     .btn-outline {
       background: transparent;
       border: 1px solid var(--card-border);
@@ -717,9 +747,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <input type="text" id="filenameInput" placeholder="例如：2026_w03d5 (系統會根據日期自動建議)">
         </div>
 
-        <button class="btn btn-primary btn-large" id="generateBtn" onclick="onStartGenerate()">
-          🚀 開始自動生成單字投影片並同步至 GitHub
-        </button>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-primary btn-large" id="generateBtn" onclick="onStartGenerate()" style="flex: 1;">
+            🚀 開始自動生成單字投影片並同步至 GitHub
+          </button>
+          <button class="btn btn-danger" id="stopBtn" onclick="onStopGenerate()" style="display: none; padding: 0 16px; font-weight: 700;">
+            🛑 強制停止
+          </button>
+        </div>
       </div>
     </div>
 
@@ -943,6 +978,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       window.pywebview.api.start_generation(currentTrack, words, filename);
     }
 
+    function onStopGenerate() {
+      if (confirm("確定要強制中斷當前生成流程嗎？")) {
+        window.pywebview.api.stop_generation();
+      }
+    }
+
     function onPreviewLatest() {
       window.pywebview.api.preview_latest();
     }
@@ -957,12 +998,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     function setRunningState(isRunning, msg) {
       const btn = document.getElementById('generateBtn');
+      const stopBtn = document.getElementById('stopBtn');
       btn.disabled = isRunning;
       if (isRunning) {
         btn.textContent = '⏳ 正在生成中，請稍候...';
+        stopBtn.style.display = 'inline-flex';
         document.getElementById('statusIndicator').textContent = msg || '執行中';
       } else {
         btn.textContent = '🚀 開始自動生成單字投影片並同步至 GitHub';
+        stopBtn.style.display = 'none';
         document.getElementById('statusIndicator').textContent = '閒置就緒';
       }
     }

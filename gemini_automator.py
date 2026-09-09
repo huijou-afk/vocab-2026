@@ -14,6 +14,19 @@ class GeminiAutomator:
         self.gemini_url = config.get("gemini_url", "https://gemini.google.com/app")
         self.status_cb = status_callback or (lambda msg, prog=None: None)
         self.log_cb = log_callback or (lambda msg: print(msg))
+        self.is_cancelled = False
+        self._current_context = None
+
+    def cancel(self):
+        """強制停止當前自動化任務並關閉瀏覽器"""
+        self.is_cancelled = True
+        self._log("🛑 收到使用者強制停止指令，正在關閉自動化流程與瀏覽器...")
+        if self._current_context:
+            try:
+                self._current_context.close()
+            except Exception:
+                pass
+            self._current_context = None
 
     def _log(self, msg):
         self.log_cb(msg)
@@ -164,6 +177,7 @@ class GeminiAutomator:
         dest_url = target_url or self.gemini_url
 
         with sync_playwright() as p:
+            self.is_cancelled = False
             context = p.chromium.launch_persistent_context(
                 user_data_dir=self.profile_dir,
                 executable_path=self.chrome_path if os.path.exists(self.chrome_path) else None,
@@ -176,12 +190,18 @@ class GeminiAutomator:
                 viewport={"width": 1280, "height": 900},
                 locale="zh-TW"
             )
+            self._current_context = context
 
             page = context.pages[0] if context.pages else context.new_page()
             self._status("連線至 Gemini 網頁中...", 0.25)
             self._log(f"開啟網頁: {dest_url}")
             page.goto(dest_url, wait_until="domcontentloaded")
             time.sleep(3)
+
+            if self.is_cancelled:
+                self._log("使用者已取消流程。")
+                context.close()
+                return None
 
             # 檢查登入狀態
             if not self.is_logged_in(page):
@@ -202,6 +222,9 @@ class GeminiAutomator:
                 'textarea'
             ]
             for sel in input_selectors:
+                if self.is_cancelled:
+                    context.close()
+                    return None
                 loc = page.locator(sel).first
                 try:
                     if loc.is_visible(timeout=3000):
@@ -226,6 +249,10 @@ class GeminiAutomator:
                 time.sleep(0.3)
             except Exception:
                 pass
+
+            if self.is_cancelled:
+                context.close()
+                return None
 
             # 注入提示詞文字
             page.keyboard.insert_text(prompt)
@@ -255,18 +282,7 @@ class GeminiAutomator:
 
             self._status("Gemini 正在生成投影片 HTML (請稍候)...", 0.6)
             self._log("提示詞已發送，等待 Gemini 回應與串流生成...")
-            time.sleep(5)  # 等待開始生成
 
-            # 等待生成完畢（監測停止按鈕消失或代碼區塊出現）
-            start_time = time.time()
-            stop_btn_selectors = [
-                'button[aria-label*="停止"]',
-                'button[aria-label*="Stop"]',
-                'button[mattooltip*="停止"]'
-            ]
-
-            # 等待 Gemini 開始生成（給予 5 秒緩衝）
-            time.sleep(5)
             start_time = time.time()
             stop_btn_selectors = [
                 'button[aria-label*="停止"]',
@@ -279,6 +295,22 @@ class GeminiAutomator:
             stable_count = 0
 
             while time.time() - start_time < timeout_seconds:
+                if self.is_cancelled:
+                    self._log("🛑 使用者手動取消生成！正在中斷...")
+                    self._status("已手動停止", 0.0)
+                    try:
+                        context.close()
+                    except Exception:
+                        pass
+                    return None
+
+                # 優先檢查是否被 Gemini 拒絕回答，及早跳出避免無效等待
+                refusal = self._check_gemini_refusal(page)
+                if refusal:
+                    self._log(f"⚠️ 偵測到 Gemini 拒絕回應語句（{refusal}），立即停止等待！")
+                    self._status("Gemini 拒絕回答", 0.0)
+                    break
+
                 is_generating = False
                 for sel in stop_btn_selectors:
                     try:
@@ -316,6 +348,13 @@ class GeminiAutomator:
                 elapsed = int(time.time() - start_time)
                 self._status(f"Gemini 生成中... ({elapsed}s)", min(0.6 + (elapsed / timeout_seconds) * 0.25, 0.85))
                 time.sleep(2)
+
+            if self.is_cancelled:
+                try:
+                    context.close()
+                except Exception:
+                    pass
+                return None
 
             # 抓取生成的 HTML
             self._status("正在提取產生的 HTML 代碼...", 0.9)
