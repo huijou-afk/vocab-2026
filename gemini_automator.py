@@ -327,30 +327,15 @@ class GeminiAutomator:
             page.keyboard.insert_text(prompt)
             time.sleep(1)
 
-            # 點擊送出按鈕或按 Enter
-            sent = False
-            send_btn_selectors = [
-                'button[aria-label*="傳送"]',
-                'button[aria-label*="Send"]',
-                'button[mattooltip*="傳送"]',
-                'button[mattooltip*="Send"]',
-                'button.send-button'
-            ]
-            for sel in send_btn_selectors:
-                try:
-                    btn = page.locator(sel).first
-                    if btn.is_visible(timeout=1000) and btn.is_enabled():
-                        btn.click()
-                        sent = True
-                        break
-                except Exception:
-                    continue
+            # 【手動測試模式】：不自動點擊送出，由使用者在開啟的瀏覽器中手動點擊送出
+            self._log("📝 提示詞已成功填入輸入框！【手動測試模式】：請在 Chrome 視窗中確認並手動點擊送出。")
+            self._status("提示詞已填入，請在瀏覽器手動點擊送出", 0.5)
 
-            if not sent:
-                page.keyboard.press("Enter")
+            # 暫不執行自動點擊送出
+            # sent = False
+            # send_btn_selectors = [ ... ]
 
-            self._status("Gemini 正在生成投影片 HTML (請稍候)...", 0.6)
-            self._log("提示詞已發送，等待 Gemini 回應與串流生成...")
+            self._log("等待使用者手動送出並等待 Gemini 生成回應...")
 
             start_time = time.time()
             stop_btn_selectors = [
