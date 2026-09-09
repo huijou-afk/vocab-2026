@@ -364,13 +364,6 @@ class GeminiAutomator:
                         pass
                     return None
 
-                # 優先檢查是否被 Gemini 拒絕回答，及早跳出避免無效等待
-                refusal = self._check_gemini_refusal(page)
-                if refusal:
-                    self._log(f"⚠️ 偵測到 Gemini 拒絕回應語句（{refusal}），立即停止等待！")
-                    self._status("Gemini 拒絕回答", 0.0)
-                    break
-
                 is_generating = False
                 for sel in stop_btn_selectors:
                     try:
@@ -383,8 +376,16 @@ class GeminiAutomator:
 
                 if is_generating:
                     stable_count = 0
+                    self._status(f"Gemini 生成中... ({int(time.time() - start_time)}s)", 0.7)
                 elif saw_generating:
-                    # 只有在確認使用者「已經送出」且「Gemini 已經開始生成過（看過停止按鈕）」之後，才判定生成結束
+                    # 使用者「已經在網頁點擊送出」且「Gemini 已經產生並結束」
+                    # 檢查是否在生成後被拒絕
+                    refusal = self._check_gemini_refusal(page)
+                    if refusal:
+                        self._log(f"⚠️ 偵測到 Gemini 拒絕回應語句（{refusal}），終止流程！")
+                        self._status("Gemini 拒絕回答", 0.0)
+                        break
+
                     try:
                         curr_len = page.evaluate('''() => {
                             if (window.monaco && window.monaco.editor) {
@@ -405,7 +406,7 @@ class GeminiAutomator:
                         last_content_len = curr_len
                         stable_count = 0
                 else:
-                    # 還沒送出，繼續安靜等待使用者在網頁上點擊送出
+                    # 尚未看過生成（使用者尚未在網頁點擊送出）：絕對不中斷，持續等待使用者
                     pass
 
                 elapsed = int(time.time() - start_time)
@@ -416,6 +417,15 @@ class GeminiAutomator:
                 time.sleep(2)
 
             if self.is_cancelled:
+                try:
+                    context.close()
+                except Exception:
+                    pass
+                return None
+
+            # 若根本沒看到生成過程（使用者未提交即逾時或跳出），嚴格禁止提取舊檔案
+            if not saw_generating:
+                self._log("❌ 尚未在網頁偵測到送出與生成行為，放棄提取以防誤讀舊 Canvas。")
                 try:
                     context.close()
                 except Exception:
