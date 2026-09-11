@@ -50,8 +50,12 @@ else
     echo "🏷 已建立 Git Tag: v$NEW_VER"
 fi
 
-# 若有設定遠端 origin，可自動同步 tag
-# git push origin "v$NEW_VER" 2>/dev/null || true
+# 若有設定遠端 origin，自動同步與推送變更與 tags
+if git remote get-url origin >/dev/null 2>&1; then
+    echo "📤 正在同步並推送提交與 Tag 至 GitHub..."
+    git pull --rebase origin main 2>/dev/null || true
+    git push origin main --tags 2>/dev/null || true
+fi
 
 # 6. 關閉舊實例並啟動新版 App
 echo "[4/4] 重新啟動最新版本應用程式..."
