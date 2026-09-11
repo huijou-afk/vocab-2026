@@ -3,6 +3,7 @@ import sys
 import time
 import re
 import threading
+import subprocess
 from pathlib import Path
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
@@ -362,13 +363,16 @@ return "NO_TAB"
         script = f'''
 tell application "Google Chrome"
     repeat with w in windows
+        set tabIdx to 1
         repeat with t in tabs of w
             if URL of t contains "gemini.google.com" then
-                set active tab index of w to (index of t)
+                set active tab index of w to tabIdx
                 set index of w to 1
                 activate
-                return execute t javascript "{escaped_js}"
+                set val to execute t javascript "{escaped_js}"
+                return val
             end if
+            set tabIdx to tabIdx + 1
         end repeat
     end repeat
 end tell
