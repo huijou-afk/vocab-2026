@@ -333,15 +333,47 @@ class GeminiAutomator:
             page.keyboard.insert_text(prompt)
             time.sleep(1)
 
-            # 【手動測試模式】：不自動點擊送出，由使用者在開啟的瀏覽器中手動點擊送出
-            self._log("📝 提示詞已成功填入輸入框！【手動測試模式】：請在 Chrome 視窗中確認並手動點擊送出。")
-            self._status("提示詞已填入，請在瀏覽器手動點擊送出", 0.5)
+            # 自動點擊送出按鈕或按 Enter 提交
+            self._log("🚀 提示詞已成功填入輸入框，正在自動點擊送出按鈕...")
+            self._status("提示詞已填入，正在自動送出...", 0.5)
 
-            # 暫不執行自動點擊送出
-            # sent = False
-            # send_btn_selectors = [ ... ]
+            sent = False
+            send_btn_selectors = [
+                'button[aria-label*="傳送"]',
+                'button[aria-label*="Send"]',
+                'button[aria-label*="送出"]',
+                'button[aria-label*="提交"]',
+                'button[mattooltip*="傳送"]',
+                'button[mattooltip*="Send"]',
+                'button[mattooltip*="送出"]',
+                'button.send-button',
+                '.send-button-container button',
+                'button:has(mat-icon[data-mat-icon-name="send"])',
+                'button:has(mat-icon[fonticon="send"])'
+            ]
 
-            self._log("等待使用者手動送出並等待 Gemini 生成回應...")
+            for sel in send_btn_selectors:
+                try:
+                    btn = page.locator(sel).first
+                    if btn.is_visible(timeout=800) and btn.is_enabled():
+                        btn.click()
+                        sent = True
+                        self._log("✅ 已成功點擊 Gemini 送出按鈕！")
+                        break
+                except Exception:
+                    continue
+
+            if not sent:
+                # 若未找到顯式按鈕，嘗試直接按 Enter 鍵送出
+                try:
+                    self._log("未定位到顯式送出按鈕，嘗試按 Enter 鍵送出...")
+                    page.keyboard.press("Enter")
+                    sent = True
+                except Exception as e:
+                    self._log(f"按 Enter 送出時發生例外: {e}")
+
+            time.sleep(1.5)
+            self._log("已執行送出指令，等待 Gemini 生成回應...")
 
             start_time = time.time()
             stop_btn_selectors = [
