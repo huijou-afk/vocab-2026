@@ -324,15 +324,42 @@ class GeminiAutomator:
                 except Exception:
                     continue
 
-        except Exception as e:
-            self._log(f"嘗試啟動 Canvas 模式時: {e}")
+    def _try_focus_existing_chrome_tab(self):
+        """若使用者 Mac 上已有開啟包含 gemini.google.com 的 Chrome 視窗，自動聚焦至該視窗與分頁"""
+        applescript = '''
+tell application "Google Chrome"
+    repeat with w in windows
+        set tabIndex to 1
+        repeat with t in tabs of w
+            if URL of t contains "gemini.google.com" then
+                set active tab index of w to tabIndex
+                set index of w to 1
+                activate
+                return "OK"
+            end if
+            set tabIndex to tabIndex + 1
+        end repeat
+    end repeat
+end tell
+return "NO_TAB"
+'''
+        try:
+            res = subprocess.run(["osascript", "-e", applescript], capture_output=True, text=True, timeout=5)
+            if "OK" in res.stdout:
+                self._log("🖥️ 找到您目前在 Chrome 視窗開啟的 Gemini 分頁，已將其切換至最前景！")
+                return True
+        except Exception:
+            pass
         return False
 
     def generate_html(self, prompt, target_url=None, headless=False, timeout_seconds=300, expected_keywords=None):
         """傳送提示詞並等待抽取生成好的 HTML"""
         self._ensure_profile_dir()
-        self._status("啟動 Chrome 瀏覽器中...", 0.1)
-        self._log("啟動瀏覽器實例...")
+        self._status("啟動/連線 Chrome 瀏覽器中...", 0.1)
+        
+        # 嘗試先將使用者畫面上的 Chrome 切換至 Gemini 分頁
+        self._try_focus_existing_chrome_tab()
+        self._log("準備連線或啟動瀏覽器實例...")
 
         dest_url = target_url or self.gemini_url
 
