@@ -324,6 +324,10 @@ class GeminiAutomator:
                 except Exception:
                     continue
 
+        except Exception as e:
+            self._log(f"嘗試啟動 Canvas 模式時發生例外: {e}")
+        return False
+
     def _try_focus_existing_chrome_tab(self):
         """若使用者 Mac 上已有開啟包含 gemini.google.com 的 Chrome 視窗，自動聚焦至該視窗與分頁"""
         applescript = '''
