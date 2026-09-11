@@ -3,1558 +3,805 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>2026 一起背單字 (國小組) - [W03]</title>
+  <title>2026 一起背單字 (國小組)</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Free Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
   <!-- Google Fonts: Fredoka & Noto Sans TC -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
-  <!-- FontAwesome 6 Free -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
   <style>
     :root {
-      --bg-cream: #fffdf7;
-      --primary-yellow: #ffc400;
-      --border-yellow: #f59e0b;
-      --text-orange: #f97316;
-      --tag-skyblue: #38bdf8;
-      --card-bg: #ffffff;
-      --font-family: 'Fredoka', 'Noto Sans TC', sans-serif;
+      --bg-cream: #FFFDF7;
+      --primary-yellow: #FFCF25;
+      --border-yellow: #F59E0B;
+      --btn-orange: #FF7A00;
+      --bubble-blue: #38BDF8;
     }
-
+    
     * {
       box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      user-select: none;
       -webkit-tap-highlight-color: transparent;
     }
-
+    
     body {
-      background-color: #fef08a;
-      background-image: radial-gradient(#fde047 15%, transparent 16%), radial-gradient(#fde047 15%, transparent 16%);
+      background-color: var(--bg-cream);
+      font-family: 'Fredoka', 'Noto Sans TC', sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* 可愛童趣風背景點綴 */
+    .bg-pattern {
+      background-image: 
+        radial-gradient(#FDE68A 15%, transparent 16%),
+        radial-gradient(#BAE6FD 15%, transparent 16%);
       background-size: 60px 60px;
       background-position: 0 0, 30px 30px;
-      font-family: var(--font-family);
-      color: #1e293b;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
+      opacity: 0.35;
     }
 
-    /* 投影片縮放容器 */
-    #viewport-container {
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      position: relative;
+    /* 立體可愛卡片樣式 */
+    .toy-border {
+      border: 4px solid #F59E0B;
+      box-shadow: 0 8px 0px #D97706, 0 14px 20px rgba(0,0,0,0.08);
+      border-radius: 32px;
+    }
+    
+    .toy-border-sub {
+      border: 3px solid #E2E8F0;
+      box-shadow: 0 5px 0px #CBD5E1;
+      border-radius: 20px;
     }
 
-    #stage-scaler {
-      flex: 1;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
+    .toy-button {
+      transition: all 0.15s ease;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+    }
+    .toy-button:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 rgba(0,0,0,0.15);
     }
 
+    /* 寬螢幕等比縮放容器 (1200 x 675) */
     #presentation-stage {
       width: 1200px;
       height: 675px;
-      background: var(--bg-cream);
-      border: 8px solid var(--primary-yellow);
-      box-shadow: 0 16px 32px rgba(217, 119, 6, 0.2), inset 0 0 0 4px #ffffff;
-      border-radius: 36px;
-      position: relative;
       transform-origin: center center;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* 背景浮動裝飾物 */
-    .bg-deco-star {
       position: absolute;
-      color: rgba(253, 224, 71, 0.5);
-      z-index: 0;
-      pointer-events: none;
+      top: 50%;
+      left: 50%;
+      margin-top: -337.5px;
+      margin-left: -600px;
     }
 
-    /* Slide 基本結構 */
-    .slide-item {
-      display: none;
-      width: 100%;
-      height: 100%;
-      padding: 30px 40px;
-      position: relative;
-      z-index: 1;
-      animation: popIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-    }
-    .slide-item.active {
-      display: flex;
-    }
-
-    @keyframes popIn {
-      0% { opacity: 0; transform: scale(0.96); }
-      100% { opacity: 1; transform: scale(1); }
-    }
-
-    /* 封面頁排版 */
-    .cover-slide {
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      gap: 26px;
-    }
-    .cover-badge {
-      background: #fef08a;
-      color: #b45309;
-      font-size: 26px;
-      font-weight: 700;
-      padding: 10px 28px;
-      border-radius: 50px;
-      border: 3px dashed #f59e0b;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-    }
-    .cover-title {
-      font-size: 68px;
-      font-weight: 900;
-      color: #ea580c;
-      text-shadow: 3px 4px 0px #fed7aa;
-      letter-spacing: 1px;
-    }
-    .cover-subtitle {
-      font-size: 32px;
-      font-weight: 700;
-      color: #0369a1;
-      background: #e0f2fe;
-      padding: 8px 30px;
-      border-radius: 24px;
-      border: 3px solid #7dd3fc;
-      display: inline-block;
-    }
-    .cover-tags-container {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      justify-content: center;
-      max-width: 850px;
-      margin-top: 10px;
-    }
-    .theme-capsule {
-      background: #ffffff;
-      font-size: 20px;
-      font-weight: 700;
-      color: #0d9488;
-      border: 3px solid #5eead4;
-      padding: 8px 22px;
-      border-radius: 30px;
-      box-shadow: 0 6px 0 #ccfbf1;
-    }
-
-    /* 單字頁 - 左右雙欄 */
-    .word-slide-inner {
-      display: flex;
-      width: 100%;
-      height: 100%;
-      gap: 36px;
-    }
-    .left-column {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      height: 100%;
-    }
-    .top-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-    }
-    .category-tag {
-      font-size: 20px;
-      font-weight: 700;
-      color: #0284c7;
-      background: #e0f2fe;
-      padding: 6px 18px;
-      border-radius: 20px;
-      border: 2px solid #bae6fd;
-    }
-    .page-index {
-      font-size: 20px;
-      font-weight: 700;
-      color: #ca8a04;
-      background: #fef9c3;
-      padding: 6px 18px;
-      border-radius: 20px;
-      border: 2px solid #fef08a;
-    }
-
-    .word-header-area {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
-      margin: 10px 0 16px 0;
-    }
-    .word-heading {
-      font-size: 64px;
-      font-weight: 900;
-      color: var(--text-orange);
-      line-height: 1.1;
-      text-shadow: 2px 2px 0px #ffedd5;
-    }
-    .sound-btn {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: #f97316;
-      color: white;
-      border: none;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      box-shadow: 0 4px 0 #c2410c;
-      transition: all 0.1s;
-    }
-    .sound-btn:active {
-      transform: translateY(3px);
-      box-shadow: 0 1px 0 #c2410c;
-    }
-    .pos-capsule {
-      background: #e0f2fe;
-      color: #0369a1;
-      border: 2px solid var(--tag-skyblue);
-      padding: 6px 18px;
-      border-radius: 30px;
-      font-size: 26px;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      box-shadow: 0 4px 0 #bae6fd;
-    }
-
-    /* 搭配詞與例句卡片 */
-    .content-box {
-      background: #ffffff;
-      border-radius: 24px;
-      padding: 16px 20px;
-      box-shadow: 0 6px 12px rgba(245, 158, 11, 0.12);
-      border: 3px solid #fde68a;
-      position: relative;
-    }
-    .content-box-title {
-      font-size: 24px;
-      font-weight: 700;
-      color: #d97706;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-    .collocation-text {
-      font-size: 23px;
-      font-weight: 600;
-      color: #334155;
-      line-height: 1.45;
-    }
-    .example-en {
-      font-size: 25px;
-      font-weight: 700;
-      color: #1e293b;
-      line-height: 1.35;
-      margin-bottom: 6px;
-    }
-    .example-zh {
-      font-size: 23px;
-      font-weight: 500;
-      color: #64748b;
-      line-height: 1.35;
-    }
-    .example-speak-btn {
-      background: #38bdf8;
-      color: white;
-      border: none;
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 15px;
-      box-shadow: 0 3px 0 #0284c7;
-      margin-left: 6px;
-    }
-    .example-speak-btn:active {
-      transform: translateY(2px);
-      box-shadow: 0 1px 0 #0284c7;
-    }
-
-    /* 右側趣味聯想面板 (嚴格尺寸 440px x 500px) */
-    .right-column {
-      width: 440px;
-      height: 500px;
-      background: #fffbeb;
-      border: 4px dashed #f59e0b;
-      border-radius: 28px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      padding: 22px;
-      box-sizing: border-box;
-      box-shadow: 0 10px 20px rgba(251, 191, 36, 0.15);
-      position: relative;
-    }
-    .fun-top-bar {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .fun-badge {
-      background: #f97316;
-      color: #ffffff;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 18px;
-      font-weight: 700;
-      box-shadow: 0 3px 0 #c2410c;
-    }
-    .fun-topic {
-      font-size: 20px;
-      font-weight: 700;
-      color: #b45309;
-    }
-    .fun-icon-wrapper {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 130px;
-      color: #f59e0b;
-      filter: drop-shadow(0 10px 10px rgba(245, 158, 11, 0.2));
-      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .fun-icon-wrapper:hover {
-      transform: scale(1.1) rotate(5deg);
-    }
-    .mascot-tip-box {
-      width: 100%;
-      background: #ffffff;
-      border-radius: 20px;
-      padding: 14px 18px;
-      border: 3px solid #fde047;
-      box-shadow: 0 4px 0 #fef08a;
-      font-size: 24px;
-      font-weight: 700;
-      color: #1e293b;
-      text-align: center;
-      line-height: 1.4;
-    }
-
-    /* 底部緊湊控制列 */
-    #bottom-bar {
-      width: 100%;
-      max-width: 1200px;
-      height: 72px;
-      padding: 0 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      z-index: 10;
-      box-sizing: border-box;
-    }
-    .control-group-left, .control-group-right {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-shrink: 0;
-    }
-    .ctrl-btn {
-      background: #ffffff;
-      border: 3px solid #f59e0b;
-      border-radius: 18px;
-      height: 48px;
-      padding: 0 16px;
-      font-size: 18px;
-      font-weight: 700;
-      color: #b45309;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      box-shadow: 0 4px 0 #d97706;
-      transition: all 0.1s;
-    }
-    .ctrl-btn:active {
-      transform: translateY(3px);
-      box-shadow: 0 1px 0 #d97706;
-    }
-    .progress-wrapper {
-      flex: 1;
-      height: 18px;
-      background: rgba(255, 255, 255, 0.85);
-      border-radius: 12px;
-      border: 2px solid #f59e0b;
-      overflow: hidden;
-      margin: 0 8px;
-      position: relative;
-    }
-    .progress-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #f59e0b, #ea580c);
-      border-radius: 10px;
-      transition: width 0.3s ease;
-    }
-    .page-select {
-      height: 46px;
-      border-radius: 16px;
-      border: 3px solid #f59e0b;
-      background: #ffffff;
-      font-size: 16px;
-      font-weight: 700;
-      color: #b45309;
-      padding: 0 10px;
-      outline: none;
-      cursor: pointer;
-      box-shadow: 0 4px 0 #d97706;
-    }
-    .toggle-label {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 15px;
-      font-weight: 700;
-      color: #92400e;
-      background: #ffffff;
-      padding: 0 12px;
-      height: 46px;
-      border-radius: 16px;
-      border: 3px solid #f59e0b;
-      box-shadow: 0 4px 0 #d97706;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .toggle-label input {
-      accent-color: #f97316;
-      width: 18px;
-      height: 18px;
-      cursor: pointer;
-    }
-
-    /* 手機直向滿版單欄流式排版 (寬度 < 768px) */
+    /* 手機直向模式 (寬度 < 768px) 流式滿版自適應 */
     @media (max-width: 767px) {
       body {
         overflow-y: auto;
-        display: block;
-        background: var(--bg-cream);
-      }
-      #viewport-container {
-        height: auto;
-        min-height: 100vh;
-      }
-      #stage-scaler {
-        overflow: visible;
-        display: block;
-        height: auto;
-        padding-bottom: 90px;
       }
       #presentation-stage {
+        position: relative !important;
         width: 100% !important;
         height: auto !important;
+        min-height: calc(100vh - 76px);
+        top: 0 !important;
+        left: 0 !important;
+        margin: 0 !important;
         transform: none !important;
-        border: none;
-        border-radius: 0;
-        box-shadow: none;
-        padding: 0;
+        padding-bottom: 90px;
       }
-      .slide-item {
-        padding: 20px 16px;
-        display: none;
-        min-height: calc(100vh - 86px);
+      .slide-container {
+        border-radius: 20px !important;
+        padding: 1.25rem !important;
+        margin: 0.75rem !important;
+        height: auto !important;
       }
-      .slide-item.active {
-        display: block;
+      .mobile-stack {
+        flex-direction: column !important;
       }
-      .word-slide-inner {
-        flex-direction: column;
-        gap: 20px;
+      .mobile-full {
+        width: 100% !important;
+        height: auto !important;
       }
-      .left-column {
-        gap: 16px;
+      .mobile-title {
+        font-size: 38px !important;
+        line-height: 1.1 !important;
       }
-      .word-heading {
-        font-size: 40px;
+      .mobile-badge {
+        font-size: 18px !important;
+        padding: 4px 12px !important;
       }
-      .pos-capsule {
-        font-size: 20px;
-        padding: 4px 14px;
-      }
-      .content-box-title {
-        font-size: 20px;
-      }
-      .collocation-text, .example-zh {
-        font-size: 18px;
-      }
-      .example-en {
-        font-size: 20px;
-      }
-      .right-column {
-        width: 100%;
-        height: auto;
-        min-height: 280px;
-        padding: 16px;
-        gap: 14px;
-      }
-      .fun-icon-wrapper {
-        font-size: 80px;
-        margin: 20px 0;
-      }
-      .mascot-tip-box {
-        font-size: 20px;
-      }
-      .cover-title {
-        font-size: 42px;
-      }
-      .cover-subtitle {
-        font-size: 22px;
-        padding: 6px 18px;
-      }
-      .theme-capsule {
-        font-size: 16px;
-        padding: 6px 14px;
-      }
-      #bottom-bar {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: #fef08a;
-        border-top: 3px solid #f59e0b;
-        padding: 8px 12px;
-        height: 70px;
-        gap: 6px;
-        box-shadow: 0 -4px 10px rgba(0,0,0,0.08);
-      }
-      .ctrl-btn {
-        padding: 0 10px;
-        font-size: 15px;
-        height: 42px;
-      }
-      .ctrl-btn span {
-        display: none;
-      }
-      .toggle-label span {
-        display: none;
-      }
-      .page-select {
-        height: 42px;
-        font-size: 14px;
-        max-width: 90px;
+      .mobile-tip {
+        font-size: 20px !important;
       }
     }
   </style>
 </head>
-<body>
+<body class="relative w-screen h-screen flex flex-col justify-between select-none">
+  <!-- 背景童趣圓點氣泡 -->
+  <div class="bg-pattern fixed inset-0 pointer-events-none z-0"></div>
 
-<div id="viewport-container">
-  <div id="stage-scaler">
-    <main id="presentation-stage">
-      <!-- 裝飾背景星號 -->
-      <i class="fa-solid fa-star bg-deco-star" style="top: 20px; left: 30px; font-size: 28px;"></i>
-      <i class="fa-solid fa-cloud bg-deco-star" style="bottom: 30px; right: 40px; font-size: 38px;"></i>
-      <i class="fa-solid fa-sparkles bg-deco-star" style="bottom: 40px; left: 40px; font-size: 24px;"></i>
-
-      <!-- 封面頁 (Slide 0) -->
-      <div class="slide-item cover-slide active" data-index="0">
-        <div class="cover-badge"><i class="fa-solid fa-graduation-cap"></i> 快樂背單字專車</div>
-        <h1 class="cover-title">2026 一起背單字 (國小組)</h1>
-        <div class="cover-subtitle">[W03]2026/09/14~09/21</div>
-        <div class="cover-tags-container">
-          <div class="theme-capsule"><i class="fa-solid fa-users"></i> 家庭與人物 (Family & People)</div>
-          <div class="theme-capsule"><i class="fa-solid fa-map-location-dot"></i> 社區與場所 (Places & Community)</div>
-        </div>
+  <!-- 簡報舞台主卡片區 -->
+  <div class="relative z-10 w-full flex-1 flex items-center justify-center">
+    <div id="presentation-stage" class="transition-transform duration-100 ease-out">
+      <div id="card-viewport" class="w-full h-full p-4 flex items-center justify-center">
+        <!-- 動態渲染卡片內容 -->
       </div>
-
-      <!-- 單字 1: girl -->
-      <div class="slide-item" data-index="1" data-word="girl">
-        <div class="word-slide-inner">
-          <div class="left-column">
-            <div class="top-meta">
-              <span class="category-tag"><i class="fa-solid fa-user"></i> 人物稱呼</span>
-              <span class="page-index">01 / 20</span>
-            </div>
-            <div class="word-header-area">
-              <span class="word-heading">girl</span>
-              <button class="sound-btn" onclick="speakCurrentWord('girl')" aria-label="朗讀單字"><i class="fa-solid fa-volume-high"></i></button>
-              <div class="pos-capsule">女孩 n.</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title"><i class="fa-solid fa-puzzle-piece"></i> 常用搭配詞</div>
-              <div class="collocation-text">little girl (小女孩) / teenage girl (青少女)</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title">
-                <i class="fa-solid fa-comment-dots"></i> 實用例句
-                <button class="example-speak-btn" onclick="speakSentence('The little girl is drawing a picture of a cat.')"><i class="fa-solid fa-volume-low"></i></button>
-              </div>
-              <div class="example-en">The little girl is drawing a picture of a cat.</div>
-              <div class="example-zh">那個小女孩正在畫一隻貓。</div>
-            </div>
-          </div>
-          <div class="right-column">
-            <div class="fun-top-bar">
-              <span class="fun-badge">趣味聯想</span>
-              <span class="fun-topic">小畫家女孩</span>
-            </div>
-            <div class="fun-icon-wrapper"><i class="fa-solid fa-child-dress"></i></div>
-            <div class="mascot-tip-box">💡 愛畫畫的可愛小女孩！</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 單字 2: home -->
-      <div class="slide-item" data-index="2" data-word="home">
-        <div class="word-slide-inner">
-          <div class="left-column">
-            <div class="top-meta">
-              <span class="category-tag"><i class="fa-solid fa-house-chimney"></i> 溫馨居所</span>
-              <span class="page-index">02 / 20</span>
-            </div>
-            <div class="word-header-area">
-              <span class="word-heading">home</span>
-              <button class="sound-btn" onclick="speakCurrentWord('home')"><i class="fa-solid fa-volume-high"></i></button>
-              <div class="pos-capsule">家 n.</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title"><i class="fa-solid fa-puzzle-piece"></i> 常用搭配詞</div>
-              <div class="collocation-text">go home (回家) / at home (在家)</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title">
-                <i class="fa-solid fa-comment-dots"></i> 實用例句
-                <button class="example-speak-btn" onclick="speakSentence('I usually get home at five o\'clock every afternoon.')"><i class="fa-solid fa-volume-low"></i></button>
-              </div>
-              <div class="example-en">I usually get home at five o'clock every afternoon.</div>
-              <div class="example-zh">我通常每天下午五點到家。</div>
-            </div>
-          </div>
-          <div class="right-column">
-            <div class="fun-top-bar">
-              <span class="fun-badge">趣味聯想</span>
-              <span class="fun-topic">溫暖的家</span>
-            </div>
-            <div class="fun-icon-wrapper"><i class="fa-solid fa-house-chimney-heart"></i></div>
-            <div class="mascot-tip-box">💡 每天放學最想回到的好地方！</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 單字 3: father -->
-      <div class="slide-item" data-index="3" data-word="father">
-        <div class="word-slide-inner">
-          <div class="left-column">
-            <div class="top-meta">
-              <span class="category-tag"><i class="fa-solid fa-people-roof"></i> 家庭成員</span>
-              <span class="page-index">03 / 20</span>
-            </div>
-            <div class="word-header-area">
-              <span class="word-heading">father</span>
-              <button class="sound-btn" onclick="speakCurrentWord('father')"><i class="fa-solid fa-volume-high"></i></button>
-              <div class="pos-capsule">爸爸 n.</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title"><i class="fa-solid fa-puzzle-piece"></i> 常用搭配詞</div>
-              <div class="collocation-text">proud father (驕傲的父親) / father and son (父子)</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title">
-                <i class="fa-solid fa-comment-dots"></i> 實用例句
-                <button class="example-speak-btn" onclick="speakSentence('His father works hard to support the whole family.')"><i class="fa-solid fa-volume-low"></i></button>
-              </div>
-              <div class="example-en">His father works hard to support the whole family.</div>
-              <div class="example-zh">他的父親努力工作以撫養全家。</div>
-            </div>
-          </div>
-          <div class="right-column">
-            <div class="fun-top-bar">
-              <span class="fun-badge">趣味聯想</span>
-              <span class="fun-topic">超人父親</span>
-            </div>
-            <div class="fun-icon-wrapper"><i class="fa-solid fa-user-tie"></i></div>
-            <div class="mascot-tip-box">💡 努力上班照顧大家的偉大爸爸！</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 單字 4: dad -->
-      <div class="slide-item" data-index="4" data-word="dad">
-        <div class="word-slide-inner">
-          <div class="left-column">
-            <div class="top-meta">
-              <span class="category-tag"><i class="fa-solid fa-people-roof"></i> 家庭成員</span>
-              <span class="page-index">04 / 20</span>
-            </div>
-            <div class="word-header-area">
-              <span class="word-heading">dad</span>
-              <button class="sound-btn" onclick="speakCurrentWord('dad')"><i class="fa-solid fa-volume-high"></i></button>
-              <div class="pos-capsule">爸爸 n.</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title"><i class="fa-solid fa-puzzle-piece"></i> 常用搭配詞</div>
-              <div class="collocation-text">good dad (好爸爸) / stay-at-home dad (家庭主夫)</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title">
-                <i class="fa-solid fa-comment-dots"></i> 實用例句
-                <button class="example-speak-btn" onclick="speakSentence('Dad bought me a new schoolbag yesterday.')"><i class="fa-solid fa-volume-low"></i></button>
-              </div>
-              <div class="example-en">Dad bought me a new schoolbag yesterday.</div>
-              <div class="example-zh">爸爸昨天買了一個新書包給我。</div>
-            </div>
-          </div>
-          <div class="right-column">
-            <div class="fun-top-bar">
-              <span class="fun-badge">趣味聯想</span>
-              <span class="fun-topic">親切老爸</span>
-            </div>
-            <div class="fun-icon-wrapper"><i class="fa-solid fa-heart"></i></div>
-            <div class="mascot-tip-box">💡 常常帶我去買書包與禮物！</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 單字 5: daddy -->
-      <div class="slide-item" data-index="5" data-word="daddy">
-        <div class="word-slide-inner">
-          <div class="left-column">
-            <div class="top-meta">
-              <span class="category-tag"><i class="fa-solid fa-people-roof"></i> 家庭成員</span>
-              <span class="page-index">05 / 20</span>
-            </div>
-            <div class="word-header-area">
-              <span class="word-heading">daddy</span>
-              <button class="sound-btn" onclick="speakCurrentWord('daddy')"><i class="fa-solid fa-volume-high"></i></button>
-              <div class="pos-capsule">爸爸 n.</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title"><i class="fa-solid fa-puzzle-piece"></i> 常用搭配詞</div>
-              <div class="collocation-text">call daddy (叫爸爸) / daddy's girl (爸爸的掌上明珠)</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title">
-                <i class="fa-solid fa-comment-dots"></i> 實用例句
-                <button class="example-speak-btn" onclick="speakSentence('The child ran happily into her daddy\'s arms.')"><i class="fa-solid fa-volume-low"></i></button>
-              </div>
-              <div class="example-en">The child ran happily into her daddy's arms.</div>
-              <div class="example-zh">孩子開心地跑進爸爸的懷裡。</div>
-            </div>
-          </div>
-          <div class="right-column">
-            <div class="fun-top-bar">
-              <span class="fun-badge">趣味聯想</span>
-              <span class="fun-topic">大抱抱</span>
-            </div>
-            <div class="fun-icon-wrapper"><i class="fa-solid fa-hands-holding-child"></i></div>
-            <div class="mascot-tip-box">💡 跑進 Daddy 的大懷抱裡好溫暖！</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 單字 6: mother -->
-      <div class="slide-item" data-index="6" data-word="mother">
-        <div class="word-slide-inner">
-          <div class="left-column">
-            <div class="top-meta">
-              <span class="category-tag"><i class="fa-solid fa-people-roof"></i> 家庭成員</span>
-              <span class="page-index">06 / 20</span>
-            </div>
-            <div class="word-header-area">
-              <span class="word-heading">mother</span>
-              <button class="sound-btn" onclick="speakCurrentWord('mother')"><i class="fa-solid fa-volume-high"></i></button>
-              <div class="pos-capsule">媽媽 n.</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title"><i class="fa-solid fa-puzzle-piece"></i> 常用搭配詞</div>
-              <div class="collocation-text">caring mother (細心的母親) / Mother's Day (母親節)</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title">
-                <i class="fa-solid fa-comment-dots"></i> 實用例句
-                <button class="example-speak-btn" onclick="speakSentence('Mother cooked a delicious dinner for all of us.')"><i class="fa-solid fa-volume-low"></i></button>
-              </div>
-              <div class="example-en">Mother cooked a delicious dinner for all of us.</div>
-              <div class="example-zh">媽媽為我們大家煮了美味的晚餐。</div>
-            </div>
-          </div>
-          <div class="right-column">
-            <div class="fun-top-bar">
-              <span class="fun-badge">趣味聯想</span>
-              <span class="fun-topic">母親愛心餐</span>
-            </div>
-            <div class="fun-icon-wrapper"><i class="fa-solid fa-utensils"></i></div>
-            <div class="mascot-tip-box">💡 媽媽煮的晚餐永遠最好吃！</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 單字 7: mom -->
-      <div class="slide-item" data-index="7" data-word="mom">
-        <div class="word-slide-inner">
-          <div class="left-column">
-            <div class="top-meta">
-              <span class="category-tag"><i class="fa-solid fa-people-roof"></i> 家庭成員</span>
-              <span class="page-index">07 / 20</span>
-            </div>
-            <div class="word-header-area">
-              <span class="word-heading">mom</span>
-              <button class="sound-btn" onclick="speakCurrentWord('mom')"><i class="fa-solid fa-volume-high"></i></button>
-              <div class="pos-capsule">媽媽 n.</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title"><i class="fa-solid fa-puzzle-piece"></i> 常用搭配詞</div>
-              <div class="collocation-text">call mom (打電話給媽媽) / help mom (幫媽媽忙)</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title">
-                <i class="fa-solid fa-comment-dots"></i> 實用例句
-                <button class="example-speak-btn" onclick="speakSentence('Mom reminded me to bring my umbrella this morning.')"><i class="fa-solid fa-volume-low"></i></button>
-              </div>
-              <div class="example-en">Mom reminded me to bring my umbrella this morning.</div>
-              <div class="example-zh">媽媽今天早上提醒我要帶雨傘。</div>
-            </div>
-          </div>
-          <div class="right-column">
-            <div class="fun-top-bar">
-              <span class="fun-badge">趣味聯想</span>
-              <span class="fun-topic">愛的小叮嚀</span>
-            </div>
-            <div class="fun-icon-wrapper"><i class="fa-solid fa-umbrella"></i></div>
-            <div class="mascot-tip-box">💡 聽媽媽的話，記得帶傘出門！</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 單字 8: mommy -->
-      <div class="slide-item" data-index="8" data-word="mommy">
-        <div class="word-slide-inner">
-          <div class="left-column">
-            <div class="top-meta">
-              <span class="category-tag"><i class="fa-solid fa-people-roof"></i> 家庭成員</span>
-              <span class="page-index">08 / 20</span>
-            </div>
-            <div class="word-header-area">
-              <span class="word-heading">mommy</span>
-              <button class="sound-btn" onclick="speakCurrentWord('mommy')"><i class="fa-solid fa-volume-high"></i></button>
-              <div class="pos-capsule">媽媽 n.</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title"><i class="fa-solid fa-puzzle-piece"></i> 常用搭配詞</div>
-              <div class="collocation-text">sweet mommy (親愛的媽咪) / mommy and me (媽咪和我)</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title">
-                <i class="fa-solid fa-comment-dots"></i> 實用例句
-                <button class="example-speak-btn" onclick="speakSentence('The baby smiled sweetly at his mommy.')"><i class="fa-solid fa-volume-low"></i></button>
-              </div>
-              <div class="example-en">The baby smiled sweetly at his mommy.</div>
-              <div class="example-zh">小嬰兒對著他的媽咪甜甜地笑。</div>
-            </div>
-          </div>
-          <div class="right-column">
-            <div class="fun-top-bar">
-              <span class="fun-badge">趣味聯想</span>
-              <span class="fun-topic">微笑小寶貝</span>
-            </div>
-            <div class="fun-icon-wrapper"><i class="fa-solid fa-face-smile-beam"></i></div>
-            <div class="mascot-tip-box">💡 對著溫柔的 Mommy 甜甜笑！</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 單字 9: sister -->
-      <div class="slide-item" data-index="9" data-word="sister">
-        <div class="word-slide-inner">
-          <div class="left-column">
-            <div class="top-meta">
-              <span class="category-tag"><i class="fa-solid fa-people-roof"></i> 家庭成員</span>
-              <span class="page-index">09 / 20</span>
-            </div>
-            <div class="word-header-area">
-              <span class="word-heading">sister</span>
-              <button class="sound-btn" onclick="speakCurrentWord('sister')"><i class="fa-solid fa-volume-high"></i></button>
-              <div class="pos-capsule">姊妹 n.</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title"><i class="fa-solid fa-puzzle-piece"></i> 常用搭配詞</div>
-              <div class="collocation-text">elder sister (姐姐) / younger sister (妹妹)</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title">
-                <i class="fa-solid fa-comment-dots"></i> 實用例句
-                <button class="example-speak-btn" onclick="speakSentence('My sister and I enjoy listening to music together.')"><i class="fa-solid fa-volume-low"></i></button>
-              </div>
-              <div class="example-en">My sister and I enjoy listening to music together.</div>
-              <div class="example-zh">我和我姐姐喜歡一起聽音樂。</div>
-            </div>
-          </div>
-          <div class="right-column">
-            <div class="fun-top-bar">
-              <span class="fun-badge">趣味聯想</span>
-              <span class="fun-topic">姊妹音樂時光</span>
-            </div>
-            <div class="fun-icon-wrapper"><i class="fa-solid fa-headphones"></i></div>
-            <div class="mascot-tip-box">💡 和姐妹一起戴耳機聽歌最快樂！</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 單字 10: brother -->
-      <div class="slide-item" data-index="10" data-word="brother">
-        <div class="word-slide-inner">
-          <div class="left-column">
-            <div class="top-meta">
-              <span class="category-tag"><i class="fa-solid fa-people-roof"></i> 家庭成員</span>
-              <span class="page-index">10 / 20</span>
-            </div>
-            <div class="word-header-area">
-              <span class="word-heading">brother</span>
-              <button class="sound-btn" onclick="speakCurrentWord('brother')"><i class="fa-solid fa-volume-high"></i></button>
-              <div class="pos-capsule">兄弟 n.</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title"><i class="fa-solid fa-puzzle-piece"></i> 常用搭配詞</div>
-              <div class="collocation-text">big brother (哥哥) / little brother (弟弟)</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title">
-                <i class="fa-solid fa-comment-dots"></i> 實用例句
-                <button class="example-speak-btn" onclick="speakSentence('His brother is a member of the basketball team.')"><i class="fa-solid fa-volume-low"></i></button>
-              </div>
-              <div class="example-en">His brother is a member of the basketball team.</div>
-              <div class="example-zh">他的哥哥是籃球隊的成員。</div>
-            </div>
-          </div>
-          <div class="right-column">
-            <div class="fun-top-bar">
-              <span class="fun-badge">趣味聯想</span>
-              <span class="fun-topic">籃球兄弟</span>
-            </div>
-            <div class="fun-icon-wrapper"><i class="fa-solid fa-basketball"></i></div>
-            <div class="mascot-tip-box">💡 球場上帥氣打球的好兄弟！</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 單字 11: bookstore -->
-      <div class="slide-item" data-index="11" data-word="bookstore">
-        <div class="word-slide-inner">
-          <div class="left-column">
-            <div class="top-meta">
-              <span class="category-tag"><i class="fa-solid fa-store"></i> 社區場所</span>
-              <span class="page-index">11 / 20</span>
-            </div>
-            <div class="word-header-area">
-              <span class="word-heading">bookstore</span>
-              <button class="sound-btn" onclick="speakCurrentWord('bookstore')"><i class="fa-solid fa-volume-high"></i></button>
-              <div class="pos-capsule">書店 n.</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title"><i class="fa-solid fa-puzzle-piece"></i> 常用搭配詞</div>
-              <div class="collocation-text">local bookstore (當地書店) / online bookstore (網路書店)</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title">
-                <i class="fa-solid fa-comment-dots"></i> 實用例句
-                <button class="example-speak-btn" onclick="speakSentence('I like spending my Sunday afternoons browsing books in the bookstore.')"><i class="fa-solid fa-volume-low"></i></button>
-              </div>
-              <div class="example-en">I like spending my Sunday afternoons browsing books in the bookstore.</div>
-              <div class="example-zh">我喜歡在週日下午泡在書店裡翻閱書籍。</div>
-            </div>
-          </div>
-          <div class="right-column">
-            <div class="fun-top-bar">
-              <span class="fun-badge">趣味聯想</span>
-              <span class="fun-topic">閱讀寶庫</span>
-            </div>
-            <div class="fun-icon-wrapper"><i class="fa-solid fa-book-open-reader"></i></div>
-            <div class="mascot-tip-box">💡 我是最棒的小讀者！</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 單字 12: bus stop -->
-      <div class="slide-item" data-index="12" data-word="bus stop">
-        <div class="word-slide-inner">
-          <div class="left-column">
-            <div class="top-meta">
-              <span class="category-tag"><i class="fa-solid fa-bus"></i> 交通據點</span>
-              <span class="page-index">12 / 20</span>
-            </div>
-            <div class="word-header-area">
-              <span class="word-heading">bus stop</span>
-              <button class="sound-btn" onclick="speakCurrentWord('bus stop')"><i class="fa-solid fa-volume-high"></i></button>
-              <div class="pos-capsule">公車站 n.</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title"><i class="fa-solid fa-puzzle-piece"></i> 常用搭配詞</div>
-              <div class="collocation-text">wait at the bus stop (在公車站等車) / next bus stop (下一站公車站)</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title">
-                <i class="fa-solid fa-comment-dots"></i> 實用例句
-                <button class="example-speak-btn" onclick="speakSentence('Several passengers are waiting patiently at the bus stop.')"><i class="fa-solid fa-volume-low"></i></button>
-              </div>
-              <div class="example-en">Several passengers are waiting patiently at the bus stop.</div>
-              <div class="example-zh">幾位乘客正在公車站耐心地等車。</div>
-            </div>
-          </div>
-          <div class="right-column">
-            <div class="fun-top-bar">
-              <span class="fun-badge">趣味聯想</span>
-              <span class="fun-topic">排隊等公車</span>
-            </div>
-            <div class="fun-icon-wrapper"><i class="fa-solid fa-bus-simple"></i></div>
-            <div class="mascot-tip-box">💡 在公車站牌下排隊好守秩序！</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 單字 13: class -->
-      <div class="slide-item" data-index="13" data-word="class">
-        <div class="word-slide-inner">
-          <div class="left-column">
-            <div class="top-meta">
-              <span class="category-tag"><i class="fa-solid fa-school"></i> 學校生活</span>
-              <span class="page-index">13 / 20</span>
-            </div>
-            <div class="word-header-area">
-              <span class="word-heading">class</span>
-              <button class="sound-btn" onclick="speakCurrentWord('class')"><i class="fa-solid fa-volume-high"></i></button>
-              <div class="pos-capsule">班級 n.</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title"><i class="fa-solid fa-puzzle-piece"></i> 常用搭配詞</div>
-              <div class="collocation-text">in class (在課堂上) / take a class (上一門課)</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title">
-                <i class="fa-solid fa-comment-dots"></i> 實用例句
-                <button class="example-speak-btn" onclick="speakSentence('Our class worked together to win the school singing contest.')"><i class="fa-solid fa-volume-low"></i></button>
-              </div>
-              <div class="example-en">Our class worked together to win the school singing contest.</div>
-              <div class="example-zh">我們班同心協力贏得了全校合唱比賽。</div>
-            </div>
-          </div>
-          <div class="right-column">
-            <div class="fun-top-bar">
-              <span class="fun-badge">趣味聯想</span>
-              <span class="fun-topic">團結同心</span>
-            </div>
-            <div class="fun-icon-wrapper"><i class="fa-solid fa-trophy"></i></div>
-            <div class="mascot-tip-box">💡 全班團結拿第一名獎盃！</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 單字 14: classroom -->
-      <div class="slide-item" data-index="14" data-word="classroom">
-        <div class="word-slide-inner">
-          <div class="left-column">
-            <div class="top-meta">
-              <span class="category-tag"><i class="fa-solid fa-school"></i> 學校生活</span>
-              <span class="page-index">14 / 20</span>
-            </div>
-            <div class="word-header-area">
-              <span class="word-heading">classroom</span>
-              <button class="sound-btn" onclick="speakCurrentWord('classroom')"><i class="fa-solid fa-volume-high"></i></button>
-              <div class="pos-capsule">教室 n.</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title"><i class="fa-solid fa-puzzle-piece"></i> 常用搭配詞</div>
-              <div class="collocation-text">clean the classroom (打掃教室) / in the classroom (在教室裡)</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title">
-                <i class="fa-solid fa-comment-dots"></i> 實用例句
-                <button class="example-speak-btn" onclick="speakSentence('Please keep our classroom tidy by throwing garbage into the bin.')"><i class="fa-solid fa-volume-low"></i></button>
-              </div>
-              <div class="example-en">Please keep our classroom tidy by throwing garbage into the bin.</div>
-              <div class="example-zh">請將垃圾扔進桶子裡以保持教室整潔。</div>
-            </div>
-          </div>
-          <div class="right-column">
-            <div class="fun-top-bar">
-              <span class="fun-badge">趣味聯想</span>
-              <span class="fun-topic">乾淨天地</span>
-            </div>
-            <div class="fun-icon-wrapper"><i class="fa-solid fa-chalkboard-user"></i></div>
-            <div class="mascot-tip-box">💡 保持教室整齊乾淨人人誇！</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 單字 15: department store -->
-      <div class="slide-item" data-index="15" data-word="department store">
-        <div class="word-slide-inner">
-          <div class="left-column">
-            <div class="top-meta">
-              <span class="category-tag"><i class="fa-solid fa-bag-shopping"></i> 購物商場</span>
-              <span class="page-index">15 / 20</span>
-            </div>
-            <div class="word-header-area">
-              <span class="word-heading" style="font-size: 52px;">department store</span>
-              <button class="sound-btn" onclick="speakCurrentWord('department store')"><i class="fa-solid fa-volume-high"></i></button>
-              <div class="pos-capsule">百貨公司 n.</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title"><i class="fa-solid fa-puzzle-piece"></i> 常用搭配詞</div>
-              <div class="collocation-text">shopping at the department store (在百貨公司購物) / department store sale (百貨公司週年慶特賣)</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title">
-                <i class="fa-solid fa-comment-dots"></i> 實用例句
-                <button class="example-speak-btn" onclick="speakSentence('We went to the department store to buy a winter jacket for dad.')"><i class="fa-solid fa-volume-low"></i></button>
-              </div>
-              <div class="example-en">We went to the department store to buy a winter jacket for dad.</div>
-              <div class="example-zh">我們去百貨公司為爸爸挑選一件保暖的冬季大衣。</div>
-            </div>
-          </div>
-          <div class="right-column">
-            <div class="fun-top-bar">
-              <span class="fun-badge">趣味聯想</span>
-              <span class="fun-topic">逛街購物</span>
-            </div>
-            <div class="fun-icon-wrapper"><i class="fa-solid fa-cart-shopping"></i></div>
-            <div class="mascot-tip-box">💡 百貨公司裡什麼都有好神奇！</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 單字 16: fire station -->
-      <div class="slide-item" data-index="16" data-word="fire station">
-        <div class="word-slide-inner">
-          <div class="left-column">
-            <div class="top-meta">
-              <span class="category-tag"><i class="fa-solid fa-shield-halved"></i> 社區英雄</span>
-              <span class="page-index">16 / 20</span>
-            </div>
-            <div class="word-header-area">
-              <span class="word-heading">fire station</span>
-              <button class="sound-btn" onclick="speakCurrentWord('fire station')"><i class="fa-solid fa-volume-high"></i></button>
-              <div class="pos-capsule">消防站 n.</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title"><i class="fa-solid fa-puzzle-piece"></i> 常用搭配詞</div>
-              <div class="collocation-text">near the fire station (在消防局附近) / call the fire station (聯絡消防隊)</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title">
-                <i class="fa-solid fa-comment-dots"></i> 實用例句
-                <button class="example-speak-btn" onclick="speakSentence('The fire engine rushed out of the fire station with its sirens on.')"><i class="fa-solid fa-volume-low"></i></button>
-              </div>
-              <div class="example-en">The fire engine rushed out of the fire station with its sirens on.</div>
-              <div class="example-zh">消防車鳴著警笛從消防局疾馳而出。</div>
-            </div>
-          </div>
-          <div class="right-column">
-            <div class="fun-top-bar">
-              <span class="fun-badge">趣味聯想</span>
-              <span class="fun-topic">英勇出動</span>
-            </div>
-            <div class="fun-icon-wrapper"><i class="fa-solid fa-fire-extinguisher"></i></div>
-            <div class="mascot-tip-box">💡 鳴笛出動保護大家安全的英雄！</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 單字 17: garden -->
-      <div class="slide-item" data-index="17" data-word="garden">
-        <div class="word-slide-inner">
-          <div class="left-column">
-            <div class="top-meta">
-              <span class="category-tag"><i class="fa-solid fa-leaf"></i> 自然場所</span>
-              <span class="page-index">17 / 20</span>
-            </div>
-            <div class="word-header-area">
-              <span class="word-heading">garden</span>
-              <button class="sound-btn" onclick="speakCurrentWord('garden')"><i class="fa-solid fa-volume-high"></i></button>
-              <div class="pos-capsule">花園 n.</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title"><i class="fa-solid fa-puzzle-piece"></i> 常用搭配詞</div>
-              <div class="collocation-text">flower garden (花園) / botanical garden (植物園)</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title">
-                <i class="fa-solid fa-comment-dots"></i> 實用例句
-                <button class="example-speak-btn" onclick="speakSentence('Grandpa loves watering the colorful roses in his garden every morning.')"><i class="fa-solid fa-volume-low"></i></button>
-              </div>
-              <div class="example-en">Grandpa loves watering the colorful roses in his garden every morning.</div>
-              <div class="example-zh">爺爺每天早晨都喜歡給花園裡五彩斑斕的玫瑰澆水。</div>
-            </div>
-          </div>
-          <div class="right-column">
-            <div class="fun-top-bar">
-              <span class="fun-badge">趣味聯想</span>
-              <span class="fun-topic">芬芳玫瑰</span>
-            </div>
-            <div class="fun-icon-wrapper"><i class="fa-solid fa-seedling"></i></div>
-            <div class="mascot-tip-box">💡 爺爺的小花園開滿了美麗花朵！</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 單字 18: hospital -->
-      <div class="slide-item" data-index="18" data-word="hospital">
-        <div class="word-slide-inner">
-          <div class="left-column">
-            <div class="top-meta">
-              <span class="category-tag"><i class="fa-solid fa-square-plus"></i> 醫療場所</span>
-              <span class="page-index">18 / 20</span>
-            </div>
-            <div class="word-header-area">
-              <span class="word-heading">hospital</span>
-              <button class="sound-btn" onclick="speakCurrentWord('hospital')"><i class="fa-solid fa-volume-high"></i></button>
-              <div class="pos-capsule">醫院 n.</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title"><i class="fa-solid fa-puzzle-piece"></i> 常用搭配詞</div>
-              <div class="collocation-text">go to the hospital (去醫院看病) / hospital bed (病床)</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title">
-                <i class="fa-solid fa-comment-dots"></i> 實用例句
-                <button class="example-speak-btn" onclick="speakSentence('The injured driver was sent to the nearest hospital immediately.')"><i class="fa-solid fa-volume-low"></i></button>
-              </div>
-              <div class="example-en">The injured driver was sent to the nearest hospital immediately.</div>
-              <div class="example-zh">受傷的司機被立刻送往了最近的醫院。</div>
-            </div>
-          </div>
-          <div class="right-column">
-            <div class="fun-top-bar">
-              <span class="fun-badge">趣味聯想</span>
-              <span class="fun-topic">白衣天使</span>
-            </div>
-            <div class="fun-icon-wrapper"><i class="fa-solid fa-hospital"></i></div>
-            <div class="mascot-tip-box">💡 醫生與護士細心照顧病人健康！</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 單字 19: library -->
-      <div class="slide-item" data-index="19" data-word="library">
-        <div class="word-slide-inner">
-          <div class="left-column">
-            <div class="top-meta">
-              <span class="category-tag"><i class="fa-solid fa-book"></i> 書香世界</span>
-              <span class="page-index">19 / 20</span>
-            </div>
-            <div class="word-header-area">
-              <span class="word-heading">library</span>
-              <button class="sound-btn" onclick="speakCurrentWord('library')"><i class="fa-solid fa-volume-high"></i></button>
-              <div class="pos-capsule">圖書館 n.</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title"><i class="fa-solid fa-puzzle-piece"></i> 常用搭配詞</div>
-              <div class="collocation-text">public library (公共圖書館) / borrow books from the library (從圖書館借書)</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title">
-                <i class="fa-solid fa-comment-dots"></i> 實用例句
-                <button class="example-speak-btn" onclick="speakSentence('Students love studying quietly in the school library after class.')"><i class="fa-solid fa-volume-low"></i></button>
-              </div>
-              <div class="example-en">Students love studying quietly in the school library after class.</div>
-              <div class="example-zh">放學後學生們喜歡在學校圖書館裡安靜地自習。</div>
-            </div>
-          </div>
-          <div class="right-column">
-            <div class="fun-top-bar">
-              <span class="fun-badge">趣味聯想</span>
-              <span class="fun-topic">安靜閱讀</span>
-            </div>
-            <div class="fun-icon-wrapper"><i class="fa-solid fa-book-bookmark"></i></div>
-            <div class="mascot-tip-box">💡 進圖書館輕聲細語借好書！</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 單字 20: market -->
-      <div class="slide-item" data-index="20" data-word="market">
-        <div class="word-slide-inner">
-          <div class="left-column">
-            <div class="top-meta">
-              <span class="category-tag"><i class="fa-solid fa-store"></i> 熱鬧集市</span>
-              <span class="page-index">20 / 20</span>
-            </div>
-            <div class="word-header-area">
-              <span class="word-heading">market</span>
-              <button class="sound-btn" onclick="speakCurrentWord('market')"><i class="fa-solid fa-volume-high"></i></button>
-              <div class="pos-capsule">市場；市集 n.</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title"><i class="fa-solid fa-puzzle-piece"></i> 常用搭配詞</div>
-              <div class="collocation-text">night market (夜市) / traditional market (傳統市場)</div>
-            </div>
-            <div class="content-box">
-              <div class="content-box-title">
-                <i class="fa-solid fa-comment-dots"></i> 實用例句
-                <button class="example-speak-btn" onclick="speakSentence('Foreign tourists always enjoy visiting Taiwan\'s vibrant night markets.')"><i class="fa-solid fa-volume-low"></i></button>
-              </div>
-              <div class="example-en">Foreign tourists always enjoy visiting Taiwan's vibrant night markets.</div>
-              <div class="example-zh">外國遊客總是熱衷於逛台灣熱鬧的夜市。</div>
-            </div>
-          </div>
-          <div class="right-column">
-            <div class="fun-top-bar">
-              <span class="fun-badge">趣味聯想</span>
-              <span class="fun-topic">熱鬧好逛</span>
-            </div>
-            <div class="fun-icon-wrapper"><i class="fa-solid fa-shop"></i></div>
-            <div class="mascot-tip-box">💡 夜市有好多美味小吃和遊戲！</div>
-          </div>
-        </div>
-      </div>
-    </main>
+    </div>
   </div>
 
-  <!-- 下方緊湊抗破版控制列 -->
-  <footer id="bottom-bar">
-    <div class="control-group-left">
-      <button class="ctrl-btn" id="btn-prev" onclick="prevSlide()"><i class="fa-solid fa-arrow-left"></i> <span>上一頁</span></button>
-      <button class="ctrl-btn" id="btn-next" onclick="nextSlide()"><span>下一頁</span> <i class="fa-solid fa-arrow-right"></i></button>
-      <select class="page-select" id="page-select" onchange="jumpToSlide(this.value)"></select>
+  <!-- 底部緊湊抗破版控制列 (固定高度 64px) -->
+  <nav class="relative z-30 h-16 w-full bg-white/95 backdrop-blur border-t-2 border-amber-200 px-3 md:px-6 flex items-center justify-between shadow-lg">
+    <!-- 左側：頁碼跳轉與頁面資訊 -->
+    <div class="flex items-center space-x-2">
+      <div class="relative inline-block">
+        <select id="jump-select" class="bg-amber-100 text-amber-900 font-bold py-1.5 px-3 pr-8 rounded-full border-2 border-amber-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer appearance-none">
+          <!-- 動態載入頁面清單 -->
+        </select>
+        <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-xs text-amber-700 pointer-events-none"></i>
+      </div>
+      <span id="page-counter" class="text-amber-800 text-sm font-bold tracking-wide">0 / 20</span>
     </div>
 
-    <div class="progress-wrapper">
-      <div class="progress-fill" id="progress-fill"></div>
+    <!-- 中間：進度條與主操作鍵 (上/下一頁) -->
+    <div class="flex items-center space-x-3 flex-1 max-w-md mx-3">
+      <button id="btn-prev" class="toy-button bg-amber-400 hover:bg-amber-500 text-amber-950 font-bold px-3 py-1.5 rounded-full flex items-center space-x-1 border border-amber-500 text-sm active:scale-95 transition">
+        <i class="fa-solid fa-chevron-left text-xs"></i>
+        <span class="hidden sm:inline">上一頁</span>
+      </button>
+
+      <div class="flex-1 bg-amber-100 h-3.5 rounded-full border border-amber-300 overflow-hidden relative shadow-inner">
+        <div id="progress-bar" class="bg-gradient-to-r from-amber-400 to-orange-500 h-full w-0 transition-all duration-300 rounded-full"></div>
+      </div>
+
+      <button id="btn-next" class="toy-button bg-amber-400 hover:bg-amber-500 text-amber-950 font-bold px-3 py-1.5 rounded-full flex items-center space-x-1 border border-amber-500 text-sm active:scale-95 transition">
+        <span class="hidden sm:inline">下一頁</span>
+        <i class="fa-solid fa-chevron-right text-xs"></i>
+      </button>
     </div>
 
-    <div class="control-group-right">
-      <button class="ctrl-btn" id="btn-current-speech" onclick="speakCurrentWordBtn()" title="朗讀當前單字"><i class="fa-solid fa-volume-high"></i></button>
-      <label class="toggle-label" title="切換投影片時自動朗讀">
-        <input type="checkbox" id="auto-tts-toggle" checked>
-        <span>自動朗讀</span>
-      </label>
-      <button class="ctrl-btn" id="fullscreen-btn" onclick="toggleFullScreen()"><i class="fa-solid fa-expand"></i></button>
+    <!-- 右側：語音與全螢幕設定 -->
+    <div class="flex items-center space-x-2">
+      <!-- 重新朗讀當前單字 -->
+      <button id="btn-speak" title="朗讀單字" class="toy-button bg-blue-100 hover:bg-blue-200 text-sky-700 border-2 border-sky-300 w-9 h-9 rounded-full flex items-center justify-center text-sm">
+        <i class="fa-solid fa-volume-high"></i>
+      </button>
+
+      <!-- 自動發音開關 -->
+      <button id="btn-toggle-auto" title="自動朗讀開關" class="toy-button bg-emerald-100 text-emerald-800 border-2 border-emerald-300 px-2.5 py-1 rounded-full text-xs font-bold flex items-center space-x-1">
+        <i class="fa-solid fa-toggle-on text-base" id="auto-speak-icon"></i>
+        <span class="hidden sm:inline" id="auto-speak-text">自動發音</span>
+      </button>
+
+      <!-- 全螢幕切換 -->
+      <button id="btn-fullscreen" title="全螢幕 (快速鍵: F)" class="toy-button bg-amber-100 hover:bg-amber-200 text-amber-900 border-2 border-amber-300 w-9 h-9 rounded-full flex items-center justify-center text-sm">
+        <i id="fs-icon" class="fa-solid fa-expand"></i>
+      </button>
     </div>
-  </footer>
-</div>
+  </nav>
 
-<script>
-  let currentSlide = 0;
-  const slides = document.querySelectorAll('.slide-item');
-  const totalSlides = slides.length;
-  const stage = document.getElementById('presentation-stage');
-  const scaler = document.getElementById('stage-scaler');
-  const pageSelect = document.getElementById('page-select');
-  const progressFill = document.getElementById('progress-fill');
-  const autoTtsToggle = document.getElementById('auto-tts-toggle');
-  const fullscreenBtn = document.getElementById('fullscreen-btn');
+  <script>
+    /* ==========================================================
+       1. 單字資料集與詳細設定
+       ========================================================== */
+    const WEEK_DATA = {
+      title: "2026 一起背單字 (國小組)",
+      subTitle: "[W04]2026/09/21~09/28",
+      categories: ["家庭成員 Family", "方向與位置 Positions", "生活場所與建築 Places"]
+    };
 
-  // 特殊發音修正對照表 (Speech synthesis mapping)
-  const pronunciationMap = {
-    "I": "eye",
-    "Mr.": "Mister",
-    "Mrs.": "Missus",
-    "Miss": "Miss",
-    "MRT": "M R T",
-    "bus stop": "bus stop",
-    "department store": "department store",
-    "fire station": "fire station"
-  };
-
-  // 初始化頁碼下拉選單
-  function initPageSelect() {
-    pageSelect.innerHTML = '';
-    slides.forEach((slide, idx) => {
-      const option = document.createElement('option');
-      option.value = idx;
-      if (idx === 0) {
-        option.textContent = '封面';
-      } else {
-        const word = slide.getAttribute('data-word');
-        option.textContent = `${idx < 10 ? '0' + idx : idx}. ${word}`;
+    const VOCABULARY_LIST = [
+      {
+        word: "grandfather",
+        meaning: "祖父（外公）",
+        pos: "n.",
+        category: "家庭成員",
+        collocation: "visit grandfather (拜訪祖父) / grandfather clock (老式擺鐘)",
+        sentence: "My grandfather loves planting vegetables in his garden.",
+        sentenceCn: "我的祖父喜歡在他的花園裡種蔬菜。",
+        icon: "fa-person-cane",
+        tip: "💡 祖父的白鬍鬚像棉花糖，總是有好多古老的故事！"
+      },
+      {
+        word: "grandpa",
+        meaning: "祖父（爺爺；外公）",
+        pos: "n.",
+        category: "家庭成員",
+        collocation: "dear grandpa (親愛的爺爺) / grandpa and grandma (爺爺奶奶)",
+        sentence: "Grandpa tells us interesting stories every evening.",
+        sentenceCn: "爺爺每天晚上都給我們講有趣的故事。",
+        icon: "fa-glasses",
+        tip: "💡 親切的爺爺笑瞇瞇，牽著小手一起散步！"
+      },
+      {
+        word: "grandmother",
+        meaning: "祖母（外婆）",
+        pos: "n.",
+        category: "家庭成員",
+        collocation: "visit grandmother (拜訪祖母) / loving grandmother (慈愛的祖母)",
+        sentence: "My grandmother makes the most delicious apple pie.",
+        sentenceCn: "我的外婆做最美味的蘋果派。",
+        icon: "fa-cookie-bite",
+        tip: "💡 外婆烤的蘋果派香噴噴，每一口都是幸福的味道！"
+      },
+      {
+        word: "grandma",
+        meaning: "祖母（奶奶；外婆）",
+        pos: "n.",
+        category: "家庭成員",
+        collocation: "dear grandma (親愛的奶奶) / grandma's cooking (奶奶煮的飯菜)",
+        sentence: "Grandma taught me how to knit a warm scarf.",
+        sentenceCn: "奶奶教我如何織一條溫暖的圍巾。",
+        icon: "fa-heart",
+        tip: "💡 奶奶手巧又溫柔，親手織的圍巾在冬天最溫暖！"
+      },
+      {
+        word: "baby",
+        meaning: "嬰兒",
+        pos: "n.",
+        category: "家庭成員",
+        collocation: "baby boy (男嬰) / take care of a baby (照顧嬰兒)",
+        sentence: "The baby fell asleep peacefully in the crib. ",
+        sentenceCn: "小嬰兒在嬰兒床裡安詳地睡著了。",
+        icon: "fa-baby",
+        tip: "💡 噓～小寶貝睡著了，胖嘟嘟的臉頰像軟綿綿的布丁！"
+      },
+      {
+        word: "family",
+        meaning: "家人/家庭",
+        pos: "n.",
+        category: "家庭成員",
+        collocation: "family member (家庭成員) / family dinner (家庭聚餐)",
+        sentence: "I have a happy family with four members.",
+        sentenceCn: "我有一個四口之家的幸福家庭。",
+        icon: "fa-house-chimney-window",
+        tip: "💡 家是世界上最安全溫暖的城堡，每天都要抱抱家人！"
+      },
+      {
+        word: "out",
+        meaning: "向外",
+        pos: "adv.",
+        category: "方向與位置",
+        collocation: "go out (外出) / find out (查明；找出)",
+        sentence: "He took his wallet out of his pocket.",
+        sentenceCn: "他從口袋裡拿出錢包。",
+        icon: "fa-arrow-up-right-from-square",
+        tip: "💡 邁開腳步走出去，探索外面的大千世界！"
+      },
+      {
+        word: "outside",
+        meaning: "外面",
+        pos: "adv. / prep.",
+        category: "方向與位置",
+        collocation: "stay outside (待在戶外) / outside the box (跳脫常規)",
+        sentence: "The children are playing badminton outside the house.",
+        sentenceCn: "孩子們正在房子外面打羽毛球。",
+        icon: "fa-tree",
+        tip: "💡 陽光普照的日子，走出戶外跑步跳繩最健康！"
+      },
+      {
+        word: "under",
+        meaning: "在下面",
+        pos: "prep.",
+        category: "方向與位置",
+        collocation: "under the table (在桌子底下) / under control (在掌控中)",
+        sentence: "The cat is sleeping under the wooden table.",
+        sentenceCn: "貓咪正睡在木桌底下。",
+        icon: "fa-cat",
+        tip: "💡 躲在桌子底下躲貓貓，頑皮的小貓正呼呼大睡呢！"
+      },
+      {
+        word: "in",
+        meaning: "在…裡面",
+        pos: "prep.",
+        category: "方向與位置",
+        collocation: "in time (及時) / in the morning (在早晨)",
+        sentence: "We stayed in the classroom during the rain.",
+        sentenceCn: "下雨時我們待在教室裡面。",
+        icon: "fa-box-open",
+        tip: "💡 把鉛筆放進筆袋裡，整整齊齊裝在裡面！"
+      },
+      {
+        word: "movie theater",
+        meaning: "電影院",
+        pos: "n.",
+        category: "生活場所與建築",
+        collocation: "go to the movie theater (去電影院) / local movie theater (當地戲院)",
+        sentence: "We bought tickets at the movie theater to watch the latest animation.",
+        sentenceCn: "我們在電影院買了票去看最新的動畫電影。",
+        icon: "fa-film",
+        tip: "💡 燈光暗下來，抓一把香甜爆米花，精采電影開演囉！"
+      },
+      {
+        word: "museum",
+        meaning: "博物館",
+        pos: "n.",
+        category: "生活場所與建築",
+        collocation: "visit a museum (參觀博物館) / history museum (歷史博物館)",
+        sentence: "The National Palace Museum houses thousands of precious ancient artworks.",
+        sentenceCn: "故宮博物院收藏了數千件珍貴的古代藝術品。",
+        icon: "fa-landmark",
+        tip: "💡 走進時光隧道，博物館裡有好多恐龍化石與珍奇寶藏！"
+      },
+      {
+        word: "office",
+        meaning: "辦公室",
+        pos: "n.",
+        category: "生活場所與建築",
+        collocation: "post office (郵局) / head office (總部；總辦公室)",
+        sentence: "My father works hard at his computer in the office every day.",
+        sentenceCn: "我父親每天都在辦公室的電腦前努力工作。",
+        icon: "fa-building",
+        tip: "💡 鍵盤喀喀響，辦公室裡大人們正在認真工作！"
+      },
+      {
+        word: "police station",
+        meaning: "警察局",
+        pos: "n.",
+        category: "生活場所與建築",
+        collocation: "near the police station (在警察局附近) / report to the police station (向警局報案)",
+        sentence: "The lost little girl was brought safely to the police station.",
+        sentenceCn: "走失的小女孩被安全送到了警察局。",
+        icon: "fa-shield-halved",
+        tip: "💡 迷路或遇到危險別慌張，警察叔叔阿姨會熱心保護你！"
+      },
+      {
+        word: "post office",
+        meaning: "郵局",
+        pos: "n.",
+        category: "生活場所與建築",
+        collocation: "go to the post office (去郵局) / nearest post office (最近的郵局)",
+        sentence: "I need to go to the post office to mail a birthday gift to my cousin.",
+        sentenceCn: "我需要去郵局寄一份生日禮物給我的表哥。",
+        icon: "fa-envelope-circle-check",
+        tip: "💡 綠色的大郵筒，把親手寫的心意卡片寄到遠方！"
+      },
+      {
+        word: "restaurant",
+        meaning: "餐廳",
+        pos: "n.",
+        category: "生活場所與建築",
+        collocation: "Italian restaurant (義大利餐廳) / eat at a restaurant (在餐廳用餐)",
+        sentence: "We reserved a table at our favorite seafood restaurant for mom's birthday.",
+        sentenceCn: "我們為媽媽的生日在最喜歡的海鮮餐廳訂了一桌。",
+        icon: "fa-utensils",
+        tip: "💡 香噴噴的披薩與義大利麵上桌囉！用餐禮儀要牢記喔！"
+      },
+      {
+        word: "school",
+        meaning: "學校",
+        pos: "n.",
+        category: "生活場所與建築",
+        collocation: "go to school (去上學) / after school (放學後)",
+        sentence: "Students walk happily into the school gate every morning.",
+        sentenceCn: "學生們每天早晨開心地走進校門。",
+        icon: "fa-school",
+        tip: "💡 背起書包上學去，和好朋友一起學習、一起快樂玩耍！"
+      },
+      {
+        word: "shop",
+        meaning: "商店",
+        pos: "n.",
+        category: "生活場所與建築",
+        collocation: "gift shop (禮品店) / open a shop (開一家店)",
+        sentence: "She bought a lovely postcard from the souvenir shop.",
+        sentenceCn: "她從紀念品商店買了一張可愛的明信片。",
+        icon: "fa-store",
+        tip: "💡 貨架上有好多文具和美味小零食，我是聰明的小顧客！"
+      },
+      {
+        word: "station",
+        meaning: "車站",
+        pos: "n.",
+        category: "生活場所與建築",
+        collocation: "train station (火車站) / gas station (加油站)",
+        sentence: "We will meet our teacher at the station entrance at eight o'clock.",
+        sentenceCn: "我們八點整在車站門口和老師會合。",
+        icon: "fa-train",
+        tip: "💡 火車嘟嘟開動了！準時在車站集合出發去冒險！"
+      },
+      {
+        word: "stop",
+        meaning: "公車站牌；停止",
+        pos: "n. | v.",
+        category: "生活場所與建築",
+        collocation: "bus stop (公車站牌) / full stop (句號；完全停止)",
+        sentence: "Please stop talking and pay attention to what the teacher is explaining.",
+        sentenceCn: "請停止講話，專心聽老師的講解。",
+        icon: "fa-hand",
+        tip: "💡 紅燈停、綠燈行！在公車站牌要有禮貌排隊上車喔！"
       }
-      pageSelect.appendChild(option);
-    });
-  }
+    ];
 
-  // 1200x675 舞台等比例縮放計算
-  function fitPresentationStage() {
-    if (window.innerWidth < 768) {
-      stage.style.transform = 'none';
-      return;
+    /* 發音校正映射字典 */
+    const PRONUNCIATION_MAP = {
+      "I": "eye",
+      "Mr.": "Mister",
+      "Mrs.": "Missus",
+      "Ms.": "Miz",
+      "Dr.": "Doctor",
+      "St.": "Saint",
+      "MRT": "M R T",
+      "in": "in",
+      "out": "out"
+    };
+
+    /* ==========================================================
+       2. 狀態管理
+       ========================================================== */
+    let currentIndex = 0; // 0 為封面, 1~20 為單字卡
+    const totalCards = VOCABULARY_LIST.length; // 20
+    const totalPages = totalCards + 1; // 21 頁 (0 ~ 20)
+    let autoSpeak = true;
+
+    /* DOM 元素參照 */
+    const stage = document.getElementById('presentation-stage');
+    const viewport = document.getElementById('card-viewport');
+    const jumpSelect = document.getElementById('jump-select');
+    const pageCounter = document.getElementById('page-counter');
+    const progressBar = document.getElementById('progress-bar');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const btnSpeak = document.getElementById('btn-speak');
+    const btnToggleAuto = document.getElementById('btn-toggle-auto');
+    const autoSpeakIcon = document.getElementById('auto-speak-icon');
+    const btnFullscreen = document.getElementById('btn-fullscreen');
+    const fsIcon = document.getElementById('fs-icon');
+
+    /* ==========================================================
+       3. 響應式等比例縮放計算 (fitPresentationStage)
+       ========================================================== */
+    function fitPresentationStage() {
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+
+      // 手機直向模式 (寬度 < 768px) 取消固定縮放，回歸流式排版
+      if (windowWidth < 768) {
+        stage.style.transform = 'none';
+        return;
+      }
+
+      // 桌機與橫向平板依 1200 x 675 (16:9) 進行安全縮放 (扣除底部 70px)
+      const baseWidth = 1200;
+      const baseHeight = 675;
+      const availableHeight = windowHeight - 74;
+
+      const scaleX = (windowWidth * 0.96) / baseWidth;
+      const scaleY = (availableHeight * 0.94) / baseHeight;
+      const scale = Math.min(scaleX, scaleY, 1.25); // 上限 1.25 倍避免字體模糊
+
+      stage.style.transform = `scale(${scale})`;
     }
-    const containerWidth = scaler.clientWidth - 40;
-    const containerHeight = scaler.clientHeight - 20;
-    const targetRatio = 1200 / 675;
-    const currentRatio = containerWidth / containerHeight;
 
-    let scale;
-    if (currentRatio > targetRatio) {
-      scale = containerHeight / 675;
-    } else {
-      scale = containerWidth / 1200;
+    window.addEventListener('resize', fitPresentationStage);
+
+    /* ==========================================================
+       4. 語音朗讀合成 (SpeechSynthesis)
+       ========================================================== */
+    function speakText(text) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel(); // 停止目前朗讀
+
+      const cleanText = text.trim();
+      const speakTarget = PRONUNCIATION_MAP[cleanText] || cleanText;
+      const utterance = new SpeechSynthesisUtterance(speakTarget);
+      
+      utterance.lang = 'en-US';
+      utterance.rate = 0.85; // 專為國小學童設計的清晰適中語速
+      utterance.pitch = 1.05; // 稍微輕快活潑的音調
+
+      // 嘗試挑選優質英文語音
+      const voices = window.speechSynthesis.getVoices();
+      const enVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha')));
+      if (enVoice) utterance.voice = enVoice;
+
+      window.speechSynthesis.speak(utterance);
     }
-    stage.style.transform = `scale(${Math.min(scale, 1.25)})`;
-  }
 
-  // 發音核心函數
-  function playSpeech(text) {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
+    /* ==========================================================
+       5. 頁面渲染邏輯
+       ========================================================== */
+    function render() {
+      // 更新控制列資訊
+      if (currentIndex === 0) {
+        pageCounter.textContent = `封面 / ${totalCards}`;
+        progressBar.style.width = '0%';
+        btnSpeak.disabled = true;
+        btnSpeak.classList.add('opacity-40', 'cursor-not-allowed');
+      } else {
+        const paddedCur = String(currentIndex).padStart(2, '0');
+        pageCounter.textContent = `${paddedCur} / ${totalCards}`;
+        const pct = (currentIndex / totalCards) * 100;
+        progressBar.style.width = `${pct}%`;
+        btnSpeak.disabled = false;
+        btnSpeak.classList.remove('opacity-40', 'cursor-not-allowed');
+      }
+      jumpSelect.value = currentIndex;
+
+      // 封面頁渲染
+      if (currentIndex === 0) {
+        viewport.innerHTML = `
+          <div class="slide-container toy-border bg-white w-full h-full flex flex-col items-center justify-center p-8 md:p-12 relative overflow-hidden text-center">
+            <!-- 裝飾星星圖案 -->
+            <i class="fa-solid fa-star text-amber-300 text-3xl absolute top-8 left-10 animate-bounce"></i>
+            <i class="fa-solid fa-shapes text-sky-200 text-4xl absolute bottom-12 right-12"></i>
+            <i class="fa-solid fa-pencil text-rose-300 text-3xl absolute top-12 right-16"></i>
+
+            <div class="inline-flex items-center space-x-2 bg-amber-100 text-amber-800 px-6 py-2 rounded-full font-bold text-lg mb-6 border border-amber-300 shadow-sm">
+              <i class="fa-solid fa-calendar-check text-amber-600"></i>
+              <span>${WEEK_DATA.subTitle}</span>
+            </div>
+
+            <h1 class="text-4xl md:text-6xl font-black text-amber-500 tracking-wider mb-6 drop-shadow-sm">
+              ${WEEK_DATA.title}
+            </h1>
+
+            <div class="w-24 h-2 bg-amber-400 rounded-full mb-8"></div>
+
+            <div class="flex flex-wrap justify-center gap-3 max-w-2xl mb-8">
+              ${WEEK_DATA.categories.map(cat => `
+                <span class="bg-amber-50 text-amber-900 border-2 border-amber-300 px-5 py-2 rounded-full font-bold text-lg shadow-sm">
+                  # ${cat}
+                </span>
+              `).join('')}
+            </div>
+
+            <button onclick="changePage(1)" class="toy-button bg-amber-400 hover:bg-amber-500 text-amber-950 font-black text-xl px-10 py-4 rounded-full border-2 border-amber-500 shadow-md flex items-center space-x-3 active:scale-95 transition cursor-pointer">
+              <span>開始學習單字</span>
+              <i class="fa-solid fa-circle-arrow-right"></i>
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      // 單字卡頁渲染 (左右雙欄)
+      const data = VOCABULARY_LIST[currentIndex - 1];
+      const pageNumberStr = `${String(currentIndex).padStart(2, '0')} / ${String(totalCards).padStart(2, '0')}`;
+
+      viewport.innerHTML = `
+        <div class="slide-container toy-border bg-white w-full h-full p-8 flex flex-col justify-between relative overflow-hidden">
+          
+          <!-- 頂部資訊列：左上方分類標籤 (20px) 與 右上方頁碼 (20px) -->
+          <div class="flex justify-between items-center w-full mb-3">
+            <span class="bg-amber-100 text-amber-900 px-4 py-1.5 rounded-full font-bold border border-amber-300 shadow-sm" style="font-size: 20px;">
+              <i class="fa-solid fa-tag text-amber-600 mr-1.5"></i>${data.category}
+            </span>
+            <span class="font-bold text-amber-700 bg-amber-50 px-4 py-1.5 rounded-full border border-amber-200" style="font-size: 20px;">
+              ${pageNumberStr}
+            </span>
+          </div>
+
+          <!-- 主體雙欄排版 -->
+          <div class="flex flex-1 items-stretch gap-6 mobile-stack">
+            
+            <!-- 左欄：單字主體與學習卡片 -->
+            <div class="flex-1 flex flex-col justify-between">
+              
+              <!-- 單字標題區：單字 (64px 暖橘色) + 發音鍵 + 詞性與中文對應標籤 (26px 天藍色膠囊框) -->
+              <div class="flex flex-wrap items-center gap-3 my-2">
+                <span class="font-black text-[#FF7A00] tracking-tight leading-none mobile-title" style="font-size: 64px;">
+                  ${data.word}
+                </span>
+                <button onclick="speakCurrentWord()" title="播放發音" class="toy-button bg-amber-100 hover:bg-amber-200 text-amber-700 border-2 border-amber-300 w-12 h-12 rounded-full flex items-center justify-center text-xl cursor-pointer">
+                  <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <div class="bg-sky-100 text-sky-900 border-2 border-sky-300 px-4 py-1.5 rounded-full font-bold shadow-sm mobile-badge" style="font-size: 26px;">
+                  ${data.meaning} <span class="text-sky-700 font-semibold">${data.pos}</span>
+                </div>
+              </div>
+
+              <!-- 常用搭配詞卡片：標題 24px、內容 23px -->
+              <div class="toy-border-sub bg-amber-50/70 p-4 mb-3">
+                <div class="font-bold text-amber-900 flex items-center mb-1.5" style="font-size: 24px;">
+                  <i class="fa-solid fa-puzzle-piece text-amber-600 mr-2"></i>常用搭配詞
+                </div>
+                <div class="text-stone-800 font-medium leading-relaxed pl-1" style="font-size: 23px;">
+                  ${data.collocation}
+                </div>
+              </div>
+
+              <!-- 實用例句卡片：標題 24px、獨立發音按鈕、英文例句 25px、中文 23px -->
+              <div class="toy-border-sub bg-sky-50/70 p-4">
+                <div class="flex items-center justify-between mb-1.5">
+                  <div class="font-bold text-sky-950 flex items-center" style="font-size: 24px;">
+                    <i class="fa-solid fa-comment-dots text-sky-600 mr-2"></i>生活實用例句
+                  </div>
+                  <button onclick="speakSentence()" title="朗讀例句" class="toy-button bg-sky-200 hover:bg-sky-300 text-sky-800 px-3 py-1 rounded-full text-sm font-bold flex items-center space-x-1.5 border border-sky-400 cursor-pointer">
+                    <i class="fa-solid fa-volume-high text-xs"></i>
+                    <span>念例句</span>
+                  </button>
+                </div>
+                <div class="text-slate-900 font-bold leading-snug mb-1" style="font-size: 25px;">
+                  ${data.sentence}
+                </div>
+                <div class="text-stone-600 font-medium" style="font-size: 23px;">
+                  ${data.sentenceCn}
+                </div>
+              </div>
+
+            </div>
+
+            <!-- 右側趣味聯想面板 (固定尺寸 440px × 500px，手機滿版自適應) -->
+            <div class="w-[440px] h-[500px] toy-border-sub bg-gradient-to-b from-amber-50 to-orange-50 p-5 flex flex-col justify-between items-center text-center mobile-full shrink-0">
+              <!-- 頂部標籤 (20px) -->
+              <div class="w-full flex justify-between items-center">
+                <span class="bg-amber-400 text-amber-950 px-3 py-1 rounded-full font-black text-sm uppercase tracking-wide">
+                  Fun Memory
+                </span>
+                <span class="font-bold text-amber-800 flex items-center" style="font-size: 20px;">
+                  <i class="fa-solid fa-lightbulb text-amber-500 mr-1.5"></i>情境聯想
+                </span>
+              </div>
+
+              <!-- 可愛主題情境大向量圖示 -->
+              <div class="flex-1 flex items-center justify-center my-2">
+                <div class="w-36 h-36 bg-white rounded-full flex items-center justify-center border-4 border-amber-300 shadow-md transform hover:rotate-6 transition-transform">
+                  <i class="fa-solid ${data.icon} text-amber-500 text-6xl"></i>
+                </div>
+              </div>
+
+              <!-- 底部 Mascot Tip 記憶提示文字 (嚴格要求 24px，手機 20px) -->
+              <div class="w-full bg-white/95 rounded-2xl p-4 border-2 border-amber-200 shadow-sm">
+                <p class="font-bold text-amber-950 leading-snug mobile-tip" style="font-size: 24px;">
+                  ${data.tip}
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      `;
+
+      // 若啟用自動朗讀，翻頁即朗讀該頁單字
+      if (autoSpeak) {
+        speakCurrentWord();
+      }
+    }
+
+    /* ==========================================================
+       6. 朗讀與控制功能
+       ========================================================== */
+    function speakCurrentWord() {
+      if (currentIndex > 0 && currentIndex <= totalCards) {
+        speakText(VOCABULARY_LIST[currentIndex - 1].word);
+      }
+    }
+
+    function speakSentence() {
+      if (currentIndex > 0 && currentIndex <= totalCards) {
+        speakText(VOCABULARY_LIST[currentIndex - 1].sentence);
+      }
+    }
+
+    function changePage(targetIndex) {
+      if (targetIndex < 0) targetIndex = 0;
+      if (targetIndex >= totalPages) targetIndex = totalPages - 1;
+      currentIndex = targetIndex;
+      render();
+    }
+
+    /* 全螢幕切換 */
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+        fsIcon.classList.remove('fa-expand');
+        fsIcon.classList.add('fa-compress');
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+          fsIcon.classList.remove('fa-compress');
+          fsIcon.classList.add('fa-expand');
+        }
+      }
+    }
+
+    /* ==========================================================
+       7. 下拉選單與事件監聽綁定
+       ========================================================== */
+    function populateJumpSelect() {
+      jumpSelect.innerHTML = '';
+      
+      const coverOpt = document.createElement('option');
+      coverOpt.value = '0';
+      coverOpt.textContent = '📖 簡報封面';
+      jumpSelect.appendChild(coverOpt);
+
+      VOCABULARY_LIST.forEach((item, index) => {
+        const opt = document.createElement('option');
+        opt.value = index + 1;
+        const pageNum = String(index + 1).padStart(2, '0');
+        opt.textContent = `${pageNum}. ${item.word} (${item.meaning})`;
+        jumpSelect.appendChild(opt);
+      });
+    }
+
+    // 按鈕綁定
+    btnPrev.addEventListener('click', () => changePage(currentIndex - 1));
+    btnNext.addEventListener('click', () => changePage(currentIndex + 1));
+    btnSpeak.addEventListener('click', speakCurrentWord);
     
-    // 依據對照表校正讀音
-    let finalText = pronunciationMap[text] || text;
-    const utterance = new SpeechSynthesisUtterance(finalText);
-    utterance.lang = 'en-US';
-    utterance.rate = 0.85; // 國小生友善語速
-    utterance.pitch = 1.05; // 活潑語調
-    window.speechSynthesis.speak(utterance);
-  }
-
-  function speakCurrentWord(word) {
-    playSpeech(word);
-  }
-
-  function speakSentence(text) {
-    playSpeech(text);
-  }
-
-  function speakCurrentWordBtn() {
-    const activeSlide = slides[currentSlide];
-    const word = activeSlide.getAttribute('data-word');
-    if (word) {
-      playSpeech(word);
-    }
-  }
-
-  // 切換 Slide
-  function showSlide(index, autoSpeak = true) {
-    if (index < 0) index = 0;
-    if (index >= totalSlides) index = totalSlides - 1;
-
-    slides.forEach(s => s.classList.remove('active'));
-    currentSlide = index;
-    slides[currentSlide].classList.add('active');
-
-    // 更新進度與選單
-    pageSelect.value = currentSlide;
-    const pct = ((currentSlide) / (totalSlides - 1)) * 100;
-    progressFill.style.width = pct + '%';
-
-    // 朗讀觸發
-    if (autoSpeak && autoTtsToggle.checked) {
-      const word = slides[currentSlide].getAttribute('data-word');
-      if (word) {
-        setTimeout(() => playSpeech(word), 250);
-      }
-    }
-  }
-
-  function nextSlide() {
-    if (currentSlide < totalSlides - 1) {
-      showSlide(currentSlide + 1);
-    }
-  }
-
-  function prevSlide() {
-    if (currentSlide > 0) {
-      showSlide(currentSlide - 1);
-    }
-  }
-
-  function jumpToSlide(index) {
-    showSlide(parseInt(index, 10));
-  }
-
-  // 全螢幕切換
-  function toggleFullScreen() {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(err => console.log(err));
-      fullscreenBtn.innerHTML = '<i class="fa-solid fa-compress"></i>';
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-        fullscreenBtn.innerHTML = '<i class="fa-solid fa-expand"></i>';
-      }
-    }
-  }
-
-  document.addEventListener('fullscreenchange', () => {
-    if (!document.fullscreenElement) {
-      fullscreenBtn.innerHTML = '<i class="fa-solid fa-expand"></i>';
-    } else {
-      fullscreenBtn.innerHTML = '<i class="fa-solid fa-compress"></i>';
-    }
-    setTimeout(fitPresentationStage, 100);
-  });
-
-  // 鍵盤導航 (←, →, 空白鍵, F 全螢幕)
-  window.addEventListener('keydown', (e) => {
-    if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
-    if (e.key === 'ArrowRight' || e.key === ' ') {
-      e.preventDefault();
-      nextSlide();
-    } else if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      prevSlide();
-    } else if (e.key === 'f' || e.key === 'F') {
-      toggleFullScreen();
-    }
-  });
-
-  // 行動裝置觸控滑動翻頁 (Touch Swipe)
-  let touchStartX = 0;
-  let touchEndX = 0;
-  const stageEl = document.getElementById('presentation-stage');
-
-  stageEl.addEventListener('touchstart', (e) => {
-    touchStartX = e.changedTouches[0].screenX;
-  }, { passive: true });
-
-  stageEl.addEventListener('touchend', (e) => {
-    touchEndX = e.changedTouches[0].screenX;
-    handleSwipe();
-  }, { passive: true });
-
-  function handleSwipe() {
-    const diff = touchEndX - touchStartX;
-    if (Math.abs(diff) > 50) {
-      if (diff < 0) {
-        nextSlide();
+    // 自動朗讀切換
+    btnToggleAuto.addEventListener('click', () => {
+      autoSpeak = !autoSpeak;
+      if (autoSpeak) {
+        autoSpeakIcon.className = "fa-solid fa-toggle-on text-base";
+        btnToggleAuto.className = "toy-button bg-emerald-100 text-emerald-800 border-2 border-emerald-300 px-2.5 py-1 rounded-full text-xs font-bold flex items-center space-x-1";
       } else {
-        prevSlide();
+        autoSpeakIcon.className = "fa-solid fa-toggle-off text-base text-gray-400";
+        btnToggleAuto.className = "toy-button bg-gray-100 text-gray-600 border-2 border-gray-300 px-2.5 py-1 rounded-full text-xs font-bold flex items-center space-x-1";
       }
-    }
-  }
+    });
 
-  // 監聽尺寸調整
-  window.addEventListener('resize', fitPresentationStage);
+    // 頁碼跳轉
+    jumpSelect.addEventListener('change', (e) => {
+      changePage(parseInt(e.target.value, 10));
+    });
 
-  // 初始化加載
-  window.addEventListener('DOMContentLoaded', () => {
-    initPageSelect();
-    fitPresentationStage();
-    showSlide(0, false);
-  });
-</script>
+    btnFullscreen.addEventListener('click', toggleFullScreen);
+
+    // 鍵盤快速鍵 (方向鍵左右、空白鍵、F 鍵)
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        e.preventDefault();
+        changePage(currentIndex + 1);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        changePage(currentIndex - 1);
+      } else if (e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        toggleFullScreen();
+      }
+    });
+
+    // 行動裝置觸控滑動 (Touch Swipe)
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    window.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e) => {
+      const touchEndX = e.changedTouches[0].screenX;
+      const touchEndY = e.changedTouches[0].screenY;
+      const diffX = touchEndX - touchStartX;
+      const diffY = touchEndY - touchStartY;
+
+      // 水平位移大於 50px 且垂直位移小於 80px 時觸發翻頁
+      if (Math.abs(diffX) > 50 && Math.abs(diffY) < 80) {
+        if (diffX < 0) {
+          changePage(currentIndex + 1); // 向左滑動 -> 下一頁
+        } else {
+          changePage(currentIndex - 1); // 向右滑動 -> 上一頁
+        }
+      }
+    }, { passive: true });
+
+    /* ==========================================================
+       8. 初始化啟動
+       ========================================================== */
+    window.addEventListener('DOMContentLoaded', () => {
+      populateJumpSelect();
+      fitPresentationStage();
+      render();
+      
+      // 預加載語音列表避免第一次朗讀延遲
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.getVoices();
+      }
+    });
+  </script>
 </body>
 </html>
