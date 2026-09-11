@@ -21,8 +21,8 @@ class GitHandler:
     def ensure_output_dir(self):
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def save_html(self, html_content, filename=None, folder=None):
-        """將 HTML 內容存成檔案"""
+    def save_html(self, html_content, filename=None, folder=None, overwrite=True):
+        """將 HTML 內容存成檔案 (相同檔名預設覆蓋原本檔案)"""
         target_dir = (self.repo_dir / folder) if folder else self.output_dir
         target_dir.mkdir(parents=True, exist_ok=True)
         if not filename:
@@ -33,10 +33,15 @@ class GitHandler:
             filename += ".html"
 
         file_path = target_dir / filename
+        is_existing = file_path.exists()
+
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(html_content)
         
-        self._log(f"💾 已成功儲存投影片檔案：{file_path.relative_to(self.repo_dir)}")
+        if is_existing and overwrite:
+            self._log(f"🔄 偵測到同名檔案，已成功覆蓋舊檔：{file_path.relative_to(self.repo_dir)}")
+        else:
+            self._log(f"💾 已成功儲存投影片檔案：{file_path.relative_to(self.repo_dir)}")
         return file_path
 
     def _run_git(self, args, timeout=15):
