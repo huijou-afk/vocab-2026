@@ -77,30 +77,61 @@ class GeminiAutomator:
 
         return False
 
+    def _get_browser_context(self, p, headless=False):
+        """優先嘗試連線至已開啟且啟用遠端偵錯的 Chrome，否則啟動獨立 Profile"""
+        cdp_urls = []
+        
+        # 1. 讀取 macOS Chrome 的 DevToolsActivePort
+        devtools_port_file = Path(os.path.expanduser("~/Library/Application Support/Google/Chrome/DevToolsActivePort"))
+        if devtools_port_file.exists():
+            try:
+                lines = devtools_port_file.read_text().splitlines()
+                if lines:
+                    port = lines[0].strip()
+                    cdp_urls.append(f"http://127.0.0.1:{port}")
+            except Exception:
+                pass
+        
+        cdp_urls.extend(["http://127.0.0.1:9222", "http://localhost:9222"])
+
+        for cdp_url in cdp_urls:
+            try:
+                browser = p.chromium.connect_over_cdp(cdp_url)
+                contexts = browser.contexts
+                context = contexts[0] if contexts else browser
+                self._log(f"🎉 成功連線至您目前運行的 Chrome 視窗 ({cdp_url})！（共用帳號與個人設定）")
+                return context, True
+            except Exception:
+                continue
+
+        # 2. 若無法連線至已開啟的 Chrome，退回啟動獨立 Profile
+        self._log("ℹ️ 未偵測到遠端偵錯埠，正在啟動獨立 Chrome 視窗...")
+        context = p.chromium.launch_persistent_context(
+            user_data_dir=self.profile_dir,
+            executable_path=self.chrome_path if os.path.exists(self.chrome_path) else None,
+            headless=headless,
+            ignore_default_args=['--no-sandbox'],
+            args=[
+                '--disable-blink-features=AutomationControlled',
+                '--no-first-run',
+                '--no-default-browser-check',
+                '--test-type'
+            ],
+            viewport={"width": 1280, "height": 900},
+            locale="zh-TW"
+        )
+        return context, False
+
     def check_login_status_headless(self):
         """背景靜默檢查是否已登入"""
         self._ensure_profile_dir()
         try:
             with sync_playwright() as p:
-                context = p.chromium.launch_persistent_context(
-                    user_data_dir=self.profile_dir,
-                    executable_path=self.chrome_path if os.path.exists(self.chrome_path) else None,
-                    headless=True,
-                    ignore_default_args=['--no-sandbox'],
-                    args=[
-                        '--disable-blink-features=AutomationControlled',
-                        '--no-first-run',
-                        '--no-default-browser-check',
-                        '--test-type'
-                    ],
-                    viewport={"width": 1280, "height": 900},
-                    locale="zh-TW"
-                )
+                context, _ = self._get_browser_context(p, headless=True)
                 page = context.pages[0] if context.pages else context.new_page()
                 page.goto(self.gemini_url, wait_until="domcontentloaded", timeout=15000)
                 time.sleep(2)
                 logged = self.is_logged_in(page)
-                context.close()
                 return logged
         except Exception as e:
             self._log(f"靜默檢查登入時發生錯誤: {str(e)}")
@@ -109,24 +140,11 @@ class GeminiAutomator:
     def launch_browser_for_login(self, auto_click_signin=True):
         """專門提供給使用者手動登入的模式，自動點擊登入並即時監控登入成功"""
         self._ensure_profile_dir()
-        self._log("正在啟動 Chrome 視窗導向 Google 登入頁面...")
-        self._status("請在彈出的 Chrome 視窗中登入您的 Google 帳號...", 0.4)
+        self._log("正在連線或啟動 Chrome 視窗導向 Google 登入頁面...")
+        self._status("請在 Chrome 視窗中登入您的 Google 帳號...", 0.4)
 
         with sync_playwright() as p:
-            context = p.chromium.launch_persistent_context(
-                user_data_dir=self.profile_dir,
-                executable_path=self.chrome_path if os.path.exists(self.chrome_path) else None,
-                headless=False,
-                ignore_default_args=['--no-sandbox'],
-                args=[
-                    '--disable-blink-features=AutomationControlled',
-                    '--no-first-run',
-                    '--no-default-browser-check',
-                    '--test-type'
-                ],
-                viewport={"width": 1280, "height": 900},
-                locale="zh-TW"
-            )
+            context, _ = self._get_browser_context(p, headless=False)
             page = context.pages[0] if context.pages else context.new_page()
             page.goto(self.gemini_url, wait_until="domcontentloaded")
             time.sleep(2)
@@ -159,17 +177,13 @@ class GeminiAutomator:
                 time.sleep(2)
 
             if logged_in:
-                self._log("🎉 成功登入 Google 帳號並進入 Gemini！憑證已永久保存。")
+                self._log("🎉 成功登入 Google 帳號並進入 Gemini！憑證已保存。")
                 self._status("Google 帳號已成功登入！", 1.0)
                 time.sleep(1.5)
             else:
                 self._log("⚠️ 尚未完成登入。")
                 self._status("尚未完成登入", 0.0)
 
-            try:
-                context.close()
-            except Exception:
-                pass
             return logged_in
 
     def _activate_canvas_mode(self, page):
