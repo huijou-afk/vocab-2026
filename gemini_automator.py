@@ -356,12 +356,183 @@ return "NO_TAB"
             pass
         return False
 
+    def _exec_applescript_js(self, js_code):
+        """在目前已開啟的 Chrome Gemini 分頁中直接執行 JavaScript"""
+        escaped_js = js_code.replace("\\", "\\\\").replace('"', '\\"').replace("\n", " ")
+        script = f'''
+tell application "Google Chrome"
+    repeat with w in windows
+        repeat with t in tabs of w
+            if URL of t contains "gemini.google.com" then
+                set active tab index of w to (index of t)
+                set index of w to 1
+                activate
+                return execute t javascript "{escaped_js}"
+            end if
+        end repeat
+    end repeat
+end tell
+return "NO_TAB"
+'''
+        try:
+            res = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=10)
+            return res.stdout.strip()
+        except Exception as e:
+            return f"ERROR: {e}"
+
+    def _generate_via_applescript(self, prompt, timeout_seconds=300, expected_keywords=None):
+        """利用 AppleScript 直連操控使用者畫面上已開啟的 Chrome 分頁，零新視窗！"""
+        import json, base64
+        # 測試是否可以正常執行 JS
+        test_res = self._exec_applescript_js("document.title")
+        if "NO_TAB" in test_res or "ERROR" in test_res or "JavaScript" in test_res or not test_res:
+            return None
+
+        self._log("🎉 成功對接至您目前已開啟的 Chrome 視窗（Rogery LDT）！直接在畫面上執行自動化...")
+        self._status("已連線至您目前的 Chrome 視窗...", 0.2)
+
+        # 1. 啟用 Canvas 模式
+        self._status("正在確保/開啟 Canvas 模式...", 0.3)
+        js_canvas = """
+(() => {
+    if (document.querySelector("canvas-container") || document.querySelector(".monaco-editor")) return "ALREADY_CANVAS";
+    const btns = Array.from(document.querySelectorAll("button, [role=\\\"button\\\"]"));
+    const btn = btns.find(b => {
+        const t = (b.innerText || b.getAttribute("aria-label") || b.getAttribute("mattooltip") || "").toLowerCase();
+        return t.includes("canvas") || t.includes("畫布");
+    });
+    if (btn) { btn.click(); return "CLICKED_CANVAS"; }
+    return "NO_CANVAS_BTN";
+})()
+"""
+        c_res = self._exec_applescript_js(js_canvas)
+        self._log(f"🎨 Canvas 模式狀態: {c_res}")
+        time.sleep(1.5)
+
+        # 2. 填入提示詞並提交
+        self._status("正在將單字提示詞填入輸入框並自動送出...", 0.5)
+        b64_prompt = base64.b64encode(prompt.encode('utf-8')).decode('utf-8')
+        js_submit = f"""
+(() => {{
+    const b64 = "{b64_prompt}";
+    const promptText = decodeURIComponent(escape(atob(b64)));
+    const box = document.querySelector('div[role="textbox"]') || document.querySelector('rich-textarea div[contenteditable="true"]');
+    if (!box) return "NO_INPUT_BOX";
+    box.focus();
+    box.innerText = promptText;
+    box.dispatchEvent(new Event('input', {{ bubbles: true }}));
+    
+    setTimeout(() => {{
+        const btns = Array.from(document.querySelectorAll('button'));
+        const sendBtn = btns.find(b => {{
+            const label = (b.getAttribute('aria-label') || b.getAttribute('mattooltip') || '').toLowerCase();
+            return (label.includes('send') || label.includes('傳送') || label.includes('送出') || label.includes('提交')) && b.offsetWidth > 0 && !b.disabled;
+        }});
+        if (sendBtn) {{
+            sendBtn.click();
+        }} else {{
+            box.dispatchEvent(new KeyboardEvent('keydown', {{ key: 'Enter', keyCode: 13, code: 'Enter', bubbles: true }}));
+        }}
+    }}, 500);
+    return "SUBMITTED";
+}})()
+"""
+        sub_res = self._exec_applescript_js(js_submit)
+        self._log(f"🚀 提示詞提交結果: {sub_res}")
+
+        # 3. 等待生成與提取 HTML
+        start_time = time.time()
+        saw_generating = False
+        stable_count = 0
+        last_len = 0
+
+        while time.time() - start_time < timeout_seconds:
+            if self.is_cancelled:
+                self._log("🛑 使用者手動取消生成！")
+                return None
+
+            js_check = """
+(() => {
+    const isStopBtn = !!Array.from(document.querySelectorAll('button')).find(b => {
+        const l = (b.getAttribute('aria-label') || b.getAttribute('mattooltip') || '').toLowerCase();
+        return l.includes('stop') || l.includes('停止');
+    });
+    
+    let content = '';
+    if (window.monaco && window.monaco.editor) {
+        const models = window.monaco.editor.getModels();
+        if (models.length > 0) content = models[models.length - 1].getValue();
+    }
+    if (!content) content = document.body.innerText;
+    
+    return JSON.stringify({
+        isGenerating: isStopBtn,
+        length: content.length,
+        hasHtml: content.includes('<html') || content.includes('<!DOCTYPE html>')
+    });
+})()
+"""
+            res_json_str = self._exec_applescript_js(js_check)
+            try:
+                data = json.loads(res_json_str)
+                is_gen = data.get("isGenerating", False)
+                curr_len = data.get("length", 0)
+                has_html = data.get("hasHtml", False)
+
+                if is_gen:
+                    saw_generating = True
+                    stable_count = 0
+                    self._status(f"Gemini 生成中... ({int(time.time() - start_time)}s)", 0.7)
+                elif saw_generating or has_html:
+                    if curr_len > 1000 and curr_len == last_len:
+                        stable_count += 1
+                        if stable_count >= 3:
+                            self._log("✅ 偵測到 Gemini 已生成完成且程式碼已穩定！提取 HTML 中...")
+                            break
+                    else:
+                        last_len = curr_len
+                        stable_count = 0
+            except Exception:
+                pass
+
+            elapsed = int(time.time() - start_time)
+            self._status(f"等待 Gemini 生成回應... ({elapsed}s)", min(0.5 + (elapsed / timeout_seconds) * 0.4, 0.9))
+            time.sleep(2)
+
+        # 4. 抽取 HTML
+        js_extract = """
+(() => {
+    if (window.monaco && window.monaco.editor) {
+        const models = window.monaco.editor.getModels();
+        if (models.length > 0) {
+            const val = models[models.length - 1].getValue();
+            if (val && (val.includes('<html') || val.includes('<!DOCTYPE html>'))) return val;
+        }
+    }
+    const blocks = Array.from(document.querySelectorAll('code, pre'));
+    for (let b of blocks) {
+        if (b.innerText.includes('<html') || b.innerText.includes('<!DOCTYPE html>')) return b.innerText;
+    }
+    return '';
+})()
+"""
+        html_code = self._exec_applescript_js(js_extract)
+        if html_code and ("<html" in html_code or "<!DOCTYPE html>" in html_code):
+            self._log("🎉 從您目前的 Chrome 視窗中成功提取 HTML 投影片！")
+            return html_code
+        return None
+
     def generate_html(self, prompt, target_url=None, headless=False, timeout_seconds=300, expected_keywords=None):
         """傳送提示詞並等待抽取生成好的 HTML"""
         self._ensure_profile_dir()
         self._status("啟動/連線 Chrome 瀏覽器中...", 0.1)
         
-        # 嘗試先將使用者畫面上的 Chrome 切換至 Gemini 分頁
+        # 優先嘗試透過 AppleScript 直接操控您畫面上現有的 Chrome 視窗 (零新視窗！)
+        as_html = self._generate_via_applescript(prompt, timeout_seconds=timeout_seconds, expected_keywords=expected_keywords)
+        if as_html:
+            return as_html
+
+        # 備用方案：透過 Playwright 連線或啟動
         self._try_focus_existing_chrome_tab()
         self._log("準備連線或啟動瀏覽器實例...")
 
