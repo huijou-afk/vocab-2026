@@ -421,6 +421,32 @@ return "NO_TAB"
         except Exception as e:
             return f"ERROR: {e}"
 
+    def _close_chrome_tab_and_focus_app(self):
+        """下載與提取完成後，自動關閉 Chrome 的 Gemini 分頁，並將 VocabGenerator 主程式喚回至最前端"""
+        applescript = '''
+tell application "Google Chrome"
+    repeat with w in windows
+        repeat with t in tabs of w
+            if URL of t contains "gemini.google.com" then
+                close t
+                exit repeat
+            end if
+        end repeat
+    end repeat
+end tell
+
+tell application "System Events"
+    try
+        set frontmost of first process whose name contains "VocabGenerator" or name contains "Python" to true
+    end try
+end tell
+'''
+        try:
+            subprocess.run(["osascript", "-e", applescript], capture_output=True, text=True, timeout=5)
+            self._log("🧹 已自動關閉 Chrome Gemini 分頁，並返回 VocabGenerator 主程式！")
+        except Exception as e:
+            self._log(f"關閉分頁或切換主程式時提示: {e}")
+
     def _generate_via_applescript(self, prompt, target_url=None, timeout_seconds=300, expected_keywords=None):
         """利用 AppleScript 直連操控使用者畫面上已開啟的 Chrome 分頁，零新視窗！"""
         import json, base64
@@ -567,6 +593,7 @@ return "NO_TAB"
         html_code = self._exec_applescript_js(js_extract)
         if html_code and ("<html" in html_code or "<!DOCTYPE html>" in html_code):
             self._log("🎉 從您目前的 Chrome 視窗中成功提取 HTML 投影片！")
+            self._close_chrome_tab_and_focus_app()
             return html_code
         return None
 
