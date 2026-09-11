@@ -187,20 +187,26 @@ class GeminiAutomator:
                     self._log("ℹ️ 當前對話已處於 Canvas 模式。")
                     return True
 
-            # 2. 尋找輸入框下方的 Canvas 按鈕或工具選單
+            # 2. 尋找輸入框下方的 Canvas 按鈕
             canvas_btn_selectors = [
                 'button[aria-label*="Canvas"]',
-                'button[mattooltip*="Canvas"]',
                 'button[aria-label*="畫布"]',
+                'button[mattooltip*="Canvas"]',
                 'button[mattooltip*="畫布"]',
                 'button:has-text("Canvas")',
-                'button:has-text("畫布")'
+                'button:has-text("畫布")',
+                '[aria-label*="Canvas"]',
+                '[aria-label*="畫布"]',
+                'button[aria-label*="建立畫布"]',
+                'button[aria-label*="Create canvas"]',
+                'button:has(span:has-text("Canvas"))',
+                'button:has(span:has-text("畫布"))'
             ]
             for sel in canvas_btn_selectors:
                 btn = page.locator(sel).first
                 try:
                     if btn.is_visible(timeout=800) and btn.is_enabled():
-                        self._log("🎨 偵測到 Canvas 切換按鈕，正在主動啟動 Canvas 模式...")
+                        self._log("🎨 偵測到 Canvas 按鈕，正在點選啟用 Canvas 模式...")
                         btn.click()
                         time.sleep(1.5)
                         return True
@@ -213,19 +219,22 @@ class GeminiAutomator:
                 'button[aria-label*="Tools"]',
                 'button[aria-label*="新增"]',
                 'button[aria-label*="Add"]',
-                'button[mattooltip*="工具"]'
+                'button[mattooltip*="工具"]',
+                'button[mattooltip*="Tools"]',
+                'button[aria-label*="更多"]',
+                'button[aria-label*="More"]'
             ]
             for menu_sel in tool_menu_selectors:
                 menu_btn = page.locator(menu_sel).first
                 try:
                     if menu_btn.is_visible(timeout=600):
                         menu_btn.click()
-                        time.sleep(0.6)
+                        time.sleep(0.8)
                         # 在開啟的選單中點選 Canvas
                         for sel in canvas_btn_selectors:
                             opt = page.locator(sel).first
                             if opt.is_visible(timeout=600):
-                                self._log("🎨 從工具選單中成功選取並啟動 Canvas 模式！")
+                                self._log("🎨 從工具選單中成功選取並點選 Canvas 模式！")
                                 opt.click()
                                 time.sleep(1.5)
                                 return True
@@ -311,6 +320,14 @@ class GeminiAutomator:
                 context.close()
                 return None
 
+            # 【關鍵步驟】：在輸入提示詞之前，先點選「Canvas」模式
+            self._status("正在點選並啟用 Canvas (畫布) 模式...", 0.35)
+            self._activate_canvas_mode(page)
+            time.sleep(1)
+
+            # 點擊輸入框並填寫提示詞
+            self._status("正在填入單字提示詞...", 0.4)
+            self._log("點擊輸入框並填寫提示詞...")
             input_box.click()
             time.sleep(0.5)
 
@@ -325,9 +342,6 @@ class GeminiAutomator:
             if self.is_cancelled:
                 context.close()
                 return None
-
-            # 檢查並主動切換為 Canvas (畫布) 模式
-            self._activate_canvas_mode(page)
 
             # 注入提示詞文字
             page.keyboard.insert_text(prompt)
