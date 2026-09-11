@@ -357,6 +357,44 @@ return "NO_TAB"
             pass
         return False
 
+    def _ensure_gemini_tab_open(self, target_url):
+        """確保使用者現有的 Chrome 視窗中有開啟 Gemini 分頁，若無則在現有視窗中新增分頁"""
+        dest = target_url or self.gemini_url
+        script = f'''
+tell application "Google Chrome"
+    activate
+    repeat with w in windows
+        set tabIdx to 1
+        repeat with t in tabs of w
+            if URL of t contains "gemini.google.com" then
+                set active tab index of w to tabIdx
+                set index of w to 1
+                return "EXISTING_TAB"
+            end if
+            set tabIdx to tabIdx + 1
+        end repeat
+    end repeat
+    
+    -- 若無現成分頁，在現有 Chrome 視窗中開新分頁
+    if (count of windows) is 0 then
+        make new window
+    end if
+    tell window 1
+        make new tab with properties {{URL:"{dest}"}}
+    end tell
+    return "NEW_TAB"
+end tell
+return "NO_CHROME"
+'''
+        try:
+            res = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=8)
+            out = res.stdout.strip()
+            if "NEW_TAB" in out:
+                time.sleep(3)
+            return out
+        except Exception:
+            return "ERROR"
+
     def _exec_applescript_js(self, js_code):
         """在目前已開啟的 Chrome Gemini 分頁中直接執行 JavaScript"""
         escaped_js = js_code.replace("\\", "\\\\").replace('"', '\\"').replace("\n", " ")
@@ -368,7 +406,6 @@ tell application "Google Chrome"
             if URL of t contains "gemini.google.com" then
                 set active tab index of w to tabIdx
                 set index of w to 1
-                activate
                 set val to execute t javascript "{escaped_js}"
                 return val
             end if
@@ -384,18 +421,25 @@ return "NO_TAB"
         except Exception as e:
             return f"ERROR: {e}"
 
-    def _generate_via_applescript(self, prompt, timeout_seconds=300, expected_keywords=None):
+    def _generate_via_applescript(self, prompt, target_url=None, timeout_seconds=300, expected_keywords=None):
         """利用 AppleScript 直連操控使用者畫面上已開啟的 Chrome 分頁，零新視窗！"""
         import json, base64
-        # 測試是否可以正常執行 JS
+
+        # 1. 確保現有 Chrome 開啟 Gemini 分頁
+        tab_status = self._ensure_gemini_tab_open(target_url)
+        if "NO_CHROME" in tab_status or "ERROR" in tab_status:
+            return None
+
+        # 2. 測試是否可以正常執行 JS
         test_res = self._exec_applescript_js("document.title")
         if "NO_TAB" in test_res or "ERROR" in test_res or "JavaScript" in test_res or not test_res:
+            self._log(f"⚠️ AppleScript 直連無法執行 JS: {test_res}")
             return None
 
         self._log("🎉 成功對接至您目前已開啟的 Chrome 視窗（Rogery LDT）！直接在畫面上執行自動化...")
         self._status("已連線至您目前的 Chrome 視窗...", 0.2)
 
-        # 1. 啟用 Canvas 模式
+        # 3. 啟用 Canvas 模式
         self._status("正在確保/開啟 Canvas 模式...", 0.3)
         js_canvas = """
 (() => {
@@ -413,7 +457,7 @@ return "NO_TAB"
         self._log(f"🎨 Canvas 模式狀態: {c_res}")
         time.sleep(1.5)
 
-        # 2. 填入提示詞並提交
+        # 4. 填入提示詞並提交
         self._status("正在將單字提示詞填入輸入框並自動送出...", 0.5)
         b64_prompt = base64.b64encode(prompt.encode('utf-8')).decode('utf-8')
         js_submit = f"""
@@ -444,7 +488,7 @@ return "NO_TAB"
         sub_res = self._exec_applescript_js(js_submit)
         self._log(f"🚀 提示詞提交結果: {sub_res}")
 
-        # 3. 等待生成與提取 HTML
+        # 5. 等待生成與提取 HTML
         start_time = time.time()
         saw_generating = False
         stable_count = 0
@@ -503,7 +547,7 @@ return "NO_TAB"
             self._status(f"等待 Gemini 生成回應... ({elapsed}s)", min(0.5 + (elapsed / timeout_seconds) * 0.4, 0.9))
             time.sleep(2)
 
-        # 4. 抽取 HTML
+        # 6. 抽取 HTML
         js_extract = """
 (() => {
     if (window.monaco && window.monaco.editor) {
@@ -529,16 +573,16 @@ return "NO_TAB"
     def generate_html(self, prompt, target_url=None, headless=False, timeout_seconds=300, expected_keywords=None):
         """傳送提示詞並等待抽取生成好的 HTML"""
         self._ensure_profile_dir()
-        self._status("啟動/連線 Chrome 瀏覽器中...", 0.1)
+        self._status("連線 Chrome 瀏覽器中...", 0.1)
         
+        dest_url = target_url or self.gemini_url
+
         # 優先嘗試透過 AppleScript 直接操控您畫面上現有的 Chrome 視窗 (零新視窗！)
-        as_html = self._generate_via_applescript(prompt, timeout_seconds=timeout_seconds, expected_keywords=expected_keywords)
+        as_html = self._generate_via_applescript(prompt, target_url=dest_url, timeout_seconds=timeout_seconds, expected_keywords=expected_keywords)
         if as_html:
             return as_html
 
-        # 備用方案：透過 Playwright 連線或啟動
-        self._try_focus_existing_chrome_tab()
-        self._log("準備連線或啟動瀏覽器實例...")
+        self._log("⚠️ 無法連線至現有 Chrome 視窗，正在啟動備用瀏覽器...")
 
         dest_url = target_url or self.gemini_url
 
