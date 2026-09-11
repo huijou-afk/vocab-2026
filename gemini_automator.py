@@ -77,8 +77,72 @@ class GeminiAutomator:
 
         return False
 
+    def _find_chrome_profile_dir(self):
+        """尋找指定帳號關鍵字 (例如 'Rogery' 或 'Rogery LDT') 的 Chrome Profile 目錄"""
+        keyword = self.config.get("chrome_profile_keyword", "Rogery LDT")
+        base_dir = Path(os.path.expanduser("~/Library/Application Support/Google/Chrome"))
+        local_state_path = base_dir / "Local State"
+        
+        if local_state_path.exists():
+            try:
+                import json
+                with open(local_state_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    info = data.get("profile", {}).get("info_cache", {})
+                    for prof_dir, prof_info in info.items():
+                        name = str(prof_info.get("name", ""))
+                        gaia_name = str(prof_info.get("gaia_name", ""))
+                        email = str(prof_info.get("user_name", ""))
+                        combined = f"{name} {gaia_name} {email}".lower()
+                        if keyword.lower() in combined:
+                            return base_dir / prof_dir, prof_dir
+            except Exception:
+                pass
+        
+        fallback = base_dir / "Profile 6"
+        if fallback.exists():
+            return fallback, "Profile 6"
+        return None, None
+
+    def _sync_chrome_profile(self):
+        """將『Rogery LDT』帳號的 Cookie 與 Session 資料同步至自動化環境"""
+        try:
+            target_profile_path, prof_name = self._find_chrome_profile_dir()
+            if not target_profile_path or not target_profile_path.exists():
+                return None
+
+            dest_dir = Path(self.profile_dir) / "Default"
+            dest_dir.mkdir(parents=True, exist_ok=True)
+
+            files_to_copy = ["Cookies", "Preferences", "Web Data", "Login Data"]
+            import shutil
+            for f in files_to_copy:
+                src_file = target_profile_path / f
+                dst_file = dest_dir / f
+                if src_file.exists():
+                    try:
+                        shutil.copy2(src_file, dst_file)
+                    except Exception:
+                        pass
+
+            for d in ["Local Storage", "IndexedDB", "Session Storage"]:
+                src_d = target_profile_path / d
+                dst_d = dest_dir / d
+                if src_d.exists():
+                    try:
+                        if dst_d.exists():
+                            shutil.rmtree(dst_d, ignore_errors=True)
+                        shutil.copytree(src_d, dst_d)
+                    except Exception:
+                        pass
+            self._log(f"🔑 已自動載入「Rogery LDT」Chrome 帳號憑證與個人設定 ({prof_name})！")
+            return prof_name
+        except Exception as e:
+            self._log(f"載入 Chrome Profile 時提示: {e}")
+            return None
+
     def _get_browser_context(self, p, headless=False):
-        """優先嘗試連線至已開啟且啟用遠端偵錯的 Chrome，否則啟動獨立 Profile"""
+        """優先嘗試連線至已開啟且啟用遠端偵錯的 Chrome，否則啟動專屬 Rogery LDT 帳號 Profile 視窗"""
         cdp_urls = []
         
         # 1. 讀取 macOS Chrome 的 DevToolsActivePort
@@ -104,8 +168,10 @@ class GeminiAutomator:
             except Exception:
                 continue
 
-        # 2. 若無法連線至已開啟的 Chrome，退回啟動獨立 Profile
-        self._log("ℹ️ 未偵測到遠端偵錯埠，正在啟動獨立 Chrome 視窗...")
+        # 2. 若無法連線至已開啟的 Chrome，自動同步並載入「Rogery LDT」帳號 profile
+        prof_name = self._sync_chrome_profile() or "Profile 6"
+        self._log(f"ℹ️ 正在使用「Rogery LDT」帳號 ({prof_name}) 啟動 Chrome 視窗...")
+        
         context = p.chromium.launch_persistent_context(
             user_data_dir=self.profile_dir,
             executable_path=self.chrome_path if os.path.exists(self.chrome_path) else None,
@@ -115,7 +181,8 @@ class GeminiAutomator:
                 '--disable-blink-features=AutomationControlled',
                 '--no-first-run',
                 '--no-default-browser-check',
-                '--test-type'
+                '--test-type',
+                f'--profile-directory={prof_name}'
             ],
             viewport={"width": 1280, "height": 900},
             locale="zh-TW"

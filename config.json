@@ -1,5 +1,6 @@
 {
   "chrome_profile_dir": "~/.gemini-automation-profile",
+  "chrome_profile_keyword": "Rogery LDT",
   "chrome_executable_path": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
   "active_track": "elem",
   "git": {
