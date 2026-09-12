@@ -28,6 +28,10 @@ class AppAPI:
         self.is_logged_in = False
         self.active_track = "junior"
         self.current_automator = None
+        self.pending_file = None
+        self.pending_track = "junior"
+        self.pending_words = ""
+        self.pending_filename = ""
 
     def stop_generation(self):
         """強制中斷當前生成作業"""
@@ -295,9 +299,20 @@ class AppAPI:
                 filename = custom_filename.strip() if custom_filename else None
                 saved_file = git.save_html(html, filename=filename, folder=target_folder)
                 self.latest_html_file = saved_file
+                self.pending_file = saved_file
+                self.pending_track = track_id
+                self.pending_words = words
+                self.pending_filename = custom_filename
 
-                # 同步到 GitHub
-                git.commit_and_push(saved_file, track=track_id)
+                # 1. 自動彈出預設瀏覽器開啟投影片
+                subprocess.run(["open", str(saved_file)])
+                self._log_js(f"🌐 已自動開啟投影片預覽: {saved_file.name}")
+                self._log_js("👀 請檢視開啟的預覽畫面，確認無誤後點擊【確定上傳 GitHub】，或點擊【重新生成】。")
+                self._status_js("生成完成！請預覽並確認是否上傳 GitHub", 1.0)
+
+                # 2. 通知 UI 呈現待上傳確認列
+                safe_name = json.dumps(saved_file.name)
+                self.window.evaluate_js(f"window.setPendingConfirmState(true, {safe_name})")
 
             except Exception as e:
                 self._log_js(f"❌ 發生例外錯誤: {str(e)}")
@@ -308,6 +323,64 @@ class AppAPI:
 
         threading.Thread(target=_worker, daemon=True).start()
         return {"status": "started"}
+
+    def confirm_upload_github(self):
+        """使用者於預覽確認無誤後，點擊『確定上傳』時觸發推送至 GitHub"""
+        if self.is_running:
+            return {"status": "busy", "message": "目前有工作正在執行中，請稍候..."}
+
+        target = self.pending_file or self.latest_html_file
+        if not target or not target.exists():
+            return {"status": "error", "message": "尚未找到待上傳的投影片檔案！"}
+
+        self.is_running = True
+        self.window.evaluate_js("window.setRunningState(true, '正在同步至 GitHub...')")
+
+        def _worker():
+            try:
+                cfg = {}
+                if CONFIG_FILE.exists():
+                    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                        cfg = json.load(f)
+
+                git = GitHandler(
+                    cfg,
+                    repo_dir=BASE_DIR,
+                    status_callback=self._status_js,
+                    log_callback=self._log_js
+                )
+
+                self._log_js(f"📤 收到使用者確定指令！開始同步上傳 {target.name} 至 GitHub...")
+                success = git.commit_and_push(target, track=self.pending_track)
+
+                if success:
+                    self.pending_file = None
+                    self.window.evaluate_js("window.setPendingConfirmState(false)")
+                    self._status_js("🎉 成功上傳 GitHub！", 1.0)
+                    self._log_js(f"✅ 投影片 {target.name} 已成功 Commit 並 Push 至 GitHub！")
+                else:
+                    self._status_js("推送至 GitHub 失敗，可稍後重試", 1.0)
+            except Exception as e:
+                self._log_js(f"❌ 上傳 GitHub 時發生錯誤: {str(e)}")
+                self._status_js(f"上傳錯誤: {str(e)}", 0.0)
+            finally:
+                self.is_running = False
+                self.window.evaluate_js("window.setRunningState(false)")
+
+        threading.Thread(target=_worker, daemon=True).start()
+        return {"status": "started"}
+
+    def regenerate_current(self):
+        """使用者點擊『重新生成』時，放棄當前產出並重新啟動生成"""
+        if self.is_running:
+            return {"status": "busy", "message": "目前有工作正在執行中，請稍候..."}
+
+        self.window.evaluate_js("window.setPendingConfirmState(false)")
+        self._log_js("🔄 使用者選擇重新生成，正在重新觸發自動生成流程...")
+        track = self.pending_track or self.active_track
+        words = self.pending_words
+        fn = self.pending_filename
+        return self.start_generation(track, words, fn)
 
     def preview_latest(self):
         """開啟最近生成的 HTML 檔進行預覽"""
@@ -584,12 +657,38 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
     .btn-secondary:hover:not(:disabled) { background: #475569; }
 
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    .btn-success:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+
+    .btn-warning {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+    .btn-warning:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+
     .btn-danger {
       background: linear-gradient(135deg, #ef4444, #b91c1c);
       color: white;
       box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
     }
     .btn-danger:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+
+    .pending-banner {
+      background: rgba(6, 78, 59, 0.65);
+      border: 1.5px solid #10b981;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      animation: fadeIn 0.3s ease;
+    }
 
     .btn-outline {
       background: transparent;
@@ -749,7 +848,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         <div style="display: flex; gap: 8px;">
           <button class="btn btn-primary btn-large" id="generateBtn" onclick="onStartGenerate()" style="flex: 1;">
-            🚀 開始自動生成單字投影片並同步至 GitHub
+            🚀 開始自動生成單字投影片
           </button>
           <button class="btn btn-danger" id="stopBtn" onclick="onStopGenerate()" style="display: none; padding: 0 16px; font-weight: 700;">
             🛑 強制停止
@@ -770,6 +869,28 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <div class="progress-bar-fill" id="progressBar"></div>
           </div>
           <div class="status-text" id="statusText">等待指令...</div>
+        </div>
+
+        <!-- 待確認上傳與重新生成動作區 -->
+        <div id="pendingConfirmBanner" class="pending-banner" style="display: none;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="font-weight: 700; font-size: 0.88rem; color: #6ee7b7; display: flex; align-items: center; gap: 6px;">
+              <span>🎉 投影片已生成並開啟預覽：</span>
+              <span id="pendingFilenameText" style="color: #38bdf8; font-family: monospace;">--</span>
+            </div>
+          </div>
+          <div style="font-size: 0.78rem; color: #cbd5e1;">請在瀏覽器中確認排版無誤。確定無誤請點【確定上傳 GitHub】，不滿意請點【重新生成】。</div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary" onclick="onPreviewLatest()" style="padding: 6px 10px; font-size: 0.78rem;">
+              🌐 再次開啟預覽
+            </button>
+            <button class="btn btn-warning" onclick="onRegenerate()" style="padding: 6px 10px; font-size: 0.78rem; font-weight: 700;">
+              🔄 重新生成
+            </button>
+            <button class="btn btn-success" onclick="onConfirmUpload()" style="padding: 6px 14px; font-size: 0.82rem; font-weight: 700; flex: 1;">
+              ☁️ 確定上傳 GitHub
+            </button>
+          </div>
         </div>
 
         <div class="log-container" id="logContainer">
@@ -996,16 +1117,41 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       window.pywebview.api.manual_login_google();
     }
 
+    function setPendingConfirmState(isPending, filename) {
+      const banner = document.getElementById('pendingConfirmBanner');
+      const filenameText = document.getElementById('pendingFilenameText');
+      if (isPending) {
+        banner.style.display = 'flex';
+        if (filenameText) filenameText.textContent = filename || '';
+      } else {
+        banner.style.display = 'none';
+      }
+    }
+
+    function onConfirmUpload() {
+      if (window.pywebview) {
+        window.pywebview.api.confirm_upload_github();
+      }
+    }
+
+    function onRegenerate() {
+      if (confirm("確定要放棄當前產出的投影片並重新生成嗎？")) {
+        if (window.pywebview) {
+          window.pywebview.api.regenerate_current();
+        }
+      }
+    }
+
     function setRunningState(isRunning, msg) {
       const btn = document.getElementById('generateBtn');
       const stopBtn = document.getElementById('stopBtn');
       btn.disabled = isRunning;
       if (isRunning) {
-        btn.textContent = '⏳ 正在生成中，請稍候...';
+        btn.textContent = '⏳ 正在處理中，請稍候...';
         stopBtn.style.display = 'inline-flex';
         document.getElementById('statusIndicator').textContent = msg || '執行中';
       } else {
-        btn.textContent = '🚀 開始自動生成單字投影片並同步至 GitHub';
+        btn.textContent = '🚀 開始自動生成單字投影片';
         stopBtn.style.display = 'none';
         document.getElementById('statusIndicator').textContent = '閒置就緒';
       }
