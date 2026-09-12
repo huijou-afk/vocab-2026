@@ -968,10 +968,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       });
 
       // 初始化資料
-      if (window.pywebview) {
+      if (window.pywebview && window.pywebview.api) {
         initApp();
       } else {
         window.addEventListener('pywebviewready', initApp);
+        setTimeout(initApp, 500); // 備用防卡死計時器
       }
     });
 
@@ -1003,10 +1004,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       wordsMemory[currentTrack] = { date: d, words: w };
     }
 
+    let isAppInitialized = false;
     async function initApp() {
+      if (isAppInitialized) return;
+      if (!window.pywebview || !window.pywebview.api || !window.pywebview.api.get_initial_data) {
+        return;
+      }
+
       try {
+        isAppInitialized = true;
         const data = await window.pywebview.api.get_initial_data();
-        document.getElementById('appVersion').textContent = 'v' + data.version;
+        if (data.version) {
+          document.getElementById('appVersion').textContent = 'v' + data.version;
+        }
 
         tracksData = data.tracks || {};
         sampleWords = data.words_data || {};
@@ -1033,6 +1043,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         // 啟動自動登入檢測
         window.pywebview.api.auto_init_login();
       } catch (err) {
+        isAppInitialized = false;
         appendLog("[前端錯誤] 初始化失敗: " + err);
       }
     }
@@ -1283,9 +1294,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
 def main():
     api = AppAPI()
+    ver = get_app_version()
+    rendered_html = HTML_TEMPLATE.replace('id="appVersion">v1.0.0', f'id="appVersion">v{ver}')
     window = webview.create_window(
-        title=f"單字投影片自動生成器 v{get_app_version()}",
-        html=HTML_TEMPLATE,
+        title=f"單字投影片自動生成器 v{ver}",
+        html=rendered_html,
         js_api=api,
         width=1000,
         height=720,
