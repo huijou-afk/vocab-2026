@@ -956,7 +956,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     let wordsMemory = { junior: "", elem: "" };
     let sampleWords = { junior: "", elem: "" };
 
-    window.addEventListener('DOMContentLoaded', async () => {
+    let isAppInitialized = false;
+    let initTimer = null;
+
+    function startInitPolling() {
+      if (isAppInitialized) return;
+      if (window.pywebview && window.pywebview.api && window.pywebview.api.get_initial_data) {
+        if (initTimer) {
+          clearInterval(initTimer);
+          initTimer = null;
+        }
+        initApp();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
       // 監聽文字與日期輸入以自適應檔名與記憶
       document.getElementById('dateInput').addEventListener('input', () => {
         saveCurrentInputsToMemory();
@@ -967,17 +981,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         tryAutoFilename();
       });
 
-      // 初始化資料
-      if (window.pywebview && window.pywebview.api) {
-        initApp();
-      } else {
-        window.addEventListener('pywebviewready', initApp);
-        setTimeout(initApp, 500); // 備用防卡死計時器
-      }
+      window.addEventListener('pywebviewready', startInitPolling);
+      startInitPolling();
+      initTimer = setInterval(startInitPolling, 100);
     });
 
     function parseDateAndWords(text) {
-      if (!text) return { date: '', words: '' };
+      if (!text || typeof text !== 'string') return { date: '', words: '' };
       const lines = text.trim().split('\n');
       let dateStr = '';
       let wordLines = [];
@@ -999,42 +1009,42 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     function saveCurrentInputsToMemory() {
-      const d = document.getElementById('dateInput').value;
-      const w = document.getElementById('wordsInput').value;
+      const dateEl = document.getElementById('dateInput');
+      const wordsEl = document.getElementById('wordsInput');
+      const d = dateEl ? dateEl.value : '';
+      const w = wordsEl ? wordsEl.value : '';
       wordsMemory[currentTrack] = { date: d, words: w };
     }
 
-    let isAppInitialized = false;
     async function initApp() {
       if (isAppInitialized) return;
-      if (!window.pywebview || !window.pywebview.api || !window.pywebview.api.get_initial_data) {
-        return;
-      }
-
+      isAppInitialized = true;
       try {
-        isAppInitialized = true;
         const data = await window.pywebview.api.get_initial_data();
-        if (data.version) {
+        if (data && data.version) {
           document.getElementById('appVersion').textContent = 'v' + data.version;
         }
 
-        tracksData = data.tracks || {};
-        sampleWords = data.words_data || {};
-        currentTrack = data.active_track || "junior";
+        tracksData = (data && data.tracks) || {};
+        sampleWords = (data && data.words_data) || {};
+        currentTrack = (data && data.active_track) || "junior";
 
         // 設定各組別記憶體
         wordsMemory["junior"] = parseDateAndWords(sampleWords["junior"] || "");
         wordsMemory["elem"] = parseDateAndWords(sampleWords["elem"] || "");
 
         // 設定欄位
-        if (data.remote_url) {
-          document.getElementById('settingRepoUrl').value = data.remote_url;
+        if (data && data.remote_url) {
+          const repoInput = document.getElementById('settingRepoUrl');
+          if (repoInput) repoInput.value = data.remote_url;
         }
         if (tracksData.junior) {
-          document.getElementById('settingJuniorUrl').value = tracksData.junior.gemini_url || '';
+          const jrInput = document.getElementById('settingJuniorUrl');
+          if (jrInput) jrInput.value = tracksData.junior.gemini_url || '';
         }
         if (tracksData.elem) {
-          document.getElementById('settingElemUrl').value = tracksData.elem.gemini_url || '';
+          const elemInput = document.getElementById('settingElemUrl');
+          if (elemInput) elemInput.value = tracksData.elem.gemini_url || '';
         }
 
         // 呈現當前組別
