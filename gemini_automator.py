@@ -576,33 +576,52 @@ end tell
         # 6. 抽取 HTML
         js_extract = """
 (() => {
-    if (window.monaco && window.monaco.editor) {
-        const models = window.monaco.editor.getModels();
-        for (let i = models.length - 1; i >= 0; i--) {
-            const val = models[i].getValue();
-            if (val && (val.includes('<html') || val.includes('<!DOCTYPE html>'))) return val;
+    const results = [];
+    // A. 優先掃描對話紀錄中最下方（最新生成）的代碼區塊
+    const codeBlocks = Array.from(document.querySelectorAll('pre code, pre, .code-block, code'));
+    for (let i = codeBlocks.length - 1; i >= 0; i--) {
+        const txt = codeBlocks[i].innerText || codeBlocks[i].textContent || '';
+        if (txt.length > 500 && (txt.toLowerCase().includes('<html') || txt.toLowerCase().includes('<!doctype html'))) {
+            results.push(txt);
         }
     }
-    const blocks = Array.from(document.querySelectorAll('code, pre'));
-    for (let b of blocks) {
-        if (b.innerText.includes('<html') || b.innerText.includes('<!DOCTYPE html>')) return b.innerText;
+    // B. 其次掃描 Monaco Editor 編輯器
+    if (window.monaco && window.monaco.editor) {
+        try {
+            const models = window.monaco.editor.getModels();
+            for (let i = models.length - 1; i >= 0; i--) {
+                const val = models[i].getValue();
+                if (val && val.length > 500 && (val.toLowerCase().includes('<html') || val.toLowerCase().includes('<!doctype html'))) {
+                    results.push(val);
+                }
+            }
+        } catch(e) {}
     }
-    return '';
+    return JSON.stringify(results);
 })()
 """
-        html_code = self._exec_applescript_js(js_extract)
-        if html_code and ("<html" in html_code.lower() or "<!doctype html>" in html_code.lower()):
-            if expected_keywords:
-                low = html_code.lower()
-                matched_kw = [kw for kw in expected_keywords if kw.lower() in low]
-                if not matched_kw:
-                    self._log(f"⚠️ AppleScript 擷取之 HTML 未包含當前輸入之關鍵單字 ({expected_keywords[:3]})，判斷為舊 Canvas 殘留內容，拒絕讀取！")
-                    return None
-                else:
-                    self._log(f"✅ 關鍵單字驗證通過（包含: {', '.join(matched_kw[:3])}）！")
-            self._log("🎉 從您目前的 Chrome 視窗中成功提取 HTML 投影片！")
-            self._close_chrome_tab_and_focus_app()
-            return html_code
+        json_res = self._exec_applescript_js(js_extract)
+        candidates = []
+        try:
+            candidates = json.loads(json_res)
+        except Exception:
+            pass
+
+        for code in candidates:
+            if code and ("<html" in code.lower() or "<!doctype html>" in code.lower()):
+                if expected_keywords:
+                    low = code.lower()
+                    matched_kw = [kw for kw in expected_keywords if kw.lower() in low]
+                    if not matched_kw:
+                        self._log(f"⚠️ 候選 HTML 未包含指定關鍵字 ({expected_keywords[:3]})，跳過舊內容...")
+                        continue
+                    else:
+                        self._log(f"✅ 關鍵單字與週次驗證通過（包含: {', '.join(matched_kw[:3])}）！")
+                self._log("🎉 成功從對話框/頁面提取最新 HTML 投影片！")
+                self._close_chrome_tab_and_focus_app()
+                return self._clean_markdown_codeblock(code)
+
+        self._log("⚠️ 頁面上未找到包含當前單字/週次的 HTML 代碼，放棄提取舊檔案。")
         return None
 
     def generate_html(self, prompt, target_url=None, headless=False, timeout_seconds=300, expected_keywords=None):
@@ -950,7 +969,18 @@ end tell
                     self._log(f"✅ 關鍵單字驗證通過（包含: {', '.join(matched_kw[:3])}）！")
             return True
 
-        # 2. 從 Gemini Canvas (Monaco Editor) 讀取完整 HTML
+        # 2. 優先檢查對話訊息中最下方的代碼區塊 (pre code, pre, .code-block)
+        code_elements = page.locator('pre code, pre, .code-block').all()
+        for elem in reversed(code_elements):
+            try:
+                text = elem.inner_text()
+                if is_valid_html(text):
+                    self._log("🎉 從最新對話框代碼區塊提取成功！")
+                    return self._clean_markdown_codeblock(text)
+            except Exception:
+                continue
+
+        # 3. 其次從 Gemini Canvas (Monaco Editor) 讀取完整 HTML
         try:
             monaco_code = page.evaluate('''() => {
                 if (window.monaco && window.monaco.editor) {
@@ -961,7 +991,6 @@ end tell
                             return val;
                         }
                     }
-                    if (models.length > 0) return models[models.length - 1].getValue();
                 }
                 return null;
             }''')
@@ -970,17 +999,6 @@ end tell
                 return self._clean_markdown_codeblock(monaco_code)
         except Exception as e:
             self._log(f"檢查 Canvas Monaco 時: {e}")
-
-        # 3. 檢查常規對話訊息中的代碼區塊 (pre code)
-        code_elements = page.locator('pre code, pre, .code-block').all()
-        for elem in reversed(code_elements):
-            try:
-                text = elem.inner_text()
-                if is_valid_html(text):
-                    self._log("從對話框代碼區塊提取成功！")
-                    return self._clean_markdown_codeblock(text)
-            except Exception:
-                continue
 
         # 4. 備用方案：整頁 HTML 正則比對
         try:

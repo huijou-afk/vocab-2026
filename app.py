@@ -269,19 +269,24 @@ class AppAPI:
 
                 prompt = prompt_template.replace("{words}", words.strip())
 
-                # 提取前幾個目標英文單字作為防抓舊 Canvas 的校驗關鍵字
+                # 提取週次標籤 (如 W04) 與前幾個目標英文單字作為防抓舊 Canvas 的校驗關鍵字
                 expected_keywords = []
+                w_match = re.search(r'\[?(W\d+)\]?', words, re.IGNORECASE)
+                if w_match:
+                    tag = w_match.group(1).upper()
+                    expected_keywords.append(tag)
+                    expected_keywords.append(f"[{tag}]")
+
                 for line in words.strip().splitlines():
                     line = line.strip()
-                    if not line or line.startswith("日期") or line.startswith("單字清單"):
+                    if not line:
                         continue
                     parts = re.split(r'[\t,]', line)
                     if parts and parts[0].strip():
                         w = parts[0].strip()
-                        # 僅抓取英文字母組成的單字詞彙
-                        if re.match(r'^[a-zA-Z\s\-]+$', w):
+                        if re.match(r'^[a-zA-Z\s\-]+$', w) and len(w) > 1:
                             expected_keywords.append(w)
-                    if len(expected_keywords) >= 5:
+                    if len(expected_keywords) >= 10:
                         break
 
                 html = automator.generate_html(
