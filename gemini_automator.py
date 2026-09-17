@@ -601,26 +601,56 @@ end tell
         js_extract = """
 (() => {
     const results = [];
-    // A. 優先掃描對話紀錄中最下方（最新生成）的代碼區塊
-    const codeBlocks = Array.from(document.querySelectorAll('pre code, pre, .code-block, code'));
-    for (let i = codeBlocks.length - 1; i >= 0; i--) {
-        const txt = codeBlocks[i].innerText || codeBlocks[i].textContent || '';
-        if (txt.length > 500 && (txt.toLowerCase().includes('<html') || txt.toLowerCase().includes('<!doctype html'))) {
-            results.push(txt);
+
+    function cleanSnippet(txt) {
+        if (!txt || txt.length < 300) return null;
+        const low = txt.toLowerCase();
+        if (!low.includes('<html') && !low.includes('<!doctype html')) return null;
+
+        const m = txt.match(/```(?:html)?\s*(<!DOCTYPE html[\s\S]*?)(?:```|$)/i) ||
+                  txt.match(/```(?:html)?\s*(<html[\s\S]*?)(?:```|$)/i) ||
+                  txt.match(/(<!DOCTYPE html[\s\S]*?<\/html>)/i) ||
+                  txt.match(/(<html[\s\S]*?<\/html>)/i);
+        if (m && m[1] && m[1].length > 300) return m[1];
+        return txt;
+    }
+
+    // A. 優先掃描 Gemini 的對話組件 (code-block, message-content, model-response 等)
+    const selectors = [
+        'code-block',
+        'message-content',
+        'model-response',
+        'response-container',
+        'code-viewer',
+        '.code-container',
+        'div[class*="code"]',
+        'pre',
+        'code'
+    ];
+
+    const elements = Array.from(document.querySelectorAll(selectors.join(',')));
+    for (let i = elements.length - 1; i >= 0; i--) {
+        const rawText = elements[i].innerText || elements[i].textContent || '';
+        const snippet = cleanSnippet(rawText);
+        if (snippet) {
+            results.push(snippet);
         }
     }
+
     // B. 其次掃描 Monaco Editor 編輯器
     if (window.monaco && window.monaco.editor) {
         try {
             const models = window.monaco.editor.getModels();
             for (let i = models.length - 1; i >= 0; i--) {
                 const val = models[i].getValue();
-                if (val && val.length > 500 && (val.toLowerCase().includes('<html') || val.toLowerCase().includes('<!doctype html'))) {
-                    results.push(val);
+                const snippet = cleanSnippet(val);
+                if (snippet) {
+                    results.push(snippet);
                 }
             }
         } catch(e) {}
     }
+
     return JSON.stringify(results);
 })()
 """
@@ -993,13 +1023,24 @@ end tell
                     self._log(f"✅ 關鍵單字驗證通過（包含: {', '.join(matched_kw[:3])}）！")
             return True
 
-        # 2. 優先檢查對話訊息中最下方的代碼區塊 (pre code, pre, .code-block)
-        code_elements = page.locator('pre code, pre, .code-block').all()
+        # 2. 優先檢查對話訊息中最下方的代碼區塊 (code-block, message-content, model-response 等)
+        selectors = [
+            'code-block',
+            'message-content',
+            'model-response',
+            'response-container',
+            'code-viewer',
+            '.code-container',
+            'div[class*="code"]',
+            'pre',
+            'code'
+        ]
+        code_elements = page.locator(', '.join(selectors)).all()
         for elem in reversed(code_elements):
             try:
                 text = elem.inner_text()
                 if is_valid_html(text):
-                    self._log("🎉 從最新對話框代碼區塊提取成功！")
+                    self._log("🎉 從最新對話框代碼區塊 (code-block) 提取成功！")
                     return self._clean_markdown_codeblock(text)
             except Exception:
                 continue
