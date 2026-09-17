@@ -860,7 +860,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
       </div>
       <div class="card-body">
-        <textarea id="wordsInput" placeholder="在此貼入單字清單資料..."></textarea>
+        <div>
+          <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">📅 日期內容 (例如：日期：[W04]2026/09/25(五) 或 國中[W99]2026/09/18(五))：</label>
+          <input type="text" id="dateInput" placeholder="例如：日期：[W04]2026/09/25(五)">
+        </div>
+
+        <div style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+          <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">📝 單字、中文、搭配詞與例句：</label>
+          <textarea id="wordsInput" placeholder="在此貼入單字清單資料..."></textarea>
+        </div>
 
         <div>
           <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">自訂 HTML 檔名 (不含副檔名)：</label>
@@ -966,17 +974,37 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   <script>
     let currentTrack = "junior";
     let tracksData = {};
-    let wordsMemory = { junior: "", elem: "" };
+    let wordsMemory = { junior: { date: "", words: "" }, elem: { date: "", words: "" } };
     let sampleWords = { junior: "", elem: "" };
 
+    function parseTextParts(rawText) {
+      if (!rawText) return { date: '', words: '' };
+      const lines = rawText.trim().split('\n');
+      if (lines.length > 0) {
+        const firstLine = lines[0].trim();
+        if (firstLine.startsWith('日期') || firstLine.startsWith('[') || firstLine.includes('[W') || firstLine.includes('國中') || firstLine.includes('國小')) {
+          return {
+            date: firstLine,
+            words: lines.slice(1).join('\n').trim()
+          };
+        }
+      }
+      return { date: '', words: rawText.trim() };
+    }
+
     window.addEventListener('DOMContentLoaded', async () => {
-      // 監聽文字輸入以自適應檔名
-      document.getElementById('wordsInput').addEventListener('input', (e) => {
-        wordsMemory[currentTrack] = e.target.value;
-        tryAutoFilename(e.target.value);
+      document.getElementById('dateInput').addEventListener('input', (e) => {
+        if (!wordsMemory[currentTrack]) wordsMemory[currentTrack] = {};
+        wordsMemory[currentTrack].date = e.target.value;
+        tryAutoFilename();
       });
 
-      // 初始化資料
+      document.getElementById('wordsInput').addEventListener('input', (e) => {
+        if (!wordsMemory[currentTrack]) wordsMemory[currentTrack] = {};
+        wordsMemory[currentTrack].words = e.target.value;
+        tryAutoFilename();
+      });
+
       if (window.pywebview) {
         initApp();
       } else {
@@ -994,10 +1022,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         currentTrack = data.active_track || "junior";
 
         // 設定各組別記憶體
-        wordsMemory["junior"] = sampleWords["junior"] || "";
-        wordsMemory["elem"] = sampleWords["elem"] || "";
+        wordsMemory["junior"] = parseTextParts(sampleWords["junior"] || "");
+        wordsMemory["elem"] = parseTextParts(sampleWords["elem"] || "");
 
-        // 設定欄位
         if (data.remote_url) {
           document.getElementById('settingRepoUrl').value = data.remote_url;
         }
@@ -1008,10 +1035,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           document.getElementById('settingElemUrl').value = tracksData.elem.gemini_url || '';
         }
 
-        // 呈現當前組別
         applyTrackUI(currentTrack);
-
-        // 啟動自動登入檢測
         window.pywebview.api.auto_init_login();
       } catch (err) {
         appendLog("[前端錯誤] 初始化失敗: " + err);
@@ -1020,8 +1044,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     function switchTrack(trackId) {
       if (trackId === currentTrack) return;
-      // 記憶當前文字
-      wordsMemory[currentTrack] = document.getElementById('wordsInput').value;
+      wordsMemory[currentTrack] = {
+        date: document.getElementById('dateInput').value,
+        words: document.getElementById('wordsInput').value
+      };
       currentTrack = trackId;
 
       applyTrackUI(trackId);
@@ -1058,18 +1084,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         hint.textContent = '格式建議：2026_ew02 (依週次自動命名)';
       }
 
-      // 載入該組別文字
-      const text = wordsMemory[trackId] || sampleWords[trackId] || "";
-      document.getElementById('wordsInput').value = text;
-      tryAutoFilename(text);
+      const mem = wordsMemory[trackId] || parseTextParts(sampleWords[trackId] || "");
+      document.getElementById('dateInput').value = mem.date || "";
+      document.getElementById('wordsInput').value = mem.words || "";
+      tryAutoFilename();
     }
 
-    function tryAutoFilename(text) {
+    function tryAutoFilename() {
+      const dateText = document.getElementById('dateInput').value.trim();
+      const wordsText = document.getElementById('wordsInput').value.trim();
+      const text = dateText ? (dateText + '\n' + wordsText) : wordsText;
       if (!text) return;
       const fnInput = document.getElementById('filenameInput');
       
       if (currentTrack === 'junior') {
-        // 國中組：[W03]2026/09/18(五) -> 2026_w03d5
         const match = text.match(/(?:日期[：:])?\s*\[?([Ww]\d{1,2})\]?\s*(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})(?:\(([\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u65e5])\))?/);
         if (match) {
           const week = match[1].toLowerCase();
@@ -1085,7 +1113,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           }
         }
       } else {
-        // 國小組：[W02]2026/09/07~09/14 -> 2026_ew02
         const match = text.match(/(?:日期[：:])?\s*\[?([Ww]\d{1,2})\]?\s*(\d{4})/);
         if (match) {
           const weekNum = match[1].replace(/[Ww]/g, '').padStart(2, '0');
@@ -1098,26 +1125,39 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     function onLoadSample() {
       const sample = sampleWords[currentTrack] || "";
       if (sample) {
-        document.getElementById('wordsInput').value = sample;
-        wordsMemory[currentTrack] = sample;
-        tryAutoFilename(sample);
+        const parsed = parseTextParts(sample);
+        document.getElementById('dateInput').value = parsed.date;
+        document.getElementById('wordsInput').value = parsed.words;
+        wordsMemory[currentTrack] = parsed;
+        tryAutoFilename();
       }
     }
 
     function onClearWords() {
+      document.getElementById('dateInput').value = '';
       document.getElementById('wordsInput').value = '';
-      wordsMemory[currentTrack] = '';
+      wordsMemory[currentTrack] = { date: '', words: '' };
       document.getElementById('filenameInput').value = '';
     }
 
     function onStartGenerate() {
-      const words = document.getElementById('wordsInput').value;
-      const filename = document.getElementById('filenameInput').value;
-      if (!words.trim()) {
-        alert("請先輸入單字資料！");
+      const dateText = document.getElementById('dateInput').value.trim();
+      const wordsText = document.getElementById('wordsInput').value.trim();
+      const filename = document.getElementById('filenameInput').value.trim();
+
+      if (!dateText && !wordsText) {
+        alert("請先輸入日期或單字資料！");
         return;
       }
-      window.pywebview.api.start_generation(currentTrack, words, filename);
+
+      let combined = dateText;
+      if (dateText && wordsText) {
+        combined += '\n' + wordsText;
+      } else if (wordsText) {
+        combined = wordsText;
+      }
+
+      window.pywebview.api.start_generation(currentTrack, combined, filename);
     }
 
     function onStopGenerate() {
