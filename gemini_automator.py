@@ -423,7 +423,9 @@ return "NO_CHROME"
         if "/app/" in dest:
             target_id = dest.split("/app/")[-1].strip()
 
-        escaped_js = js_code.replace("\\", "\\\\").replace('"', '\\"').replace("\n", " ")
+        # 清除單行註解 // ... 以免 newline 轉為空格時將後續代碼誤變為註解
+        cleaned_js = re.sub(r'//.*$', '', js_code, flags=re.MULTILINE)
+        escaped_js = cleaned_js.replace("\\", "\\\\").replace('"', '\\"').replace("\n", " ")
         script = f'''
 tell application "Google Chrome"
     repeat with w in windows
@@ -481,7 +483,7 @@ end tell
             return None
 
         # 2. 測試是否可以正常執行 JS
-        test_res = self._exec_applescript_js("document.title")
+        test_res = self._exec_applescript_js("document.title", target_url=target_url)
         if "NO_TAB" in test_res or "ERROR" in test_res or "JavaScript" in test_res or not test_res:
             self._log(f"⚠️ AppleScript 直連無法執行 JS: {test_res}")
             return None
@@ -503,7 +505,7 @@ end tell
     return "NO_CANVAS_BTN";
 })()
 """
-        c_res = self._exec_applescript_js(js_canvas)
+        c_res = self._exec_applescript_js(js_canvas, target_url=target_url)
         self._log(f"🎨 Canvas 模式狀態: {c_res}")
         time.sleep(1.5)
 
@@ -535,7 +537,7 @@ end tell
     return "SUBMITTED";
 }})()
 """
-        sub_res = self._exec_applescript_js(js_submit)
+        sub_res = self._exec_applescript_js(js_submit, target_url=target_url)
         self._log(f"🚀 提示詞提交結果: {sub_res}")
 
         # 5. 等待生成與即時輪詢提取 HTML 程式碼
@@ -560,7 +562,7 @@ end tell
         return txt;
     }
 
-    // A. 優先掃描 Gemini 的對話組件 (code-block, message-content, model-response 等)
+    /* A. 優先掃描 Gemini 的對話組件 (code-block, message-content, model-response 等) */
     const selectors = [
         'code-block',
         'message-content',
@@ -582,7 +584,7 @@ end tell
         }
     }
 
-    // B. 其次掃描 Monaco Editor 編輯器
+    /* B. 其次掃描 Monaco Editor 編輯器 */
     if (window.monaco && window.monaco.editor) {
         try {
             const models = window.monaco.editor.getModels();
