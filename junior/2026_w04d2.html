@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2026 一起背單字 (國中組) - [W04] 2026/09/21 (一)</title>
+  <title>2026 一起背單字 (國中組) - [W04] 2026/09/22 (二)</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts: Fredoka & Noto Sans TC -->
@@ -147,7 +147,7 @@
   <div id="viewport-wrapper">
     <main id="presentation-stage" class="relative flex flex-col justify-between bg-gradient-to-br from-sky-50 via-white to-blue-50 border-4 border-sky-200">
       
-      <!-- Slide Content Area (No Header) -->
+      <!-- Slide Content Area (No Top Header Bar) -->
       <div id="slides-container" class="relative flex-1 w-full h-full overflow-hidden">
         
         <!-- COVER SLIDE (Strictly 3 Elements: Title, Date, Category Tags) -->
@@ -161,7 +161,7 @@
 
             <!-- 2. Date -->
             <div class="text-lg sm:text-xl md:text-2xl font-bold text-slate-700 bg-white/95 px-6 md:px-8 py-2.5 md:py-3.5 rounded-2xl border-2 border-sky-200 shadow-sm mb-6 md:mb-8">
-              📅 [W04] 2026/09/21 (一)
+              📅 [W04] 2026/09/22 (二)
             </div>
 
             <!-- 3. Category Tags -->
@@ -170,7 +170,7 @@
                 🏷️ 天氣與特質 (4字)
               </span>
               <span class="px-4 md:px-5 py-2 md:py-2.5 rounded-xl bg-teal-50 text-teal-700 text-base md:text-xl font-bold border border-teal-200 shadow-sm">
-                🏷️ 交通與載具 (2字)
+                🏷️ 學校與休閒 (2字)
               </span>
               <span class="px-4 md:px-5 py-2 md:py-2.5 rounded-xl bg-indigo-50 text-indigo-700 text-base md:text-xl font-bold border border-indigo-200 shadow-sm">
                 🏷️ 國家與地點 (2字)
@@ -232,81 +232,81 @@
   </div>
 
   <script>
-    // 1. Vocabulary Dataset for [W04] 2026/09/21 (一)
+    // 1. Vocabulary Dataset for [W04] 2026/09/22 (二)
     const rawWords = [
-      { week: 4, day: 1, word: "hot", zh: "熱的；辣的", pos: "adj.", category: "天氣與特質", collocations: "hot summer (炎熱夏天) / hot soup (熱湯)", sentence: "Taiwan is usually very hot and humid in summer.", sentenceZh: "台灣夏天的天氣通常非常炎熱且潮濕。" },
-      { week: 4, day: 1, word: "sunny", zh: "大太陽的；晴朗的", pos: "adj.", category: "天氣與特質", collocations: "sunny day (晴天) / sunny smile (燦爛的笑容)", sentence: "We decided to go hiking on this sunny Saturday morning.", sentenceZh: "我們決定在這個陽光明媚的星期六早晨去健行。" },
-      { week: 4, day: 1, word: "windy", zh: "有風的；風大的", pos: "adj.", category: "天氣與特質", collocations: "windy day (颳風的日子) / windy weather (多風的天氣)", sentence: "It was so windy that my umbrella blew inside out.", sentenceZh: "風大到把我的傘都吹翻過來了。" },
-      { week: 4, day: 1, word: "cloudy", zh: "多雲的；陰天的", pos: "adj.", category: "天氣與特質", collocations: "cloudy sky (多雲的天空) / cloudy weather (陰天)", sentence: "The sky looks cloudy, so it might rain soon.", sentenceZh: "天空看起來烏雲密布，可能很快就會下雨。" },
-      { week: 4, day: 1, word: "sail", zh: "揚帆；航行", pos: "v. | n. 帆", category: "交通與載具", collocations: "set sail (啟航) / sail a boat (駕駛船隻)", sentence: "The brave sailors will sail across the Pacific Ocean.", sentenceZh: "勇敢的水手們將揚帆橫渡太平洋。" },
-      { week: 4, day: 1, word: "scooter", zh: "機車；小型速克達", pos: "n.", category: "交通與載具", collocations: "ride a scooter (騎機車) / electric scooter (電動機車)", sentence: "Many commuters in Taiwan ride a scooter to work.", sentenceZh: "台灣許多上班族騎機車去上班。" },
-      { week: 4, day: 1, word: "America", zh: "美國；美洲", pos: "n. (專有名詞)", category: "國家與地點", collocations: "travel to America (去美國旅遊) / North America (北美洲)", sentence: "She plans to study in America after graduating from senior high school.", sentenceZh: "她打算高中畢業後去美國留學。" },
-      { week: 4, day: 1, word: "China", zh: "中國", pos: "n. (專有名詞)", category: "國家與地點", collocations: "Made in China (中國製造) / visit China (訪問中國)", sentence: "The Great Wall is one of the most famous sights in China.", sentenceZh: "萬里長城是中國最著名的景點之一。" },
-      { week: 4, day: 1, word: "triangle", zh: "三角形", pos: "n.", category: "幾何與方位", collocations: "equilateral triangle (等邊三角形) / love triangle (三角戀情)", sentence: "The road traffic warning sign is in the shape of a triangle.", sentenceZh: "道路交通警告標誌是三角形的。" },
-      { week: 4, day: 1, word: "anywhere", zh: "任何地方", pos: "adv.", category: "幾何與方位", collocations: "go anywhere (去任何地方) / anywhere else (任何其他地方)", sentence: "I cannot find my keys anywhere in the living room.", sentenceZh: "我在客廳的任何地方都找不到我的鑰匙。" }
+      { week: 4, day: 2, word: "rainy", zh: "下雨的", pos: "adj.", category: "天氣與特質", collocations: "rainy season (雨季) / rainy afternoon (下雨的午後)", sentence: "You had better carry a raincoat on rainy days.", sentenceZh: "在下雨天你最好帶件雨衣。" },
+      { week: 4, day: 2, word: "wind", zh: "風", pos: "n.", category: "天氣與特質", collocations: "strong wind (強風) / gentle wind (微風)", sentence: "A gust of strong wind blew my paper hat away.", sentenceZh: "一陣強風把我用紙做的帽子吹跑了。" },
+      { week: 4, day: 2, word: "wet", zh: "潮濕的", pos: "adj.", category: "天氣與特質", collocations: "wet paint (油漆未乾) / get wet (弄濕)", sentence: "Don't sit on the bench; the wet paint has not dried yet.", sentenceZh: "不要坐在長椅上；油漆未乾。" },
+      { week: 4, day: 2, word: "sun", zh: "太陽", pos: "n.", category: "天氣與特質", collocations: "the rising sun (朝陽) / in the sun (在陽光下)", sentence: "The warm morning sun came through the window.", sentenceZh: "溫暖的晨光穿透了窗戶照進來。" },
+      { week: 4, day: 2, word: "city", zh: "城市", pos: "n.", category: "國家與地點", collocations: "big city (大城市) / city center (市中心)", sentence: "Taipei is a bustling and lively modern city.", sentenceZh: "台北是一座繁華而熱鬧的現代都市。" },
+      { week: 4, day: 2, word: "club", zh: "俱樂部；社團", pos: "n.", category: "學校與休閒", collocations: "join a club (加入社團) / book club (讀書會)", sentence: "He decided to join the school drama club this semester.", sentenceZh: "他決定這學期加入學校的話劇社。" },
+      { week: 4, day: 2, word: "country", zh: "國家；鄉村", pos: "n.", category: "國家與地點", collocations: "country music (鄉村音樂) / foreign country (外國)", sentence: "Every country has its own unique traditions and culture.", sentenceZh: "每個國家都有其獨特的傳統與文化。" },
+      { week: 4, day: 2, word: "farm", zh: "農場；飼養場", pos: "n. | v.", category: "學校與休閒", collocations: "work on a farm (在農場工作) / animal farm (畜牧場)", sentence: "My uncle raises lots of chickens and cows on his farm.", sentenceZh: "我的叔叔在他的農場裡養了許多雞和牛。" },
+      { week: 4, day: 2, word: "everywhere", zh: "到處", pos: "adv.", category: "幾何與方位", collocations: "search everywhere (到處尋找) / everywhere around (四周到處)", sentence: "I looked everywhere for my lost cat, but I couldn't find it.", sentenceZh: "我到處尋找我走失的貓，但都沒找到。" },
+      { week: 4, day: 2, word: "up", zh: "向上", pos: "adv. | prep.", category: "幾何與方位", collocations: "wake up (醒來) / stand up (起立)", sentence: "He looked up at the night sky to admire the stars.", sentenceZh: "他抬頭仰望夜空欣賞星星。" }
     ];
 
     // 2. Supplementary Focus Data (嚴格聚焦目標單字本體的國中會考資料庫)
     const supplementaryData = {
-      "hot": {
-        forms: "比較級 hotter ➔ 最高級 hottest (單母音+單子音，重複字尾 t 加 er/est)；名詞 heat (熱度/高溫)",
-        grammar: "形容詞指氣候「炎熱的」、食物「滾燙的」或「辛辣的」；天氣句型以代名詞 It 作虛主詞：It is hot today.",
-        phrases: "hot spring (溫泉) / hot pot (火鍋) / hot dog (熱狗) / piping hot (滾燙的) / in hot water (陷入麻煩)",
-        examPoint: "【會考核心要點】：1. 比較級重複字尾：hot ➔ hotter ➔ hottest；2. 多義字辨析：餐飲對話中常考「辣的」(spicy)；3. 常見會考俚語：be in hot water (陷入困境/惹上麻煩)。"
+      "rainy": {
+        forms: "名詞與動詞 rain (雨水/下雨) ➔ 形容詞 rainy (加 y)；比較級 rainier ➔ 最高級 rainiest (去 y 加 ier/iest)",
+        grammar: "形容詞表示「多雨的、下雨的」；天氣句型以 It 為虛主詞：It is rainy today. = It rains a lot today.",
+        phrases: "save for a rainy day (未雨綢繆/存錢備急) / rainy season (梅雨季/雨季) / come rain or shine (風雨無阻)",
+        examPoint: "【會考天氣必考代換】：1. It is rainy today. = We have a lot of rain today. = It rains hard today.（詞性：形容詞 vs. 不可數名詞 vs. 動詞）；2. save for a rainy day 為會考克漏字超高頻俗諺！"
       },
-      "sunny": {
-        forms: "比較級 sunnier ➔ 最高級 sunniest (去 y 加 ier/iest)；名詞兼動詞 sun (太陽/曬太陽)",
-        grammar: "由名詞 sun (重複字尾 n 加 y) 轉成天氣形容詞 sunny；表示陽光充足的好天氣，常與 fine/clear 替換使用。",
-        phrases: "sunny day (晴天) / sunny smile (燦爛笑容) / sunny side up (單面煎荷包蛋) / on the sunny side (積極樂觀的一面)",
-        examPoint: "【會考詞性轉換規則】：名詞轉天氣形容詞的重複字尾考點：sun ➔ sunny (重複 n)；天氣句型互換：It is sunny today. = We have a lot of sun today."
+      "wind": {
+        forms: "不可數名詞 wind (風) ➔ 形容詞 windy (有風的/多風的)；動詞三態 (纏繞/彎曲)：wind - wound - wound",
+        grammar: "作「風」時通常不可數，但「一陣風」用 a gust of wind；指風吹時用動詞 blow (The wind blows hard.)。",
+        phrases: "a strong wind (強風) / against the wind (逆風) / catch wind of (聽到…的風聲/獲悉秘密)",
+        examPoint: "【會考同形異音辨析陷阱】：1. wind (名詞，風 /wɪnd/ 短母音) vs. wind (動詞，上發條/蜿蜒 /waɪnd/ 雙母音)；2. 表達強風必用 strong wind（絕不可說 heavy wind 或 big wind）！"
       },
-      "windy": {
-        forms: "比較級 windier ➔ 最高級 windiest (去 y 加 ier/iest)；名詞 wind (風)",
-        grammar: "名詞 wind 後面加上 -y 衍生為形容詞 windy；發音考點：名詞 wind (風，短母音 /ɪ/) vs. 動詞 wind (纏繞/轉動，雙母音 /aɪ/)。",
-        phrases: "a windy day (多風的日子) / high wind (強風) / throw caution to the wind (不顧後果/豁出去)",
-        examPoint: "【會考高頻考點】：天氣描述句型同義代換：It is windy today. = The wind is blowing hard/strongly today.；比較級去 y 加 ier：windy ➔ windier。"
+      "wet": {
+        forms: "比較級 wetter ➔ 最高級 wettest (單母音+單子音，重複字尾 t 加 er/est)；動詞三態同形：wet - wet - wet",
+        grammar: "形容詞表示「潮濕的、淋濕的」；反義詞為 dry (乾燥的)；常接在連綴動詞 get / become 之後 (get wet 淋濕)。",
+        phrases: "get wet through (淋成落湯雞) / wet blanket (掃興的人) / soaking wet (濕透的) / wet market (傳統菜市場)",
+        examPoint: "【會考形容詞與比較級考點】：1. 比較級重複字尾：wet ➔ wetter ➔ wettest；2. 閱讀測驗隱喻常考：a wet blanket（破壞眾人興致的掃興鬼，如 Don't be a wet blanket!）。"
       },
-      "cloudy": {
-        forms: "比較級 cloudier ➔ 最高級 cloudiest (去 y 加 ier/iest)；名詞 cloud (雲)",
-        grammar: "名詞 cloud 加上字尾 -y 構成形容詞 cloudy；常指天空陰沉、烏雲密布，亦可引申為記憶模糊或液體混濁。",
-        phrases: "cloudy sky (多雲的天空) / partly cloudy (晴時多雲/局部多雲) / on cloud nine (極其高興/樂不可支)",
-        examPoint: "【會考天氣必備】：天氣預報閱讀題常見片語：partly cloudy (晴時多雲)；陰天推論雨天常考句型：It is cloudy, and it looks like rain."
+      "sun": {
+        forms: "名詞 sun (太陽，專指恆星) ➔ 形容詞 sunny (大太陽的，重複 n 加 y)；動詞 sun (曬太陽，sun oneself)",
+        grammar: "獨一無二的天體前面必須加定冠詞 the：The sun rises in the east.；在陽光下固定搭配介系詞 in：play in the sun。",
+        phrases: "in the sun (在陽光下) / catch the sun (曬黑/曬傷) / under the sun (普天之下/世界上所有事物)",
+        examPoint: "【會考冠詞與介系詞必考點】：1. 指太陽本體必加定冠詞 the sun；2. 介系詞考題：sit in the sun (在太陽底下，不可用 under the sun，under the sun 意指世上萬物)！"
       },
-      "sail": {
-        forms: "動詞三態規則變化：sail - sailed - sailed；名詞衍生：sailor (水手/海員，可數名詞)；sailing (帆船運動)",
-        grammar: "可作不及物動詞 (航行) 或及物動詞 (駕駛船隻)；作名詞時表「船帆」(set sail 揚帆啟航)。",
-        phrases: "set sail for/to... (啟航前往…) / smooth sailing (一帆風順/事情順利) / sail through (順利通過考試或難關)",
-        examPoint: "【會考試題常客】：1. set sail for 航向某地 (介系詞常考 for)；2. 閱讀測驗隱喻理解：smooth sailing 常被用來比喻「事情進展順遂無礙 (without any problems)」！"
+      "city": {
+        forms: "名詞複數：cities (子音 + y 結尾，去 y 加 ies)；反義詞：countryside (鄉村) / country",
+        grammar: "可數名詞，指人口密集的城市或都市；在城市中通常用介系詞 in (live in a city)。",
+        phrases: "capital city (首都) / city hall (市政府大樓) / inner city (舊城區/貧民區) / city life (城市生活)",
+        examPoint: "【會考名詞不規則複數變化】：1. city ➔ 去 y 加 ies 變成 cities；2. 搭配介系詞辨析：live in the city (住在市區) vs. live in the country (住在鄉下)。"
       },
-      "scooter": {
-        forms: "可數名詞複數：scooters；動詞 scoot (快跑/疾行/挪動)",
-        grammar: "指小型機車或滑板車；交通工具搭配介系詞考點：騎機車可用 ride a scooter 或 on a scooter (by scooter)。",
-        phrases: "ride a scooter (騎機車) / by scooter (搭/騎機車) / electric scooter (電動機車/電動滑板車) / motor scooter (燃油機車)",
-        examPoint: "【會考交通介系詞陷阱】：by scooter (不加冠詞 a，無所有格) vs. on a scooter (必須加 a/the/my) vs. 動詞片語 ride a scooter！"
+      "club": {
+        forms: "名詞複數：clubs；可作及物動詞 (以棍棒擊打，過去式 clubbed 重複 b)",
+        grammar: "可數名詞，指學校社團、球會或俱樂部；表示「加入社團」使用動詞 join (join a club)，不可用 enter 或 participate。",
+        phrases: "join a club (加入社團) / club member (社團成員) / sports club (運動俱樂部) / club together (湊錢/分擔費用)",
+        examPoint: "【會考學校情境搭配詞】：1. 「加入社團」標準動詞搭配必為 join a club（若用 participate 必須加 in：participate in a club）；2. 會考對話常見：Which club do you want to join?"
       },
-      "America": {
-        forms: "衍生形容詞與國籍名詞：American (美國的；美國人)；正式國名：the United States of America (the USA)",
-        grammar: "專有名詞首字母必大寫；America 通常指美國，亦可泛指美洲大陸；日常生活口語常稱 the US 或 America。",
-        phrases: "travel to America (去美國旅遊) / North America (北美洲) / South America (南美洲) / the American Dream (美國夢)",
-        examPoint: "【會考國籍與專有名詞】：1. America (國家名稱，專有名詞不加 the) vs. the USA (簡稱中有普通名詞 States 必須加定冠詞 the)；2. 國籍與語言轉換：American。"
+      "country": {
+        forms: "名詞複數：countries (去 y 加 ies)；同義詞：nation (國家)；反義詞：city (城市)",
+        grammar: "雙重字義考點：1. [C] 國家 (a country / many countries)；2. [U] 鄉下、鄉間 (前面恆加定冠詞 the country)。",
+        phrases: "in the country (在鄉下) / cross-country (越野的) / country music (鄉村音樂) / home country (祖國/故鄉)",
+        examPoint: "【會考一字多義超高頻】：1. country 表「國家」為可數名詞 (Taiwan is a beautiful country.)；2. 表「鄉下」為不可數且必加 the (I prefer living in the country to the city.)！"
       },
-      "China": {
-        forms: "衍生形容詞與語言名詞：Chinese (中國的；中國人；中文/漢語，單複數同形)",
-        grammar: "專有名詞首字母必大寫；注意小寫字首 china 為普通名詞，意思是「瓷器」(不可數名詞)。",
-        phrases: "Made in China (中國製造) / bone china (骨瓷) / a bull in a china shop (魯莽闖禍的人)",
-        examPoint: "【會考字義辨析趣味題】：China (大寫 C：中國，專有名詞) vs. china (小寫 c：瓷器，不可數名詞)；衍生詞 Chinese (指華人時單複數同形)。"
+      "farm": {
+        forms: "名詞複數：farms；動詞 farm (耕作/種植/經營農場)；名詞衍生：farmer (農夫/農場主)",
+        grammar: "可數名詞，指農場、農莊；核心介系詞考點：在農場工作或生活固定搭配介系詞 on (on the farm / on a farm)。",
+        phrases: "on the farm (在農場裡) / farm produce (農產品) / dairy farm (乳酪農場) / farm out (外包工作)",
+        examPoint: "【會考介系詞秒殺題】：在農場上工作必選 on a farm（絕對不可選 in a farm），此為會考介系詞選擇題的年度代表陷阱題！"
       },
-      "triangle": {
-        forms: "名詞複數 triangles；形容詞 triangular (三角形的)；字首 tri- 代表「三」(如 tricycle 三輪車)",
-        grammar: "幾何可數名詞，指由三條邊組成的三角形；亦可用於比喻三方角力關係 (love triangle)。",
-        phrases: "equilateral triangle (等邊三角形/正三角形) / right-angled triangle (直角三角形) / Bermuda Triangle (百慕達三角洲)",
-        examPoint: "【跨領域幾何會考題】：數學幾何圖形英語整合題；幾何字首記憶法：tri- (三) + angle (角) ➔ triangle (三角形)。"
+      "everywhere": {
+        forms: "複合地方副詞 (every + where)；同族詞：anywhere (任何地方), somewhere (某處), nowhere (無處)",
+        grammar: "副詞修飾動詞，表示「處處、到處」；句型中通常置於句尾或受詞後；形容詞修飾時形容詞必須「置後」修飾。",
+        phrases: "almost everywhere (幾乎到處) / here, there, and everywhere (到處皆是) / everywhere I go (無論我走到哪)",
+        examPoint: "【會考代名詞與副詞考點】：1. 不需再加介系詞 to 或 in (如 He went everywhere，不可說 went to everywhere)；2. 後置修飾原則：I saw beautiful things everywhere."
       },
-      "anywhere": {
-        forms: "複合副詞 (any + where)；同家族詞彙：somewhere (某處), nowhere (無處), everywhere (到處)",
-        grammar: "主要用於「否定句」表示任何地方都不…；用於「疑問句」表示任何地方；修飾形容詞時形容詞必須置後修飾 (anywhere quiet)。",
-        phrases: "go anywhere (去任何地方) / anywhere else (任何其他地方) / not... anywhere (= nowhere 無處)",
-        examPoint: "【會考代名詞與副詞考點】：1. 形容詞後置修飾原則：Is there anywhere safe to stay? (safe 放在 anywhere 後面)；2. 否定句同義代換：I cannot find it anywhere. = I can find it nowhere."
+      "up": {
+        forms: "副詞/介系詞/形容詞；反義詞：down (向下)；衍生片語動詞極多",
+        grammar: "可作副詞表「向上、起來、完全」；作介系詞表「沿著…往上」；接代名詞作受詞時代名詞必須夾在中間 (pick it up)。",
+        phrases: "look up (查字典/仰望) / give up (放棄) / pick up (撿起/接送) / grow up (長大) / time is up (時間到)",
+        examPoint: "【會考動詞片語「代名詞放中間」必考鐵律】：可分動詞片語受詞為代名詞 (it/them) 時必須置於中間：pick it up (O) / pick up it (X)；give it up (O) / give up it (X)！"
       }
     };
 
@@ -554,7 +554,7 @@
 
               <!-- Footer Tag in Panel -->
               <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-xs font-semibold text-slate-400 shrink-0">
-                <span>單字編號：W04-D1-#${slideNum}</span>
+                <span>單字編號：W04-D2-#${slideNum}</span>
                 <span class="bg-sky-50 text-sky-600 px-2.5 py-0.5 rounded-full font-bold">會考必備單字</span>
               </div>
 
