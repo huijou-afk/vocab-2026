@@ -557,7 +557,7 @@ end tell
                     saw_generating = True
                     stable_count = 0
                     self._status(f"Gemini 生成中... ({int(time.time() - start_time)}s)", 0.7)
-                elif saw_generating or has_html:
+                elif saw_generating:
                     if curr_len > 1000 and curr_len == last_len:
                         stable_count += 1
                         if stable_count >= 3:
@@ -578,8 +578,8 @@ end tell
 (() => {
     if (window.monaco && window.monaco.editor) {
         const models = window.monaco.editor.getModels();
-        if (models.length > 0) {
-            const val = models[models.length - 1].getValue();
+        for (let i = models.length - 1; i >= 0; i--) {
+            const val = models[i].getValue();
             if (val && (val.includes('<html') || val.includes('<!DOCTYPE html>'))) return val;
         }
     }
@@ -591,7 +591,15 @@ end tell
 })()
 """
         html_code = self._exec_applescript_js(js_extract)
-        if html_code and ("<html" in html_code or "<!DOCTYPE html>" in html_code):
+        if html_code and ("<html" in html_code.lower() or "<!doctype html>" in html_code.lower()):
+            if expected_keywords:
+                low = html_code.lower()
+                matched_kw = [kw for kw in expected_keywords if kw.lower() in low]
+                if not matched_kw:
+                    self._log(f"⚠️ AppleScript 擷取之 HTML 未包含當前輸入之關鍵單字 ({expected_keywords[:3]})，判斷為舊 Canvas 殘留內容，拒絕讀取！")
+                    return None
+                else:
+                    self._log(f"✅ 關鍵單字驗證通過（包含: {', '.join(matched_kw[:3])}）！")
             self._log("🎉 從您目前的 Chrome 視窗中成功提取 HTML 投影片！")
             self._close_chrome_tab_and_focus_app()
             return html_code
