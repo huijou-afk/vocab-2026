@@ -358,24 +358,44 @@ return "NO_TAB"
         return False
 
     def _ensure_gemini_tab_open(self, target_url):
-        """確保使用者現有的 Chrome 視窗中有開啟 Gemini 分頁，若無則在現有視窗中新增分頁"""
+        """確保使用者現有的 Chrome 視窗正開啟在指定的 target_url 對話頁面上"""
         dest = target_url or self.gemini_url
+        target_id = ""
+        if "/app/" in dest:
+            target_id = dest.split("/app/")[-1].strip()
+
         script = f'''
 tell application "Google Chrome"
     activate
+    -- 1. 優先尋找網址與 target_url 完全一致或包含 target_id 的分頁
+    repeat with w in windows
+        set tabIdx to 1
+        repeat with t in tabs of w
+            set u to URL of t
+            if u is "{dest}" or (length of "{target_id}" > 0 and u contains "{target_id}") then
+                set active tab index of w to tabIdx
+                set index of w to 1
+                return "MATCHED_TAB"
+            end if
+            set tabIdx to tabIdx + 1
+        end repeat
+    end repeat
+
+    -- 2. 若有 gemini.google.com 的分頁但網址不同，將其導向至 target_url
     repeat with w in windows
         set tabIdx to 1
         repeat with t in tabs of w
             if URL of t contains "gemini.google.com" then
                 set active tab index of w to tabIdx
                 set index of w to 1
-                return "EXISTING_TAB"
+                set URL of t to "{dest}"
+                return "NAVIGATED_TAB"
             end if
             set tabIdx to tabIdx + 1
         end repeat
     end repeat
     
-    -- 若無現成分頁，在現有 Chrome 視窗中開新分頁
+    -- 3. 若無現成分頁，在現有 Chrome 視窗開新分頁
     if (count of windows) is 0 then
         make new window
     end if
@@ -389,23 +409,39 @@ return "NO_CHROME"
         try:
             res = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=8)
             out = res.stdout.strip()
-            if "NEW_TAB" in out:
-                time.sleep(3)
+            if "NAVIGATED_TAB" in out or "NEW_TAB" in out:
+                self._log(f"🌐 正在將 Chrome 導向至指定 Gemini 對話頁面: {dest}")
+                time.sleep(3.5)
             return out
         except Exception:
             return "ERROR"
 
-    def _exec_applescript_js(self, js_code):
-        """在目前已開啟的 Chrome Gemini 分頁中直接執行 JavaScript"""
+    def _exec_applescript_js(self, js_code, target_url=None):
+        """在目前已開啟的指定 Chrome Gemini 分頁中直接執行 JavaScript"""
+        dest = target_url or self.gemini_url
+        target_id = ""
+        if "/app/" in dest:
+            target_id = dest.split("/app/")[-1].strip()
+
         escaped_js = js_code.replace("\\", "\\\\").replace('"', '\\"').replace("\n", " ")
         script = f'''
 tell application "Google Chrome"
     repeat with w in windows
         set tabIdx to 1
         repeat with t in tabs of w
+            set u to URL of t
+            if u is "{dest}" or (length of "{target_id}" > 0 and u contains "{target_id}") then
+                set val to execute t javascript "{escaped_js}"
+                return val
+            end if
+            set tabIdx to tabIdx + 1
+        end repeat
+    end repeat
+
+    repeat with w in windows
+        set tabIdx to 1
+        repeat with t in tabs of w
             if URL of t contains "gemini.google.com" then
-                set active tab index of w to tabIdx
-                set index of w to 1
                 set val to execute t javascript "{escaped_js}"
                 return val
             end if
@@ -422,19 +458,8 @@ return "NO_TAB"
             return f"ERROR: {e}"
 
     def _close_chrome_tab_and_focus_app(self):
-        """下載與提取完成後，自動關閉 Chrome 的 Gemini 分頁，並將 VocabGenerator 主程式喚回至最前端"""
+        """提取完成後，將 VocabGenerator 主程式喚回至最前端 (保留使用者 Chrome 對話視窗)"""
         applescript = '''
-tell application "Google Chrome"
-    repeat with w in windows
-        repeat with t in tabs of w
-            if URL of t contains "gemini.google.com" then
-                close t
-                exit repeat
-            end if
-        end repeat
-    end repeat
-end tell
-
 tell application "System Events"
     try
         set frontmost of first process whose name contains "VocabGenerator" or name contains "Python" to true
@@ -443,9 +468,8 @@ end tell
 '''
         try:
             subprocess.run(["osascript", "-e", applescript], capture_output=True, text=True, timeout=5)
-            self._log("🧹 已自動關閉 Chrome Gemini 分頁，並返回 VocabGenerator 主程式！")
-        except Exception as e:
-            self._log(f"關閉分頁或切換主程式時提示: {e}")
+        except Exception:
+            pass
 
     def _generate_via_applescript(self, prompt, target_url=None, timeout_seconds=300, expected_keywords=None):
         """利用 AppleScript 直連操控使用者畫面上已開啟的 Chrome 分頁，零新視窗！"""
