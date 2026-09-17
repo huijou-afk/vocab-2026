@@ -473,6 +473,43 @@ end tell
         except Exception:
             pass
 
+    def _validate_candidate_html(self, code, expected_keywords):
+        """強校驗函數：驗證 HTML 是否有效且包含當天具體日期 (如 2026/09/22 或 09/22) 與當天單字"""
+        if not code or len(code) < 500:
+            return False, ""
+        low = code.lower()
+        if "<html" not in low and "<!doctype html>" not in low:
+            return False, ""
+
+        if not expected_keywords:
+            return True, "無關鍵字限制"
+
+        if isinstance(expected_keywords, dict):
+            date_kws = expected_keywords.get("date_keywords", [])
+            vocab_kws = expected_keywords.get("vocab_keywords", [])
+
+            # 1. 強效日期校驗：若有具體月/日 (如 2026/09/22 或 09/22 或 9/22)，必須包含！
+            specific_dates = [kw for kw in date_kws if "/" in kw]
+            if specific_dates:
+                matched_specific = [kw for kw in specific_dates if kw.lower() in low]
+                if not matched_specific:
+                    return False, f"未包含當天具體日期 ({specific_dates[:2]})"
+
+            # 2. 當天單字校驗
+            if vocab_kws:
+                matched_vocab = [kw for kw in vocab_kws if kw.lower() in low]
+                if not matched_vocab:
+                    return False, f"未包含當天單字 ({vocab_kws[:3]})"
+                return True, f"日期 [{', '.join(specific_dates[:2])}] 與單字 [{', '.join(matched_vocab[:3])}]"
+
+            return True, f"日期 [{', '.join(specific_dates[:2])}]"
+
+        # 舊版 list 格式相容
+        matched_kw = [kw for kw in expected_keywords if kw.lower() in low]
+        if matched_kw:
+            return True, f"關鍵字 [{', '.join(matched_kw[:3])}]"
+        return False, "未包含指定關鍵字"
+
     def _generate_via_applescript(self, prompt, target_url=None, timeout_seconds=300, expected_keywords=None):
         """利用 AppleScript 直連操控使用者畫面上已開啟的 Chrome 分頁，零新視窗！"""
         import json, base64
@@ -615,26 +652,20 @@ end tell
                 pass
 
             matched_code = None
-            matched_kws = []
+            validation_msg = ""
             for code in candidates:
-                if code and ("<html" in code.lower() or "<!doctype html>" in code.lower()):
-                    if expected_keywords:
-                        low = code.lower()
-                        matched_kws = [kw for kw in expected_keywords if kw.lower() in low]
-                        if matched_kws:
-                            matched_code = self._clean_markdown_codeblock(code)
-                            break
-                    else:
-                        matched_code = self._clean_markdown_codeblock(code)
-                        break
+                valid, msg = self._validate_candidate_html(code, expected_keywords)
+                if valid:
+                    matched_code = self._clean_markdown_codeblock(code)
+                    validation_msg = msg
+                    break
 
             if matched_code:
                 curr_len = len(matched_code)
                 if curr_len > 1000 and curr_len == last_code_len:
                     stable_count += 1
                     if stable_count >= 2:
-                        kw_str = ", ".join(matched_kws[:3]) if matched_kws else "已相符"
-                        self._log(f"🎉 成功從您現有的 Chrome 視窗提取最新 HTML 投影片（關鍵字 [{kw_str}] 驗證通過，長度: {curr_len} 字元）！")
+                        self._log(f"🎉 成功從您現有的 Chrome 視窗提取最新 HTML 投影片（{validation_msg} 驗證通過，長度: {curr_len} 字元）！")
                         self._close_chrome_tab_and_focus_app()
                         return matched_code
                 else:
@@ -979,21 +1010,10 @@ end tell
 
         # 輔助驗證函數：檢查 HTML 是否有效且符合當前任務預期關鍵字
         def is_valid_html(code):
-            if not code or len(code) < 500:
-                return False
-            low = code.lower()
-            if "<html" not in low and "<!doctype html>" not in low:
-                return False
-            
-            # 若有提供預期關鍵字（例如當週單字），進行驗證防止誤抓上一週的舊 Canvas
-            if expected_keywords:
-                matched_kw = [kw for kw in expected_keywords if kw.lower() in low]
-                if not matched_kw:
-                    self._log(f"⚠️ 提取之程式碼未包含當次指定關鍵單字 ({expected_keywords[:3]})，可能為歷史舊 Canvas，跳過此候選內容。")
-                    return False
-                else:
-                    self._log(f"✅ 關鍵單字驗證通過（包含: {', '.join(matched_kw[:3])}）！")
-            return True
+            valid, msg = self._validate_candidate_html(code, expected_keywords)
+            if valid:
+                self._log(f"✅ {msg} 驗證通過！")
+            return valid
 
         # 2. 優先檢查對話訊息中最下方的代碼區塊 (code-block, message-content, model-response 等)
         selectors = [

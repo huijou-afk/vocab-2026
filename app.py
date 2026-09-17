@@ -269,25 +269,41 @@ class AppAPI:
 
                 prompt = prompt_template.replace("{words}", words.strip())
 
-                # 提取週次標籤 (如 W04) 與前幾個目標英文單字作為防抓舊 Canvas 的校驗關鍵字
-                expected_keywords = []
+                # 提取當天具體日期 (如 2026/09/22, 09/22) 與當天目標英文單字作為防抓錯視窗/舊日期的校驗關鍵字
+                date_keywords = []
+                date_match = re.search(r'(\d{4}/\d{1,2}/\d{1,2})', words)
+                if date_match:
+                    full_date = date_match.group(1) # e.g. 2026/09/22
+                    date_keywords.append(full_date)
+                    parts = full_date.split("/")
+                    if len(parts) == 3:
+                        m_str, d_str = parts[1], parts[2]
+                        date_keywords.append(f"{m_str}/{d_str}")
+                        date_keywords.append(f"{int(m_str)}/{int(d_str)}")
+
                 w_match = re.search(r'\[?(W\d+)\]?', words, re.IGNORECASE)
                 if w_match:
                     tag = w_match.group(1).upper()
-                    expected_keywords.append(tag)
-                    expected_keywords.append(f"[{tag}]")
+                    date_keywords.append(f"[{tag}]")
+                    date_keywords.append(tag)
 
+                vocab_keywords = []
                 for line in words.strip().splitlines():
                     line = line.strip()
-                    if not line:
+                    if not line or line.startswith("日期") or line.startswith("單字清單"):
                         continue
                     parts = re.split(r'[\t,]', line)
                     if parts and parts[0].strip():
                         w = parts[0].strip()
                         if re.match(r'^[a-zA-Z\s\-]+$', w) and len(w) > 1:
-                            expected_keywords.append(w)
-                    if len(expected_keywords) >= 10:
+                            vocab_keywords.append(w)
+                    if len(vocab_keywords) >= 10:
                         break
+
+                expected_keywords = {
+                    "date_keywords": date_keywords,
+                    "vocab_keywords": vocab_keywords
+                }
 
                 html = automator.generate_html(
                     prompt,
