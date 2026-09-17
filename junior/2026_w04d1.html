@@ -1,15 +1,13 @@
 html_content = """<!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 一起背單字 (國中組) - W04</title>
-    <!-- Tailwind CSS CDN -->
+    <title>2026 一起背單字 (國中組)</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Fredoka & Noto Sans TC -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
@@ -18,20 +16,11 @@ html_content = """<!DOCTYPE html>
                 extend: {
                     fontFamily: {
                         sans: ['"Noto Sans TC"', 'sans-serif'],
-                        fredoka: ['Fredoka', '"Noto Sans TC"', 'sans-serif'],
+                        fredoka: ['"Fredoka"', 'sans-serif'],
                     },
                     colors: {
-                        brand: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#0369a1',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                        },
-                        accent: {
-                            500: '#ea580c',
-                            600: '#c2410c',
-                        }
+                        primary: '#0369a1', // 藍色調
+                        accent: '#ea580c',  // 暖橘色調
                     }
                 }
             }
@@ -40,915 +29,652 @@ html_content = """<!DOCTYPE html>
     <style>
         * { box-sizing: border-box; }
         body {
+            background-color: #f0f9ff;
+            color: #0f172a;
             font-family: 'Noto Sans TC', sans-serif;
-            background-color: #f8fafc;
-            color: #1e293b;
             margin: 0;
             padding: 0;
             overflow-x: hidden;
         }
-        .font-fredoka {
-            font-family: 'Fredoka', sans-serif;
+        /* 桌機/橫向 16:9 比例縮放外框 */
+        #presentation-container {
+            width: 1200px;
+            height: 675px;
+            position: relative;
+            background: #ffffff;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-radius: 1rem;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
-        /* Custom scrollbar for mobile scroll */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+        @media (min-width: 768px) {
+            body {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            }
         }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+        /* 手機直向流式排版 */
+        @media (max-width: 767px) {
+            body {
+                background: #ffffff;
+                min-height: 100vh;
+                display: block;
+            }
+            #presentation-container {
+                width: 100% !important;
+                height: auto !important;
+                min-height: 100vh;
+                border-radius: 0;
+                box-shadow: none;
+                transform: none !important;
+                position: static !important;
+                display: flex;
+                flex-direction: column;
+            }
+            .slide-content-area {
+                height: auto !important;
+                overflow-y: visible !important;
+                padding-bottom: 90px !important;
+            }
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-sky-100 selection:text-sky-800">
+<body class="antialiased">
 
-    <!-- Main Presentation Stage Container -->
-    <main id="stage-container" class="flex-1 w-full flex items-center justify-center p-0 md:p-4 relative">
-        <div id="presentation-stage" class="w-full md:w-[1200px] md:h-[675px] bg-white md:shadow-2xl md:rounded-2xl relative overflow-hidden flex flex-col transition-all duration-300">
-            
-            <!-- Slides Content Wrapper -->
-            <div id="slides-wrapper" class="flex-1 relative w-full h-full overflow-y-auto md:overflow-hidden">
-
-                <!-- Slide 0: Cover Page -->
-                <div class="slide active flex flex-col items-center justify-center h-full p-8 text-center bg-gradient-to-br from-sky-50 via-white to-orange-50 select-none">
-                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-100 text-brand-700 font-fredoka font-semibold text-sm mb-6 shadow-sm">
-                        <i data-lucide="sparkles" class="w-4 h-4 text-accent-500"></i>
-                        <span>2026 Junior High School English Vocabulary</span>
-                    </div>
-                    <h1 class="text-4xl md:text-6xl font-extrabold font-fredoka text-slate-800 mb-4 tracking-tight">
-                        2026 一起背單字 <span class="text-accent-500">(國中組)</span>
-                    </h1>
-                    <div class="text-xl md:text-2xl font-medium text-slate-600 mb-8 flex items-center justify-center gap-2">
-                        <i data-lucide="calendar" class="w-6 h-6 text-brand-600"></i>
-                        <span>[W04] 2026/09/21 (一)</span>
-                    </div>
-                    <div class="flex flex-wrap gap-3 justify-center max-w-2xl">
-                        <span class="px-4 py-1.5 bg-white border border-sky-200 text-brand-700 rounded-full text-sm font-medium shadow-sm"># Weather & Climate (天氣與氣候)</span>
-                        <span class="px-4 py-1.5 bg-white border border-sky-200 text-brand-700 rounded-full text-sm font-medium shadow-sm"># Transportation & Places (交通與地名)</span>
-                        <span class="px-4 py-1.5 bg-white border border-sky-200 text-brand-700 rounded-full text-sm font-medium shadow-sm"># Geometry & Position (幾何與方位)</span>
-                    </div>
-                </div>
-
-                <!-- Slide 1: hot -->
-                <div class="slide hidden flex flex-col h-full p-6 md:p-8 bg-white overflow-y-auto md:overflow-hidden">
-                    <div class="flex-1 grid grid-cols-1 md:grid-cols-[1fr_440px] gap-6 items-center">
-                        <div class="flex flex-col justify-center space-y-5">
-                            <div class="flex items-center gap-3">
-                                <h2 class="text-4xl md:text-5xl font-extrabold font-fredoka text-accent-500 tracking-tight">hot</h2>
-                                <button onclick="playWordAudio('hot')" class="p-2.5 rounded-full bg-orange-100 text-accent-600 hover:bg-orange-200 transition-colors shadow-sm focus:outline-none" title="播放單字發音">
-                                    <i data-lucide="volume-2" class="w-6 h-6"></i>
-                                </button>
-                                <span class="px-3 py-1 bg-sky-50 text-brand-700 border border-sky-200 rounded-full text-sm font-semibold font-fredoka">adj. 熱的</span>
-                            </div>
-                            <!-- Collocation Card -->
-                            <div class="bg-sky-50/70 border border-sky-100 rounded-xl p-4 shadow-sm">
-                                <div class="flex items-center gap-2 text-brand-700 font-semibold mb-2">
-                                    <i data-lucide="layers" class="w-5 h-5 text-brand-600"></i>
-                                    <span>常用搭配詞 (Collocations)</span>
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700 text-sm">
-                                    <div class="bg-white p-2 rounded border border-sky-100 shadow-2xs">🔥 <b>hot summer</b> (炎熱夏天)</div>
-                                    <div class="bg-white p-2 rounded border border-sky-100 shadow-2xs">🍲 <b>hot soup</b> (熱湯)</div>
-                                </div>
-                            </div>
-                            <!-- Example Sentence Card -->
-                            <div class="bg-orange-50/50 border border-orange-100 rounded-xl p-4 shadow-sm">
-                                <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center gap-2 text-accent-600 font-semibold">
-                                        <i data-lucide="quote" class="w-5 h-5"></i>
-                                        <span>實用例句</span>
-                                    </div>
-                                    <button onclick="playSentenceAudio('Taiwan is usually very hot and humid in summer.')" class="p-1.5 px-3 rounded-full bg-accent-500 text-white hover:bg-accent-600 transition-colors text-xs flex items-center gap-1 shadow-sm font-medium">
-                                        <i data-lucide="volume-2" class="w-3.5 h-3.5"></i> 朗讀例句
-                                    </button>
-                                </div>
-                                <p class="text-slate-800 font-medium text-base mb-1">Taiwan is usually very hot and humid in summer.</p>
-                                <p class="text-slate-500 text-sm">台灣夏天的天氣通常非常炎熱且潮濕。</p>
-                            </div>
-                        </div>
-                        <!-- Supplementary Panel -->
-                        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 flex flex-col justify-between h-full md:h-[510px] shadow-sm">
-                            <div>
-                                <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
-                                    <div class="flex items-center gap-2 font-bold text-slate-800">
-                                        <i data-lucide="book-open" class="w-5 h-5 text-brand-600"></i>
-                                        <span>國中重點補充</span>
-                                    </div>
-                                    <span class="text-xs font-mono font-bold bg-brand-100 text-brand-700 px-2.5 py-1 rounded-md">#01</span>
-                                </div>
-                                <div class="space-y-3.5 text-sm text-slate-700">
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">形態變化 (Word Forms)</span>
-                                        <p class="text-slate-600">比較級：<span class="font-bold text-slate-800">hotter</span>（字尾子音+母音+子音，重複 t 再加 -er）；最高級：<span class="font-bold text-slate-800">hottest</span>。</p>
-                                    </div>
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">會考常考要點</span>
-                                        <p class="text-slate-600">常與天氣動詞 make 搭配（例：The sun makes us hot.），或作感官形容詞形容食物溫度。</p>
-                                    </div>
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">常用片語與文法</span>
-                                        <p class="text-slate-600"><b>hot water</b> 引申為「困境、麻煩」之意（例：be in hot water 陷入麻煩中）。</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="pt-3 border-t border-slate-200 text-xs text-slate-400 text-center font-fredoka">2026 Junior High Vocabulary Program</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slide 2: sunny -->
-                <div class="slide hidden flex flex-col h-full p-6 md:p-8 bg-white overflow-y-auto md:overflow-hidden">
-                    <div class="flex-1 grid grid-cols-1 md:grid-cols-[1fr_440px] gap-6 items-center">
-                        <div class="flex flex-col justify-center space-y-5">
-                            <div class="flex items-center gap-3">
-                                <h2 class="text-4xl md:text-5xl font-extrabold font-fredoka text-accent-500 tracking-tight">sunny</h2>
-                                <button onclick="playWordAudio('sunny')" class="p-2.5 rounded-full bg-orange-100 text-accent-600 hover:bg-orange-200 transition-colors shadow-sm focus:outline-none" title="播放單字發音">
-                                    <i data-lucide="volume-2" class="w-6 h-6"></i>
-                                </button>
-                                <span class="px-3 py-1 bg-sky-50 text-brand-700 border border-sky-200 rounded-full text-sm font-semibold font-fredoka">adj. 大太陽的</span>
-                            </div>
-                            <div class="bg-sky-50/70 border border-sky-100 rounded-xl p-4 shadow-sm">
-                                <div class="flex items-center gap-2 text-brand-700 font-semibold mb-2">
-                                    <i data-lucide="layers" class="w-5 h-5 text-brand-600"></i>
-                                    <span>常用搭配詞 (Collocations)</span>
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700 text-sm">
-                                    <div class="bg-white p-2 rounded border border-sky-100 shadow-2xs">☀️ <b>sunny day</b> (晴天)</div>
-                                    <div class="bg-white p-2 rounded border border-sky-100 shadow-2xs">😊 <b>sunny smile</b> (燦爛的笑容)</div>
-                                </div>
-                            </div>
-                            <div class="bg-orange-50/50 border border-orange-100 rounded-xl p-4 shadow-sm">
-                                <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center gap-2 text-accent-600 font-semibold">
-                                        <i data-lucide="quote" class="w-5 h-5"></i>
-                                        <span>實用例句</span>
-                                    </div>
-                                    <button onclick="playSentenceAudio('We decided to go hiking on this sunny Saturday morning.')" class="p-1.5 px-3 rounded-full bg-accent-500 text-white hover:bg-accent-600 transition-colors text-xs flex items-center gap-1 shadow-sm font-medium">
-                                        <i data-lucide="volume-2" class="w-3.5 h-3.5"></i> 朗讀例句
-                                    </button>
-                                </div>
-                                <p class="text-slate-800 font-medium text-base mb-1">We decided to go hiking on this sunny Saturday morning.</p>
-                                <p class="text-slate-500 text-sm">我們決定在這個陽光明媚的星期六早晨去健行。</p>
-                            </div>
-                        </div>
-                        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 flex flex-col justify-between h-full md:h-[510px] shadow-sm">
-                            <div>
-                                <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
-                                    <div class="flex items-center gap-2 font-bold text-slate-800">
-                                        <i data-lucide="book-open" class="w-5 h-5 text-brand-600"></i>
-                                        <span>國中重點補充</span>
-                                    </div>
-                                    <span class="text-xs font-mono font-bold bg-brand-100 text-brand-700 px-2.5 py-1 rounded-md">#02</span>
-                                </div>
-                                <div class="space-y-3.5 text-sm text-slate-700">
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">形態變化 (Word Forms)</span>
-                                        <p class="text-slate-600">名詞為 <span class="font-bold text-slate-800">sun</span>（太陽）；比較級 <span class="font-bold text-slate-800">sunnier</span>，最高級 <span class="font-bold text-slate-800">sunniest</span>。</p>
-                                    </div>
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">會考常考要點</span>
-                                        <p class="text-slate-600">常考自然界天氣形容詞結尾變化（noun + y -> adj.），如 rain -> rainy, wind -> windy。</p>
-                                    </div>
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">常用片語與文法</span>
-                                        <p class="text-slate-600">形容詞也可轉意形容人的性格「陽光開朗的」（例：a sunny disposition）。</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="pt-3 border-t border-slate-200 text-xs text-slate-400 text-center font-fredoka">2026 Junior High Vocabulary Program</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slide 3: windy -->
-                <div class="slide hidden flex flex-col h-full p-6 md:p-8 bg-white overflow-y-auto md:overflow-hidden">
-                    <div class="flex-1 grid grid-cols-1 md:grid-cols-[1fr_440px] gap-6 items-center">
-                        <div class="flex flex-col justify-center space-y-5">
-                            <div class="flex items-center gap-3">
-                                <h2 class="text-4xl md:text-5xl font-extrabold font-fredoka text-accent-500 tracking-tight">windy</h2>
-                                <button onclick="playWordAudio('windy')" class="p-2.5 rounded-full bg-orange-100 text-accent-600 hover:bg-orange-200 transition-colors shadow-sm focus:outline-none" title="播放單字發音">
-                                    <i data-lucide="volume-2" class="w-6 h-6"></i>
-                                </button>
-                                <span class="px-3 py-1 bg-sky-50 text-brand-700 border border-sky-200 rounded-full text-sm font-semibold font-fredoka">adj. 有風的</span>
-                            </div>
-                            <div class="bg-sky-50/70 border border-sky-100 rounded-xl p-4 shadow-sm">
-                                <div class="flex items-center gap-2 text-brand-700 font-semibold mb-2">
-                                    <i data-lucide="layers" class="w-5 h-5 text-brand-600"></i>
-                                    <span>常用搭配詞 (Collocations)</span>
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700 text-sm">
-                                    <div class="bg-white p-2 rounded border border-sky-100 shadow-2xs">💨 <b>windy day</b> (颳風的日子)</div>
-                                    <div class="bg-white p-2 rounded border border-sky-100 shadow-2xs">🌬️ <b>windy weather</b> (多風的天氣)</div>
-                                </div>
-                            </div>
-                            <div class="bg-orange-50/50 border border-orange-100 rounded-xl p-4 shadow-sm">
-                                <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center gap-2 text-accent-600 font-semibold">
-                                        <i data-lucide="quote" class="w-5 h-5"></i>
-                                        <span>實用例句</span>
-                                    </div>
-                                    <button onclick="playSentenceAudio('It was so windy that my umbrella blew inside out.')" class="p-1.5 px-3 rounded-full bg-accent-500 text-white hover:bg-accent-600 transition-colors text-xs flex items-center gap-1 shadow-sm font-medium">
-                                        <i data-lucide="volume-2" class="w-3.5 h-3.5"></i> 朗讀例句
-                                    </button>
-                                </div>
-                                <p class="text-slate-800 font-medium text-base mb-1">It was so windy that my umbrella blew inside out.</p>
-                                <p class="text-slate-500 text-sm">風大到把我的傘都吹翻過來了。</p>
-                            </div>
-                        </div>
-                        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 flex flex-col justify-between h-full md:h-[510px] shadow-sm">
-                            <div>
-                                <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
-                                    <div class="flex items-center gap-2 font-bold text-slate-800">
-                                        <i data-lucide="book-open" class="w-5 h-5 text-brand-600"></i>
-                                        <span>國中重點補充</span>
-                                    </div>
-                                    <span class="text-xs font-mono font-bold bg-brand-100 text-brand-700 px-2.5 py-1 rounded-md">#03</span>
-                                </div>
-                                <div class="space-y-3.5 text-sm text-slate-700">
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">形態變化 (Word Forms)</span>
-                                        <p class="text-slate-600">名詞為 <span class="font-bold text-slate-800">wind</span>（風）；比較級 <span class="font-bold text-slate-800">windier</span>，最高級 <span class="font-bold text-slate-800">windiest</span>。</p>
-                                    </div>
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">會考常考要點</span>
-                                        <p class="text-slate-600">例句中的 <span class="font-bold text-slate-800">so... that...</span> 句型（如此……以至於……）是國中核心文法，常與天氣結果連結考出。</p>
-                                    </div>
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">常用片語與文法</span>
-                                        <p class="text-slate-600">動詞 blow 的過去式為 <span class="font-bold text-slate-800">blew</span>，屬不規則變化（blow-blew-blown）。</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="pt-3 border-t border-slate-200 text-xs text-slate-400 text-center font-fredoka">2026 Junior High Vocabulary Program</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slide 4: cloudy -->
-                <div class="slide hidden flex flex-col h-full p-6 md:p-8 bg-white overflow-y-auto md:overflow-hidden">
-                    <div class="flex-1 grid grid-cols-1 md:grid-cols-[1fr_440px] gap-6 items-center">
-                        <div class="flex flex-col justify-center space-y-5">
-                            <div class="flex items-center gap-3">
-                                <h2 class="text-4xl md:text-5xl font-extrabold font-fredoka text-accent-500 tracking-tight">cloudy</h2>
-                                <button onclick="playWordAudio('cloudy')" class="p-2.5 rounded-full bg-orange-100 text-accent-600 hover:bg-orange-200 transition-colors shadow-sm focus:outline-none" title="播放單字發音">
-                                    <i data-lucide="volume-2" class="w-6 h-6"></i>
-                                </button>
-                                <span class="px-3 py-1 bg-sky-50 text-brand-700 border border-sky-200 rounded-full text-sm font-semibold font-fredoka">adj. 多雲的</span>
-                            </div>
-                            <div class="bg-sky-50/70 border border-sky-100 rounded-xl p-4 shadow-sm">
-                                <div class="flex items-center gap-2 text-brand-700 font-semibold mb-2">
-                                    <i data-lucide="layers" class="w-5 h-5 text-brand-600"></i>
-                                    <span>常用搭配詞 (Collocations)</span>
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700 text-sm">
-                                    <div class="bg-white p-2 rounded border border-sky-100 shadow-2xs">☁️ <b>cloudy sky</b> (多雲的天空)</div>
-                                    <div class="bg-white p-2 rounded border border-sky-100 shadow-2xs">⛅ <b>cloudy weather</b> (陰天)</div>
-                                </div>
-                            </div>
-                            <div class="bg-orange-50/50 border border-orange-100 rounded-xl p-4 shadow-sm">
-                                <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center gap-2 text-accent-600 font-semibold">
-                                        <i data-lucide="quote" class="w-5 h-5"></i>
-                                        <span>實用例句</span>
-                                    </div>
-                                    <button onclick="playSentenceAudio('The sky looks cloudy, so it might rain soon.')" class="p-1.5 px-3 rounded-full bg-accent-500 text-white hover:bg-accent-600 transition-colors text-xs flex items-center gap-1 shadow-sm font-medium">
-                                        <i data-lucide="volume-2" class="w-3.5 h-3.5"></i> 朗讀例句
-                                    </button>
-                                </div>
-                                <p class="text-slate-800 font-medium text-base mb-1">The sky looks cloudy, so it might rain soon.</p>
-                                <p class="text-slate-500 text-sm">天空看起來烏雲密布，可能很快就會下雨。</p>
-                            </div>
-                        </div>
-                        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 flex flex-col justify-between h-full md:h-[510px] shadow-sm">
-                            <div>
-                                <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
-                                    <div class="flex items-center gap-2 font-bold text-slate-800">
-                                        <i data-lucide="book-open" class="w-5 h-5 text-brand-600"></i>
-                                        <span>國中重點補充</span>
-                                    </div>
-                                    <span class="text-xs font-mono font-bold bg-brand-100 text-brand-700 px-2.5 py-1 rounded-md">#04</span>
-                                </div>
-                                <div class="space-y-3.5 text-sm text-slate-700">
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">形態變化 (Word Forms)</span>
-                                        <p class="text-slate-600">名詞為 <span class="font-bold text-slate-800">cloud</span>（雲）；比較級 <span class="font-bold text-slate-800">cloudier</span>，最高級 <span class="font-bold text-slate-800">cloudiest</span>。</p>
-                                    </div>
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">會考常考要点</span>
-                                        <p class="text-slate-600">looks 為連綴動詞，後方接形容詞 cloudy 作主詞補語（不可用副詞 cloudily）。</p>
-                                    </div>
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">常用片語與文法</span>
-                                        <p class="text-slate-600">情態助動詞 <span class="font-bold text-slate-800">might</span> 表示可能性較低（小於 may 或 will）。</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="pt-3 border-t border-slate-200 text-xs text-slate-400 text-center font-fredoka">2026 Junior High Vocabulary Program</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slide 5: sail -->
-                <div class="slide hidden flex flex-col h-full p-6 md:p-8 bg-white overflow-y-auto md:overflow-hidden">
-                    <div class="flex-1 grid grid-cols-1 md:grid-cols-[1fr_440px] gap-6 items-center">
-                        <div class="flex flex-col justify-center space-y-5">
-                            <div class="flex items-center gap-3">
-                                <h2 class="text-4xl md:text-5xl font-extrabold font-fredoka text-accent-500 tracking-tight">sail</h2>
-                                <button onclick="playWordAudio('sail')" class="p-2.5 rounded-full bg-orange-100 text-accent-600 hover:bg-orange-200 transition-colors shadow-sm focus:outline-none" title="播放單字發音">
-                                    <i data-lucide="volume-2" class="w-6 h-6"></i>
-                                </button>
-                                <span class="px-3 py-1 bg-sky-50 text-brand-700 border border-sky-200 rounded-full text-sm font-semibold font-fredoka">v. 揚帆；航行</span>
-                            </div>
-                            <div class="bg-sky-50/70 border border-sky-100 rounded-xl p-4 shadow-sm">
-                                <div class="flex items-center gap-2 text-brand-700 font-semibold mb-2">
-                                    <i data-lucide="layers" class="w-5 h-5 text-brand-600"></i>
-                                    <span>常用搭配詞 (Collocations)</span>
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700 text-sm">
-                                    <div class="bg-white p-2 rounded border border-sky-100 shadow-2xs">⛵ <b>set sail</b> (啟航)</div>
-                                    <div class="bg-white p-2 rounded border border-sky-100 shadow-2xs">🌊 <b>sail a boat</b> (駕駛船隻)</div>
-                                </div>
-                            </div>
-                            <div class="bg-orange-50/50 border border-orange-100 rounded-xl p-4 shadow-sm">
-                                <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center gap-2 text-accent-600 font-semibold">
-                                        <i data-lucide="quote" class="w-5 h-5"></i>
-                                        <span>實用例句</span>
-                                    </div>
-                                    <button onclick="playSentenceAudio('The brave sailors will sail across the Pacific Ocean.')" class="p-1.5 px-3 rounded-full bg-accent-500 text-white hover:bg-accent-600 transition-colors text-xs flex items-center gap-1 shadow-sm font-medium">
-                                        <i data-lucide="volume-2" class="w-3.5 h-3.5"></i> 朗讀例句
-                                    </button>
-                                </div>
-                                <p class="text-slate-800 font-medium text-base mb-1">The brave sailors will sail across the Pacific Ocean.</p>
-                                <p class="text-slate-500 text-sm">勇敢的水手們將揚帆橫渡太平洋。</p>
-                            </div>
-                        </div>
-                        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 flex flex-col justify-between h-full md:h-[510px] shadow-sm">
-                            <div>
-                                <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
-                                    <div class="flex items-center gap-2 font-bold text-slate-800">
-                                        <i data-lucide="book-open" class="w-5 h-5 text-brand-600"></i>
-                                        <span>國中重點補充</span>
-                                    </div>
-                                    <span class="text-xs font-mono font-bold bg-brand-100 text-brand-700 px-2.5 py-1 rounded-md">#05</span>
-                                </div>
-                                <div class="space-y-3.5 text-sm text-slate-700">
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">形態變化 (Word Forms)</span>
-                                        <p class="text-slate-600">三態變化：<span class="font-bold text-slate-800">sail - sailed - sailed</span>；名詞形為 <span class="font-bold text-slate-800">sailor</span>（水手）與 <span class="font-bold text-slate-800">sailing</span>（航海運動）。</p>
-                                    </div>
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">會考常考要点</span>
-                                        <p class="text-slate-600">作動詞時可指船隻航行或人駕駛帆船，常與介系詞 across（橫渡）連用。</p>
-                                    </div>
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">常用片語與文法</span>
-                                        <p class="text-slate-600"><b>set sail</b> 為固定片語，意指「啟航、出海」。</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="pt-3 border-t border-slate-200 text-xs text-slate-400 text-center font-fredoka">2026 Junior High Vocabulary Program</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slide 6: scooter -->
-                <div class="slide hidden flex flex-col h-full p-6 md:p-8 bg-white overflow-y-auto md:overflow-hidden">
-                    <div class="flex-1 grid grid-cols-1 md:grid-cols-[1fr_440px] gap-6 items-center">
-                        <div class="flex flex-col justify-center space-y-5">
-                            <div class="flex items-center gap-3">
-                                <h2 class="text-4xl md:text-5xl font-extrabold font-fredoka text-accent-500 tracking-tight">scooter</h2>
-                                <button onclick="playWordAudio('scooter')" class="p-2.5 rounded-full bg-orange-100 text-accent-600 hover:bg-orange-200 transition-colors shadow-sm focus:outline-none" title="播放單字發音">
-                                    <i data-lucide="volume-2" class="w-6 h-6"></i>
-                                </button>
-                                <span class="px-3 py-1 bg-sky-50 text-brand-700 border border-sky-200 rounded-full text-sm font-semibold font-fredoka">n. 機車</span>
-                            </div>
-                            <div class="bg-sky-50/70 border border-sky-100 rounded-xl p-4 shadow-sm">
-                                <div class="flex items-center gap-2 text-brand-700 font-semibold mb-2">
-                                    <i data-lucide="layers" class="w-5 h-5 text-brand-600"></i>
-                                    <span>常用搭配詞 (Collocations)</span>
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700 text-sm">
-                                    <div class="bg-white p-2 rounded border border-sky-100 shadow-2xs">🛵 <b>ride a scooter</b> (騎機車)</div>
-                                    <div class="bg-white p-2 rounded border border-sky-100 shadow-2xs">⚡ <b>electric scooter</b> (電動機車)</div>
-                                </div>
-                            </div>
-                            <div class="bg-orange-50/50 border border-orange-100 rounded-xl p-4 shadow-sm">
-                                <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center gap-2 text-accent-600 font-semibold">
-                                        <i data-lucide="quote" class="w-5 h-5"></i>
-                                        <span>實用例句</span>
-                                    </div>
-                                    <button onclick="playSentenceAudio('Many commuters in Taiwan ride a scooter to work.')" class="p-1.5 px-3 rounded-full bg-accent-500 text-white hover:bg-accent-600 transition-colors text-xs flex items-center gap-1 shadow-sm font-medium">
-                                        <i data-lucide="volume-2" class="w-3.5 h-3.5"></i> 朗讀例句
-                                    </button>
-                                </div>
-                                <p class="text-slate-800 font-medium text-base mb-1">Many commuters in Taiwan ride a scooter to work.</p>
-                                <p class="text-slate-500 text-sm">台灣許多上班族騎機車去上班。</p>
-                            </div>
-                        </div>
-                        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 flex flex-col justify-between h-full md:h-[510px] shadow-sm">
-                            <div>
-                                <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
-                                    <div class="flex items-center gap-2 font-bold text-slate-800">
-                                        <i data-lucide="book-open" class="w-5 h-5 text-brand-600"></i>
-                                        <span>國中重點補充</span>
-                                    </div>
-                                    <span class="text-xs font-mono font-bold bg-brand-100 text-brand-700 px-2.5 py-1 rounded-md">#06</span>
-                                </div>
-                                <div class="space-y-3.5 text-sm text-slate-700">
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">形態變化 (Word Forms)</span>
-                                        <p class="text-slate-600">複數形為 <span class="font-bold text-slate-800">scooters</span>（字尾直接加 -s）。</p>
-                                    </div>
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">會考常考要点</span>
-                                        <p class="text-slate-600">表達「騎機車」搭配動詞 <span class="font-bold text-slate-800">ride</span>（ride a scooter），交通工具搭配介系詞時注意：ride on a scooter / by scooter。</p>
-                                    </div>
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">常用片語與文法</span>
-                                        <p class="text-slate-600">commuter 意指「通勤族」，常用於生活科技與社會議題類克漏字。</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="pt-3 border-t border-slate-200 text-xs text-slate-400 text-center font-fredoka">2026 Junior High Vocabulary Program</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slide 7: America -->
-                <div class="slide hidden flex flex-col h-full p-6 md:p-8 bg-white overflow-y-auto md:overflow-hidden">
-                    <div class="flex-1 grid grid-cols-1 md:grid-cols-[1fr_440px] gap-6 items-center">
-                        <div class="flex flex-col justify-center space-y-5">
-                            <div class="flex items-center gap-3">
-                                <h2 class="text-4xl md:text-5xl font-extrabold font-fredoka text-accent-500 tracking-tight">America</h2>
-                                <button onclick="playWordAudio('America')" class="p-2.5 rounded-full bg-orange-100 text-accent-600 hover:bg-orange-200 transition-colors shadow-sm focus:outline-none" title="播放單字發音">
-                                    <i data-lucide="volume-2" class="w-6 h-6"></i>
-                                </button>
-                                <span class="px-3 py-1 bg-sky-50 text-brand-700 border border-sky-200 rounded-full text-sm font-semibold font-fredoka">n. 美國</span>
-                            </div>
-                            <div class="bg-sky-50/70 border border-sky-100 rounded-xl p-4 shadow-sm">
-                                <div class="flex items-center gap-2 text-brand-700 font-semibold mb-2">
-                                    <i data-lucide="layers" class="w-5 h-5 text-brand-600"></i>
-                                    <span>常用搭配詞 (Collocations)</span>
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700 text-sm">
-                                    <div class="bg-white p-2 rounded border border-sky-100 shadow-2xs">🗽 <b>travel to America</b> (去美國旅遊)</div>
-                                    <div class="bg-white p-2 rounded border border-sky-100 shadow-2xs">🗺️ <b>North America</b> (北美洲)</div>
-                                </div>
-                            </div>
-                            <div class="bg-orange-50/50 border border-orange-100 rounded-xl p-4 shadow-sm">
-                                <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center gap-2 text-accent-600 font-semibold">
-                                        <i data-lucide="quote" class="w-5 h-5"></i>
-                                        <span>實用例句</span>
-                                    </div>
-                                    <button onclick="playSentenceAudio('She plans to study in America after graduating from senior high school.')" class="p-1.5 px-3 rounded-full bg-accent-500 text-white hover:bg-accent-600 transition-colors text-xs flex items-center gap-1 shadow-sm font-medium">
-                                        <i data-lucide="volume-2" class="w-3.5 h-3.5"></i> 朗讀例句
-                                    </button>
-                                </div>
-                                <p class="text-slate-800 font-medium text-base mb-1">She plans to study in America after graduating from senior high school.</p>
-                                <p class="text-slate-500 text-sm">她打算高中畢業後去美國留學。</p>
-                            </div>
-                        </div>
-                        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 flex flex-col justify-between h-full md:h-[510px] shadow-sm">
-                            <div>
-                                <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
-                                    <div class="flex items-center gap-2 font-bold text-slate-800">
-                                        <i data-lucide="book-open" class="w-5 h-5 text-brand-600"></i>
-                                        <span>國中重點補充</span>
-                                    </div>
-                                    <span class="text-xs font-mono font-bold bg-brand-100 text-brand-700 px-2.5 py-1 rounded-md">#07</span>
-                                </div>
-                                <div class="space-y-3.5 text-sm text-slate-700">
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">形態變化 (Word Forms)</span>
-                                        <p class="text-slate-600">形容詞與國民稱為 <span class="font-bold text-slate-800">American</span>（美國的／美國人）。</p>
-                                    </div>
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">會考常考要点</span>
-                                        <p class="text-slate-600">專有名詞字首須大寫。前往國家時常用介系詞 <span class="font-bold text-slate-800">to</span>（travel to America），居住於國家用 <span class="font-bold text-slate-800">in</span>（live in America）。</p>
-                                    </div>
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">常用片語與文法</span>
-                                        <p class="text-slate-600">plan to + 原形動詞（計畫去做某事）為國中必考不定詞句型。</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="pt-3 border-t border-slate-200 text-xs text-slate-400 text-center font-fredoka">2026 Junior High Vocabulary Program</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slide 8: China -->
-                <div class="slide hidden flex flex-col h-full p-6 md:p-8 bg-white overflow-y-auto md:overflow-hidden">
-                    <div class="flex-1 grid grid-cols-1 md:grid-cols-[1fr_440px] gap-6 items-center">
-                        <div class="flex flex-col justify-center space-y-5">
-                            <div class="flex items-center gap-3">
-                                <h2 class="text-4xl md:text-5xl font-extrabold font-fredoka text-accent-500 tracking-tight">China</h2>
-                                <button onclick="playWordAudio('China')" class="p-2.5 rounded-full bg-orange-100 text-accent-600 hover:bg-orange-200 transition-colors shadow-sm focus:outline-none" title="播放單字發音">
-                                    <i data-lucide="volume-2" class="w-6 h-6"></i>
-                                </button>
-                                <span class="px-3 py-1 bg-sky-50 text-brand-700 border border-sky-200 rounded-full text-sm font-semibold font-fredoka">n. 中國</span>
-                            </div>
-                            <div class="bg-sky-50/70 border border-sky-100 rounded-xl p-4 shadow-sm">
-                                <div class="flex items-center gap-2 text-brand-700 font-semibold mb-2">
-                                    <i data-lucide="layers" class="w-5 h-5 text-brand-600"></i>
-                                    <span>常用搭配詞 (Collocations)</span>
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700 text-sm">
-                                    <div class="bg-white p-2 rounded border border-sky-100 shadow-2xs">🏷️ <b>Made in China</b> (中國製造)</div>
-                                    <div class="bg-white p-2 rounded border border-sky-100 shadow-2xs">🏯 <b>visit China</b> (訪問中國)</div>
-                                </div>
-                            </div>
-                            <div class="bg-orange-50/50 border border-orange-100 rounded-xl p-4 shadow-sm">
-                                <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center gap-2 text-accent-600 font-semibold">
-                                        <i data-lucide="quote" class="w-5 h-5"></i>
-                                        <span>實用例句</span>
-                                    </div>
-                                    <button onclick="playSentenceAudio('The Great Wall is one of the most famous sights in China.')" class="p-1.5 px-3 rounded-full bg-accent-500 text-white hover:bg-accent-600 transition-colors text-xs flex items-center gap-1 shadow-sm font-medium">
-                                        <i data-lucide="volume-2" class="w-3.5 h-3.5">Error</i> 朗讀例句
-                                    </button>
-                                </div>
-                                <p class="text-slate-800 font-medium text-base mb-1">The Great Wall is one of the most famous sights in China.</p>
-                                <p class="text-slate-500 text-sm">萬里長城是中國最著名的景點之一。</p>
-                            </div>
-                        </div>
-                        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 flex flex-col justify-between h-full md:h-[510px] shadow-sm">
-                            <div>
-                                <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
-                                    <div class="flex items-center gap-2 font-bold text-slate-800">
-                                        <i data-lucide="book-open" class="w-5 h-5 text-brand-600"></i>
-                                        <span>國中重點補充</span>
-                                    </div>
-                                    <span class="text-xs font-mono font-bold bg-brand-100 text-brand-700 px-2.5 py-1 rounded-md">#08</span>
-                                </div>
-                                <div class="space-y-3.5 text-sm text-slate-700">
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">形態變化 (Word Forms)</span>
-                                        <p class="text-slate-600">形容詞與國民稱為 <span class="font-bold text-slate-800">Chinese</span>（中國的／中文／中國人）。</p>
-                                    </div>
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">會考常考要点</span>
-                                        <p class="text-slate-600">句型 <span class="font-bold text-slate-800">one of + 最高級 + 複數名詞</span>（最……的其中之一）為國中高頻文法考點。</p>
-                                    </div>
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">常用片語與文法</span>
-                                        <p class="text-slate-600"><b>china</b> 小寫時亦可指「瓷器」，但在國中階段主要作為專有名詞國家名。</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="pt-3 border-t border-slate-200 text-xs text-slate-400 text-center font-fredoka">2026 Junior High Vocabulary Program</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slide 9: triangle -->
-                <div class="slide hidden flex flex-col h-full p-6 md:p-8 bg-white overflow-y-auto md:overflow-hidden">
-                    <div class="flex-1 grid grid-cols-1 md:grid-cols-[1fr_440px] gap-6 items-center">
-                        <div class="flex flex-col justify-center space-y-5">
-                            <div class="flex items-center gap-3">
-                                <h2 class="text-4xl md:text-5xl font-extrabold font-fredoka text-accent-500 tracking-tight">triangle</h2>
-                                <button onclick="playWordAudio('triangle')" class="p-2.5 rounded-full bg-orange-100 text-accent-600 hover:bg-orange-200 transition-colors shadow-sm focus:outline-none" title="播放單字發音">
-                                    <i data-lucide="volume-2" class="w-6 h-6"></i>
-                                </button>
-                                <span class="px-3 py-1 bg-sky-50 text-brand-700 border border-sky-200 rounded-full text-sm font-semibold font-fredoka">n. 三角形</span>
-                            </div>
-                            <div class="bg-sky-50/70 border border-sky-100 rounded-xl p-4 shadow-sm">
-                                <div class="flex items-center gap-2 text-brand-700 font-semibold mb-2">
-                                    <i data-lucide="layers" class="w-5 h-5 text-brand-600"></i>
-                                    <span>常用搭配詞 (Collocations)</span>
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700 text-sm">
-                                    <div class="bg-white p-2 rounded border border-sky-100 shadow-2xs">📐 <b>equilateral triangle</b> (等邊三角形)</div>
-                                    <div class="bg-white p-2 rounded border border-sky-100 shadow-2xs">❤️ <b>love triangle</b> (三角戀情)</div>
-                                </div>
-                            </div>
-                            <div class="bg-orange-50/50 border border-orange-100 rounded-xl p-4 shadow-sm">
-                                <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center gap-2 text-accent-600 font-semibold">
-                                        <i data-lucide="quote" class="w-5 h-5"></i>
-                                        <span>實用例句</span>
-                                    </div>
-                                    <button onclick="playSentenceAudio('The road traffic warning sign is in the shape of a triangle.')" class="p-1.5 px-3 rounded-full bg-accent-500 text-white hover:bg-accent-600 transition-colors text-xs flex items-center gap-1 shadow-sm font-medium">
-                                        <i data-lucide="volume-2" class="w-3.5 h-3.5"></i> 朗讀例句
-                                    </button>
-                                </div>
-                                <p class="text-slate-800 font-medium text-base mb-1">The road traffic warning sign is in the shape of a triangle.</p>
-                                <p class="text-slate-500 text-sm">道路交通警告標誌是三角形的。</p>
-                            </div>
-                        </div>
-                        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 flex flex-col justify-between h-full md:h-[510px] shadow-sm">
-                            <div>
-                                <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
-                                    <div class="flex items-center gap-2 font-bold text-slate-800">
-                                        <i data-lucide="book-open" class="w-5 h-5 text-brand-600"></i>
-                                        <span>國中重點補充</span>
-                                    </div>
-                                    <span class="text-xs font-mono font-bold bg-brand-100 text-brand-700 px-2.5 py-1 rounded-md">#09</span>
-                                </div>
-                                <div class="space-y-3.5 text-sm text-slate-700">
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">形態變化 (Word Forms)</span>
-                                        <p class="text-slate-600">複數形為 <span class="font-bold text-slate-800">triangles</span>；形容詞形為 <span class="font-bold text-slate-800">triangular</span>（三角形的）。</p>
-                    </div>
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">會考常考要点</span>
-                                        <p class="text-slate-650">字首 tri- 代表「三」（如 tricycle 三輪車、triple 三倍），字根 angle 意指「角」。</p>
-                                    </div>
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">常用片語與文法</span>
-                                        <p class="text-slate-600">in the shape of... 為表達「呈……形狀」的常用介系詞片語。</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="pt-3 border-t border-slate-200 text-xs text-slate-400 text-center font-fredoka">2026 Junior High Vocabulary Program</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slide 10: anywhere -->
-                <div class="slide hidden flex flex-col h-full p-6 md:p-8 bg-white overflow-y-auto md:overflow-hidden">
-                    <div class="flex-1 grid grid-cols-1 md:grid-cols-[1fr_440px] gap-6 items-center">
-                        <div class="flex flex-col justify-center space-y-5">
-                            <div class="flex items-center gap-3">
-                                <h2 class="text-4xl md:text-5xl font-extrabold font-fredoka text-accent-500 tracking-tight">anywhere</h2>
-                                <button onclick="playWordAudio('anywhere')" class="p-2.5 rounded-full bg-orange-100 text-accent-600 hover:bg-orange-200 transition-colors shadow-sm focus:outline-none" title="播放單字發音">
-                                    <i data-lucide="volume-2" class="w-6 h-6"></i>
-                                </button>
-                                <span class="px-3 py-1 bg-sky-50 text-brand-700 border border-sky-200 rounded-full text-sm font-semibold font-fredoka">adv. 任何地方</span>
-                            </div>
-                            <div class="bg-sky-50/70 border border-sky-100 rounded-xl p-4 shadow-sm">
-                                <div class="flex items-center gap-2 text-brand-700 font-semibold mb-2">
-                                    <i data-lucide="layers" class="w-5 h-5 text-brand-600"></i>
-                                    <span>常用搭配詞 (Collocations)</span>
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700 text-sm">
-                                    <div class="bg-white p-2 rounded border border-sky-100 shadow-2xs">🚀 <b>go anywhere</b> (去任何地方)</div>
-                                    <div class="bg-white p-2 rounded border border-sky-100 shadow-2xs">🔍 <b>anywhere else</b> (任何其他地方)</div>
-                                </div>
-                            </div>
-                            <div class="bg-orange-50/50 border border-orange-100 rounded-xl p-4 shadow-sm">
-                                <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center gap-2 text-accent-600 font-semibold">
-                                        <i data-lucide="quote" class="w-5 h-5"></i>
-                                        <span>實用例句</span>
-                                    </div>
-                                    <button onclick="playSentenceAudio('I cannot find my keys anywhere in the living room.')" class="p-1.5 px-3 rounded-full bg-accent-500 text-white hover:bg-accent-600 transition-colors text-xs flex items-center gap-1 shadow-sm font-medium">
-                                        <i data-lucide="volume-2" class="w-3.5 h-3.5"></i> 朗讀例句
-                                    </button>
-                                </div>
-                                <p class="text-slate-800 font-medium text-base mb-1">I cannot find my keys anywhere in the living room.</p>
-                                <p class="text-slate-500 text-sm">我在客廳的任何地方都找不到我的鑰匙。</p>
-                            </div>
-                        </div>
-                        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 flex flex-col justify-between h-full md:h-[510px] shadow-sm">
-                            <div>
-                                <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
-                                    <div class="flex items-center gap-2 font-bold text-slate-800">
-                                        <i data-lucide="book-open" class="w-5 h-5 text-brand-600"></i>
-                                        <span>國中重點補充</span>
-                                    </div>
-                                    <span class="text-xs font-mono font-bold bg-brand-100 text-brand-700 px-2.5 py-1 rounded-md">#10</span>
-                                </div>
-                                <div class="space-y-3.5 text-sm text-slate-700">
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">形態變化 (Word Forms)</span>
-                                        <p class="text-slate-600">由 <span class="font-bold text-slate-800">any</span>（任何的）與 <span class="font-bold text-slate-800">where</span>（地方）複合而成的副詞。</p>
-                                    </div>
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">會考常考要点</span>
-                                        <p class="text-slate-600">常用於否定句（如 cannot... anywhere）與疑問句中，相當於 somewhere 的否定對應字。</p>
-                                    </div>
-                                    <div>
-                                        <span class="font-bold text-brand-700 block mb-0.5">常用片語與文法</span>
-                                        <p class="text-slate-600">修飾代名詞時，形容詞需後置（例如：anywhere else 其他任何地方）。</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="pt-3 border-t border-slate-200 text-xs text-slate-400 text-center font-fredoka">2026 Junior High Vocabulary Program</div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Bottom Control Bar -->
-            <div class="w-full bg-slate-900 text-white px-4 py-3 flex flex-col md:flex-row items-center justify-between gap-3 shrink-0 shadow-inner z-20">
-                <!-- Progress & Jump -->
-                <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
-                    <span id="slide-counter" class="font-fredoka text-sm font-semibold tracking-wider text-sky-400 min-w-[70px]">1 / 11</span>
-                    <select id="slide-jump" onchange="jumpToSlide(this.value)" class="bg-slate-800 text-white text-xs md:text-sm font-medium px-3 py-1.5 rounded-lg border border-slate-700 focus:outline-none focus:border-brand-500 cursor-pointer">
-                        <option value="0">封面：2026 W04 單字導覽</option>
-                        <option value="1">01. hot (熱的)</option>
-                        <option value="2">02. sunny (大太陽的)</option>
-                        <option value="3">03. windy (有風的)</option>
-                        <option value="4">04. cloudy (多雲的)</option>
-                        <option value="5">05. sail (揚帆；航行)</option>
-                        <option value="6">06. scooter (機車)</option>
-                        <option value="7">07. America (美國)</option>
-                        <option value="8">08. China (中國)</option>
-                        <option value="9">09. triangle (三角形)</option>
-                        <option value="10">10. anywhere (任何地方)</option>
-                    </select>
-                </div>
-
-                <!-- Progress Bar -->
-                <div class="w-full md:w-48 bg-slate-800 h-2 rounded-full overflow-hidden hidden sm:block">
-                    <div id="progress-bar" class="bg-accent-500 h-full transition-all duration-300 w-[9%]"></div>
-                </div>
-
-                <!-- Navigation Buttons & Audio / Fullscreen -->
-                <div class="flex items-center gap-2 w-full md:w-auto justify-end">
-                    <button onclick="currentSlide > 0 && changeSlide(currentSlide - 1)" id="prev-btn" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs md:text-sm font-medium flex items-center gap-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-                        <i data-lucide="chevron-left" class="w-4 h-4"></i> 上一頁
-                    </button>
-                    <button onclick="currentSlide < totalSlides - 1 && changeSlide(currentSlide + 1)" id="next-btn" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-xs md:text-sm font-medium flex items-center gap-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-                        下一頁 <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                    </button>
-                    <div class="h-5 w-[1px] bg-slate-700 mx-1 hidden sm:block"></div>
-                    <button onclick="playCurrentSlideAudio()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-accent-500 transition-colors" title="朗讀目前單字與例句">
-                        <i data-lucide="volume-2" class="w-4 h-4"></i>
-                    </button>
-                    <button onclick="toggleFullscreen()" id="fullscreen-btn" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-400 transition-colors" title="全螢幕切換 (F)">
-                        <i data-lucide="maximize" id="fullscreen-icon" class="w-4 h-4"></i>
-                    </button>
-                </div>
-            </div>
-
+    <!-- 簡報總容器 (桌機進行 scale 變換，手機保持滿版) -->
+    <div id="presentation-container">
+        
+        <!-- 內容呈現區 -->
+        <div id="slide-viewport" class="flex-1 relative overflow-hidden flex flex-col slide-content-area">
+            <!-- 動態插入的 Slide 畫面 -->
         </div>
-    </main>
 
-    <!-- JavaScript Presentation Logic -->
+        <!-- 底部精緻控制列 (吸底、抗破版) -->
+        <footer class="h-16 bg-white border-t border-slate-200 px-4 md:px-8 flex items-center justify-between shrink-0 z-30 select-none shadow-sm">
+            <!-- 左側：進度條與資訊 -->
+            <div class="flex items-center space-x-3 w-1/3">
+                <span id="progress-text" class="text-xs md:text-sm font-bold text-slate-600 font-fredoka">1 / 11</span>
+                <div class="hidden sm:block w-32 md:w-48 bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="bg-primary h-full transition-all duration-300 rounded-full" style="width: 9.09%;"></div>
+                </div>
+            </div>
+
+            <!-- 中間：導航按鈕與頁碼下拉選單 -->
+            <div class="flex items-center space-x-2 md:space-x-3">
+                <button onclick="prevSlide()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-700 transition active:scale-95" title="上一頁 (←)">
+                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                </button>
+                <select id="slide-select" onchange="goToSlide(parseInt(this.value))" class="text-xs md:text-sm font-medium bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer">
+                    <!-- 動態產生選項 -->
+                </select>
+                <button onclick="nextSlide()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-700 transition active:scale-95" title="下一頁 (→ / 空白鍵)">
+                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- 右側：發音按鈕與全螢幕切換 -->
+            <div class="flex items-center space-x-2 w-1/3 justify-end">
+                <button onclick="speakCurrentSlide()" class="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-sky-50 text-primary hover:bg-sky-100 transition text-xs font-semibold active:scale-95" title="手動朗讀本頁">
+                    <i data-lucide="volume-2" class="w-4 h-4"></i>
+                    <span>朗讀本頁</span>
+                </button>
+                <button onclick="toggleFullscreen()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-700 transition active:scale-95" title="全螢幕切換 (F)">
+                    <i id="fullscreen-icon" data-lucide="maximize" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </footer>
+    </div>
+
     <script>
-        let currentSlide = 0;
-        const slides = document.querySelectorAll('.slide');
-        const totalSlides = slides.length;
+        // --- 單字資料庫 (包含封面與 10 個單字) ---
+        const slidesData = [
+            {
+                type: 'cover',
+                title: '2026 一起背單字',
+                subtitle: '(國中組)',
+                date: '[W04] 2026/09/21 (一)',
+                tags: ['天氣與氣候', '自然環境', '地理國名']
+            },
+            {
+                type: 'word',
+                id: '01',
+                word: 'hot',
+                pos: 'adj. 形容詞',
+                chinese: '熱的',
+                collocationTitle: '常用搭配詞',
+                collocations: [
+                    { icon: 'sun', title: 'hot summer', desc: '炎熱夏天' },
+                    { icon: 'coffee', title: 'hot soup', desc: '熱湯' }
+                ],
+                sentenceAudioText: 'Taiwan is usually very hot and humid in summer.',
+                sentenceEn: 'Taiwan is usually <span class="text-accent font-semibold">hot</span> and humid in summer.',
+                sentenceZh: '台灣夏天的天氣通常非常陽光且潮濕。',
+                supplement: {
+                    forms: '比較級: hotter | 最高級: hottest',
+                    exam: '會考常考的反義字為 cold (冷的)；此外常與介系詞 in 形成片語 in hot water (陷入困境)。',
+                    phrases: 'hot weather (熱天)、hot dog (熱狗)',
+                    grammar: '作形容詞時可當主詞補語 (如 The soup is hot.) 或修飾名詞 (如 a hot day)。'
+                }
+            },
+            {
+                type: 'word',
+                id: '02',
+                word: 'sunny',
+                pos: 'adj. 形容詞',
+                chinese: '大太陽的',
+                collocationTitle: '常用搭配詞',
+                collocations: [
+                    { icon: 'sun', title: 'sunny day', desc: '晴天' },
+                    { icon: 'smile', title: 'sunny smile', desc: '燦爛的笑容' }
+                ],
+                sentenceAudioText: 'We decided to go hiking on this sunny Saturday morning.',
+                sentenceEn: 'We decided to go hiking on this <span class="text-accent font-semibold">sunny</span> Saturday morning.',
+                sentenceZh: '我們決定在這個陽光明媚的星期六早晨去健行。',
+                supplement: {
+                    forms: '名詞: sun (太陽) | 形容詞變化: sun 結尾雙寫 n 加 y 成為 sunny',
+                    exam: '常考天氣形容詞變化規則 (名词去e或雙寫字尾加 y，如 rain -> rainy, wind -> windy)。',
+                    phrases: 'sunny weather (晴朗天氣)、have a sunny day (過個好天氣)',
+                    grammar: '用來形容充滿陽光、晴朗的天氣或人開朗、陽光的笑容。'
+                }
+            },
+            {
+                type: 'word',
+                id: '03',
+                word: 'windy',
+                pos: 'adj. 形容詞',
+                chinese: '有風的',
+                collocationTitle: '常用搭配詞',
+                collocations: [
+                    { icon: 'wind', title: 'windy day', desc: '颳風的日子' },
+                    { icon: 'cloud-rain', title: 'windy weather', desc: '多風的天氣' }
+                ],
+                sentenceAudioText: 'It was so windy that my umbrella blew inside out.',
+                sentenceEn: 'It was so <span class="text-accent font-semibold">windy</span> that my umbrella blew inside out.',
+                sentenceZh: '風大到把我的傘都吹翻過來了。',
+                supplement: {
+                    forms: '名詞: wind (風)',
+                    exam: '常考 so... that... (如此……以至於……) 句型，測驗形容詞 windy 與副詞 so 的搭配。',
+                    phrases: 'windy season (多風季節)',
+                    grammar: '表示氣候特徵時，常用 It is windy today. 作為句型主詞。'
+                }
+            },
+            {
+                type: 'word',
+                id: '04',
+                word: 'cloudy',
+                pos: 'adj. 形容詞',
+                chinese: '多雲的',
+                collocationTitle: '常用搭配詞',
+                collocations: [
+                    { icon: 'cloud', title: 'cloudy sky', desc: '多雲的天空' },
+                    { icon: 'cloud-fog', title: 'cloudy weather', desc: '陰天' }
+                ],
+                sentenceAudioText: 'The sky looks cloudy, so it might rain soon.',
+                sentenceEn: 'The sky looks <span class="text-accent font-semibold">cloudy</span>, so it might rain soon.',
+                sentenceZh: '天空看起來烏雲密布，可能很快就會下雨。',
+                supplement: {
+                    forms: '名詞: cloud (雲)',
+                    exam: '連綴動詞 look 後方需接形容詞 cloudy，不可接副詞；常考與 rain、might 的因果推論關係。',
+                    phrases: 'cloudy day (陰天)',
+                    grammar: '表示天空被雲層覆蓋的狀態。'
+                }
+            },
+            {
+                type: 'word',
+                id: '05',
+                word: 'sail',
+                pos: 'v. 動詞',
+                chinese: '揚帆；航行',
+                collocationTitle: '常用搭配詞',
+                collocations: [
+                    { icon: 'compass', title: 'set sail', desc: '啟航' },
+                    { icon: 'ship', title: 'sail a boat', desc: '駕駛船隻' }
+                ],
+                sentenceAudioText: 'The brave sailors will sail across the Pacific Ocean.',
+                sentenceEn: 'The brave sailors will <span class="text-accent font-semibold">sail</span> across the Pacific Ocean.',
+                sentenceZh: '勇敢的水手們將揚帆橫渡太平洋。',
+                supplement: {
+                    forms: '三態: sail / sailed / sailed | 名詞: sailor (水手)',
+                    exam: '常考片語 set sail (啟航) 以及跨越海洋介系詞 across 的用法。',
+                    phrases: 'sail away (航行離去)、go sailing (去航海)',
+                    grammar: '可作及物動詞 (駕駛船) 或不及物動詞 (航行)。'
+                }
+            },
+            {
+                type: 'word',
+                id: '06',
+                word: 'scooter',
+                pos: 'n. 名詞',
+                chinese: '機車',
+                collocationTitle: '常用搭配詞',
+                collocations: [
+                    { icon: 'bike', title: 'ride a scooter', desc: '騎機車' },
+                    { icon: 'zap', title: 'electric scooter', desc: '電動機車' }
+                ],
+                sentenceAudioText: 'Many commuters in Taiwan ride a scooter to work.',
+                sentenceEn: 'Many commuters in Taiwan ride a <span class="text-accent font-semibold">scooter</span> to work.',
+                sentenceZh: '台灣許多上班族騎機車去上班。',
+                supplement: {
+                    forms: '複數: scooters',
+                    exam: '常考交通工具搭配動詞 ride (騎乘機車/腳踏車) 與 take (搭乘公車/捷運) 的區分。',
+                    phrases: 'rent a scooter (租機車)',
+                    grammar: '可數名詞，複數形式直接加 s。'
+                }
+            },
+            {
+                type: 'word',
+                id: '07',
+                word: 'America',
+                pos: 'n. 名詞',
+                chinese: '美國',
+                collocationTitle: '常用搭配詞',
+                collocations: [
+                    { icon: 'plane', title: 'travel to America', desc: '去美國旅遊' },
+                    { icon: 'globe', title: 'North America', desc: '北美洲' }
+                ],
+                sentenceAudioText: 'She plans to study in America after graduating from senior high school.',
+                sentenceEn: 'She plans to study in <span class="text-accent font-semibold">America</span> after graduating from senior high school.',
+                sentenceZh: '她打算高中畢業後去美國留學。',
+                supplement: {
+                    forms: '形容詞/國民: American (美國的 / 美國人)',
+                    exam: '專有名詞字首大寫；常考介系詞 in (在美國) 與 to (前往美國 travel to America)。',
+                    phrases: 'South America (南美洲)、United States (美國全稱)',
+                    grammar: '專有名詞，前面通常不加冠詞 the (但 the United States 則需加 the)。'
+                }
+            },
+            {
+                type: 'word',
+                id: '08',
+                word: 'China',
+                pos: 'n. 名詞',
+                chinese: '中國',
+                collocationTitle: '常用搭配詞',
+                collocations: [
+                    { icon: 'tag', title: 'Made in China', desc: '中國製造' },
+                    { icon: 'map-pin', title: 'visit China', desc: '訪問中國' }
+                ],
+                sentenceAudioText: 'The Great Wall is one of the most famous sights in China.',
+                sentenceEn: 'The Great Wall is one of the most famous sights in <span class="text-accent font-semibold">China</span>.',
+                sentenceZh: '萬里長城是中國最著名的景點之一。',
+                supplement: {
+                    forms: '形容詞/國民: Chinese (中國的 / 中文 / 中國人)',
+                    exam: '常考 one of + 最高級 + 複數名詞 (最……的其中之一) 句型。',
+                    phrases: 'traditional China (傳統中國)',
+                    grammar: '專有名詞，代表國家名稱。'
+                }
+            },
+            {
+                type: 'word',
+                id: '09',
+                word: 'triangle',
+                pos: 'n. 名詞',
+                chinese: '三角形',
+                collocationTitle: '常用搭配詞',
+                collocations: [
+                    { icon: 'triangle', title: 'equilateral triangle', desc: '等邊三角形' },
+                    { icon: 'heart', title: 'love triangle', desc: '三角戀情' }
+                ],
+                sentenceAudioText: 'The road traffic warning sign is in the shape of a triangle.',
+                sentenceEn: 'The road traffic warning sign is in the shape of a <span class="text-accent font-semibold">triangle</span>.',
+                sentenceZh: '道路交通警告標誌是三角形的。',
+                supplement: {
+                    forms: '複數: triangles | 形容詞: triangular (三角形的)',
+                    exam: '常考固定片語 in the shape of (呈……形狀)。',
+                    phrases: 'right triangle (直角三角形)',
+                    grammar: '可數名詞，由 tri- (三) 與 angle (角) 組合而成。'
+                }
+            },
+            {
+                type: 'word',
+                id: '10',
+                word: 'anywhere',
+                pos: 'adv. 副詞',
+                chinese: '任何地方',
+                collocationTitle: '常用搭配詞',
+                collocations: [
+                    { icon: 'map', title: 'go anywhere', desc: '去任何地方' },
+                    { icon: 'compass', title: 'anywhere else', desc: '任何其他地方' }
+                ],
+                sentenceAudioText: 'I cannot find my keys anywhere in the living room.',
+                sentenceEn: 'I cannot find my keys <span class="text-accent font-semibold">anywhere</span> in the living room.',
+                sentenceZh: '我在客廳的任何地方都找不到我的鑰匙。',
+                supplement: {
+                    forms: '同義/對應字: somewhere (某處), nowhere (哪裡都不)',
+                    exam: '常考不定副詞在否定句 (cannot) 中使用 anywhere 而非 somewhere 的文法規則。',
+                    phrases: 'almost anywhere (幾乎任何地方)',
+                    grammar: '常用於否定句與疑問句中，表示「任何地方」。'
+                }
+            }
+        ];
+
+        let currentSlideIndex = 0;
         const audioCache = {};
 
-        // Speech Fixes Map
+        // --- 發音校正映射表 ---
+        const speechFixes = {
+            "I": "eye",
+            "Mr.": "Mister",
+            "Mrs.": "Missus",
+            "MRT": "M R T",
+            "WiFi": "Y Fi",
+            "3C": "three C"
+        };
+
         function applySpeechFixes(text) {
             let fixed = text;
-            // Exact word or token replacements as requested
-            const fixes = {
-                "\\bI\\b": "eye",
-                "\\bMr\\.\\b": "Mister",
-                "\\bMrs\\.\\b": "Missus",
-                "\\bMRT\\b": "M R T"
-            };
-            for (let pattern in fixes) {
-                let regex = new RegExp(pattern, 'g');
-                fixed = fixed.replace(regex, fixes[pattern]);
+            for (let key in speechFixes) {
+                let regex = new RegExp('\\b' + key + '\\b', 'g');
+                fixed = fixed.replace(regex, speechFixes[key]);
             }
             return fixed;
         }
 
-        function playWordAudio(word) {
-            const clean = applySpeechFixes(word);
-            playAudioUrl(clean);
-        }
+        // --- 核心朗讀 TTS 函式 ---
+        function speakText(text) {
+            if (!text) return;
+            const cleanText = applySpeechFixes(text);
+            const cacheKey = cleanText;
 
-        function playSentenceAudio(sentence) {
-            const clean = applySpeechFixes(sentence);
-            playAudioUrl(clean);
-        }
-
-        function playAudioUrl(text) {
-            if (audioCache[text]) {
-                audioCache[text].currentTime = 0;
-                audioCache[text].play().catch(e => console.log("Audio play error:", e));
+            if (audioCache[cacheKey]) {
+                audioCache[cacheKey].currentTime = 0;
+                audioCache[cacheKey].play().catch(e => console.log("Audio play error:", e));
                 return;
             }
-            const url = "https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=" + encodeURIComponent(text);
+
+            const url = "https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=" + encodeURIComponent(cleanText);
             const audio = new Audio(url);
-            audioCache[text] = audio;
+            audioCache[cacheKey] = audio;
             audio.play().catch(e => console.log("Audio play error:", e));
         }
 
-        function playCurrentSlideAudio() {
-            if (currentSlide === 0) {
-                playWordAudio("2026 Junior High English Vocabulary W 04");
-                return;
-            }
-            // Find active slide word and example sentence
-            const activeSlideElement = slides[currentSlide];
-            const wordEl = activeSlideElement.querySelector('h2');
-            const sentenceEl = activeSlideElement.querySelector('.bg-orange-50\\/50 p.font-medium');
-            if (wordEl) {
-                const wordText = wordEl.textContent.trim();
-                playWordAudio(wordText);
-                if (sentenceEl) {
-                    setTimeout(() => {
-                        playSentenceAudio(sentenceEl.textContent.trim());
-                    }, 1200);
-                }
+        function speakCurrentSlide() {
+            const slide = slidesData[currentSlideIndex];
+            if (slide.type === 'cover') {
+                speakText("2026 Junior High School Vocabulary");
+            } else {
+                // 朗讀單字與例句
+                const textToSpeak = slide.word + ". " + slide.sentenceAudioText;
+                speakText(textToSpeak);
             }
         }
 
-        function changeSlide(index) {
-            if (index < 0 || index >= totalSlides) return;
-            slides[currentSlide].classList.add('hidden');
-            slides[currentSlide].classList.remove('active');
-            
-            currentSlide = index;
-            
-            slides[currentSlide].classList.remove('hidden');
-            slides[currentSlide].classList.add('active');
+        function speakSpecificSentence(text) {
+            speakText(text);
+        }
 
-            // Update UI elements
-            document.getElementById('slide-counter').textContent = `${currentSlide + 1} / ${totalSlides}`;
-            document.getElementById('slide-jump').value = currentSlide;
+        // --- 初始化頁碼選單 ---
+        function initSlideSelect() {
+            const select = document.getElementById('slide-select');
+            select.innerHTML = '';
+            slidesData.forEach((slide, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                if (slide.type === 'cover') {
+                    opt.text = `P.1 封面`;
+                } else {
+                    opt.text = `P.${idx + 1} ${slide.id}. ${slide.word}`;
+                }
+                select.appendChild(opt);
+            });
+        }
+
+        // --- 渲染畫面 ---
+        function renderSlide() {
+            const viewport = document.getElementById('slide-viewport');
+            const slide = slidesData[currentSlideIndex];
             
-            const progressPercent = ((currentSlide + 1) / totalSlides) * 100;
-            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+            // 更新下拉選單與進度條
+            document.getElementById('slide-select').value = currentSlideIndex;
+            const progressPercent = ((currentSlideIndex + 1) / slidesData.length) * 100;
+            document.getElementById('progress-bar').style.width = progressPercent + '%';
+            document.getElementById('progress-text').innerText = `${currentSlideIndex + 1} / ${slidesData.length}`;
 
-            // Button states
-            document.getElementById('prev-btn').disabled = (currentSlide === 0);
-            document.getElementById('next-btn').disabled = (currentSlide === totalSlides - 1);
+            if (slide.type === 'cover') {
+                viewport.innerHTML = `
+                    <div class="w-full h-full flex flex-col items-center justify-center p-8 bg-gradient-to-br from-sky-50 via-white to-orange-50 text-center relative">
+                        <div class="absolute top-8 left-8 flex items-center space-x-2 text-primary font-fredoka font-bold text-lg">
+                            <i data-lucide="book-open" class="w-6 h-6"></i>
+                            <span>2026 Junior English</span>
+                        </div>
+                        <div class="max-w-3xl mx-auto space-y-6">
+                            <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-orange-100 text-accent font-semibold text-sm">
+                                <i data-lucide="calendar" class="w-4 h-4"></i>
+                                <span>${slide.date}</span>
+                            </div>
+                            <h1 class="text-4xl md:text-6xl font-black text-slate-800 font-fredoka tracking-tight">
+                                ${slide.title} <span class="text-primary font-bold">${slide.subtitle}</span>
+                            </h1>
+                            <div class="flex flex-wrap justify-center gap-2 pt-4">
+                                ${slide.tags.map(tag => `<span class="px-4 py-1.5 rounded-full bg-sky-100 text-primary font-medium text-sm shadow-sm">${tag}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div class="absolute bottom-6 text-slate-400 text-xs font-medium">
+                            使用下方按鈕或鍵盤方向鍵開始導覽 ➔
+                        </div>
+                    </div>
+                `;
+            } else {
+                viewport.innerHTML = `
+                    <div class="w-full h-full p-4 md:p-8 flex flex-col md:flex-row gap-6 items-center justify-between bg-white overflow-y-auto">
+                        
+                        <!-- 左側：單字與例句專區 (佔比 55%~60%) -->
+                        <div class="w-full md:w-[58%] flex flex-col space-y-4">
+                            <!-- 單字標題與膠囊 -->
+                            <div class="flex items-baseline justify-between border-b border-slate-100 pb-3">
+                                <div class="flex items-baseline space-x-3">
+                                    <h2 class="text-3xl md:text-5xl font-black text-accent font-fredoka tracking-tight">${slide.word}</h2>
+                                    <button onclick="speakText('${slide.word}')" class="p-2 rounded-full bg-orange-50 text-accent hover:bg-orange-100 transition active:scale-95" title="朗讀單字">
+                                        <i data-lucide="volume-2" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="px-3 py-1 rounded-full bg-sky-100 text-primary text-xs md:text-sm font-bold">${slide.pos}</span>
+                                    <span class="px-3 py-1 rounded-full bg-sky-600 text-white text-xs md:text-sm font-bold shadow-sm">${slide.chinese}</span>
+                                </div>
+                            </div>
 
-            // Re-init lucide icons for newly shown slide if needed
+                            <!-- 常用搭配詞卡片 -->
+                            <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3 md:p-4 shadow-sm">
+                                <h3 class="text-xs md:text-sm font-bold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center space-x-1.5">
+                                    <i data-lucide="layers" class="w-4 h-4 text-primary"></i>
+                                    <span>${slide.collocationTitle}</span>
+                                </h3>
+                                <div class="grid grid-cols-2 gap-3">
+                                    ${slide.collocations.map(col => `
+                                        <div class="bg-white p-2.5 rounded-lg border border-slate-100 flex items-center space-x-2.5 shadow-xs">
+                                            <div class="w-8 h-8 rounded-lg bg-sky-50 text-primary flex items-center justify-center shrink-0">
+                                                <i data-lucide="${col.icon}" class="w-4 h-4"></i>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <div class="text-xs md:text-sm font-bold text-slate-800 truncate font-fredoka">${col.title}</div>
+                                                <div class="text-[11px] md:text-xs text-slate-500 truncate">${col.desc}</div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <!-- 實用例句卡片 -->
+                            <div class="bg-gradient-to-r from-sky-50/60 to-white border border-sky-100 rounded-xl p-3 md:p-4 shadow-sm relative">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="text-xs md:text-sm font-bold text-primary flex items-center space-x-1.5">
+                                        <i data-lucide="quote" class="w-4 h-4"></i>
+                                        <span>實用例句</span>
+                                    </div>
+                                    <button onclick="speakSpecificSentence('${slide.sentenceAudioText}')" class="px-2.5 py-1 rounded-lg bg-primary text-white hover:bg-sky-700 transition text-xs font-semibold flex items-center space-x-1 active:scale-95 shadow-xs" title="朗讀例句">
+                                        <i data-lucide="volume-2" class="w-3.5 h-3.5"></i>
+                                        <span>朗讀例句</span>
+                                    </button>
+                                </div>
+                                <p class="text-xs md:text-sm font-medium text-slate-800 mb-1 leading-relaxed">${slide.sentenceEn}</p>
+                                <p class="text-xs text-slate-500 font-medium">${slide.sentenceZh}</p>
+                            </div>
+                        </div>
+
+                        <!-- 右側：國中重點補充面板 (固定寬度 440px / 高度適配) -->
+                        <div class="w-full md:w-[42%] bg-slate-50 border border-slate-200/80 rounded-2xl p-4 md:p-5 flex flex-col justify-between shadow-sm relative overflow-hidden">
+                            <!-- 編號浮水印標籤 -->
+                            <div class="absolute -top-3 -right-3 text-7xl font-black text-slate-200/50 font-fredoka pointer-events-none select-none">
+                                #${slide.id}
+                            </div>
+
+                            <div class="space-y-3.5 relative z-10">
+                                <div class="flex items-center space-x-2 border-b border-slate-200 pb-2.5">
+                                    <div class="w-7 h-7 rounded-lg bg-orange-100 text-accent flex items-center justify-center">
+                                        <i data-lucide="star" class="w-4 h-4"></i>
+                                    </div>
+                                    <h3 class="text-sm font-bold text-slate-800 font-fredoka">國中重點補充面板</h3>
+                                </div>
+
+                                <!-- 變化/格位/形態 -->
+                                <div class="bg-white p-3 rounded-xl border border-slate-200/60 shadow-2xs">
+                                    <div class="text-[11px] font-bold text-primary uppercase tracking-wider mb-1 flex items-center space-x-1">
+                                        <i data-lucide="git-branch" class="w-3.5 h-3.5"></i>
+                                        <span>變化 / 格位 / 形態</span>
+                                    </div>
+                                    <p class="text-xs md:text-sm text-slate-700 font-medium">${slide.supplement.forms}</p>
+                                </div>
+
+                                <!-- 會考常考要點 -->
+                                <div class="bg-white p-3 rounded-xl border border-slate-200/60 shadow-2xs">
+                                    <div class="text-[11px] font-bold text-accent uppercase tracking-wider mb-1 flex items-center space-x-1">
+                                        <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
+                                        <span>會考常考要點</span>
+                                    </div>
+                                    <p class="text-xs md:text-sm text-slate-700 font-medium leading-relaxed">${slide.supplement.exam}</p>
+                                </div>
+
+                                <!-- 常用片語與文法 -->
+                                <div class="grid grid-cols-1 gap-2.5">
+                                    <div class="bg-white p-2.5 rounded-xl border border-slate-200/60 shadow-2xs">
+                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">常用片語</div>
+                                        <p class="text-xs text-slate-800 font-medium">${slide.supplement.phrases}</p>
+                                    </div>
+                                    <div class="bg-white p-2.5 rounded-xl border border-slate-200/60 shadow-2xs">
+                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">核心文法</div>
+                                        <p class="text-xs text-slate-800 font-medium">${slide.supplement.grammar}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                `;
+            }
+
+            // 初始化 Lucide 圖示
             lucide.createIcons();
         }
 
-        function jumpToSlide(val) {
-            changeSlide(parseInt(val, 10));
-        }
-
-        // Keyboard navigation
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight' || e.key === ' ') {
-                e.preventDefault();
-                if (currentSlide < totalSlides - 1) changeSlide(currentSlide + 1);
-            } else if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                if (currentSlide > 0) changeSlide(currentSlide - 1);
-            } else if (e.key === 'f' || e.key === 'F') {
-                e.preventDefault();
-                toggleFullscreen();
-            }
-        });
-
-        // Touch swipe support for mobile
-        let touchstartX = 0;
-        let touchendX = 0;
-        
-        const stage = document.getElementById('presentation-stage');
-        stage.addEventListener('touchstart', e => {
-            touchstartX = e.changedTouches[0].screenX;
-        }, {passive: true});
-
-        stage.addEventListener('touchend', e => {
-            touchendX = e.changedTouches[0].screenX;
-            handleSwipe();
-        }, {passive: true});
-
-        function handleSwipe() {
-            const threshold = 50;
-            if (touchendX < touchstartX - threshold) {
-                // Swipe left -> next slide
-                if (currentSlide < totalSlides - 1) changeSlide(currentSlide + 1);
-            }
-            if (touchendX > touchstartX + threshold) {
-                // Swipe right -> prev slide
-                if (currentSlide > 0) changeSlide(currentSlide - 1);
+        // --- 導航控制函式 ---
+        function nextSlide() {
+            if (currentSlideIndex < slidesData.length - 1) {
+                currentSlideIndex++;
+                renderSlide();
             }
         }
 
-        // Fullscreen API toggle
+        function prevSlide() {
+            if (currentSlideIndex > 0) {
+                currentSlideIndex--;
+                renderSlide();
+            }
+        }
+
+        function goToSlide(index) {
+            if (index >= 0 && index < slidesData.length) {
+                currentSlideIndex = index;
+                renderSlide();
+            }
+        }
+
+        // --- 縮放計算 (fitPresentationStage) ---
+        function fitPresentationStage() {
+            if (window.innerWidth < 768) return; // 手機直向不進行縮放
+            const container = document.getElementById('presentation-container');
+            const targetWidth = 1200;
+            const targetHeight = 675;
+            
+            const scaleX = window.innerWidth / targetWidth;
+            const scaleY = window.innerHeight / targetHeight;
+            let scale = Math.min(scaleX, scaleY) * 0.92; // 留點邊距
+            if (scale > 1) scale = 1;
+
+            container.style.transform = `scale(${scale})`;
+            container.style.transformOrigin = 'center center';
+        }
+
+        // --- 全螢幕切換 ---
         function toggleFullscreen() {
-            const container = document.getElementById('stage-container');
             const icon = document.getElementById('fullscreen-icon');
             if (!document.fullscreenElement) {
-                container.requestFullscreen().catch(err => {
-                    alert(`Error attempting to enable fullscreen: ${err.message}`);
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log("Error attempting to enable fullscreen:", err);
                 });
                 icon.setAttribute('data-lucide', 'minimize');
             } else {
-                document.exitFullscreen();
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
                 icon.setAttribute('data-lucide', 'maximize');
             }
             lucide.createIcons();
         }
 
-        // Initial setup
-        document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            changeSlide(0);
+        // --- 鍵盤與觸控事件監聽 ---
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevSlide();
+            } else if (e.key === 'f' || e.key === 'F') {
+                toggleFullscreen();
+            }
         });
+
+        // 觸控滑動支援 (Touch Swipe)
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, false);
+
+        document.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, false);
+
+        function handleSwipe() {
+            if (window.innerWidth >= 768) return; // 桌機模式不需要觸控滑動換頁
+            const threshold = 50;
+            if (touchEndX < touchStartX - threshold) {
+                nextSlide();
+            }
+            if (touchEndX > touchStartX + threshold) {
+                prevSlide();
+            }
+        }
+
+        window.addEventListener('resize', fitPresentationStage);
+
+        // 初始化執行
+        window.onload = () => {
+            initSlideSelect();
+            renderSlide();
+            fitPresentationStage();
+        };
     </script>
 </body>
 </html>
 """
 
-with open("vocabulary_presentation_2026_w04.html", "w", encoding="utf-8") as f:
+with open("junior_vocab_2026_w04.html", "w", encoding="utf-8") as f:
     f.write(html_content)
-
-print("HTML presentation file generated successfully.")
+print("HTML generated successfully.")

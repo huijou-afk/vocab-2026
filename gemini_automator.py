@@ -538,66 +538,11 @@ end tell
         sub_res = self._exec_applescript_js(js_submit)
         self._log(f"🚀 提示詞提交結果: {sub_res}")
 
-        # 5. 等待生成與提取 HTML
+        # 5. 等待生成與即時輪詢提取 HTML 程式碼
         start_time = time.time()
-        saw_generating = False
+        last_code_len = 0
         stable_count = 0
-        last_len = 0
 
-        while time.time() - start_time < timeout_seconds:
-            if self.is_cancelled:
-                self._log("🛑 使用者手動取消生成！")
-                return None
-
-            js_check = """
-(() => {
-    const isStopBtn = !!Array.from(document.querySelectorAll('button')).find(b => {
-        const l = (b.getAttribute('aria-label') || b.getAttribute('mattooltip') || '').toLowerCase();
-        return l.includes('stop') || l.includes('停止');
-    });
-    
-    let content = '';
-    if (window.monaco && window.monaco.editor) {
-        const models = window.monaco.editor.getModels();
-        if (models.length > 0) content = models[models.length - 1].getValue();
-    }
-    if (!content) content = document.body.innerText;
-    
-    return JSON.stringify({
-        isGenerating: isStopBtn,
-        length: content.length,
-        hasHtml: content.includes('<html') || content.includes('<!DOCTYPE html>')
-    });
-})()
-"""
-            res_json_str = self._exec_applescript_js(js_check)
-            try:
-                data = json.loads(res_json_str)
-                is_gen = data.get("isGenerating", False)
-                curr_len = data.get("length", 0)
-                has_html = data.get("hasHtml", False)
-
-                if is_gen:
-                    saw_generating = True
-                    stable_count = 0
-                    self._status(f"Gemini 生成中... ({int(time.time() - start_time)}s)", 0.7)
-                elif saw_generating:
-                    if curr_len > 1000 and curr_len == last_len:
-                        stable_count += 1
-                        if stable_count >= 3:
-                            self._log("✅ 偵測到 Gemini 已生成完成且程式碼已穩定！提取 HTML 中...")
-                            break
-                    else:
-                        last_len = curr_len
-                        stable_count = 0
-            except Exception:
-                pass
-
-            elapsed = int(time.time() - start_time)
-            self._status(f"等待 Gemini 生成回應... ({elapsed}s)", min(0.5 + (elapsed / timeout_seconds) * 0.4, 0.9))
-            time.sleep(2)
-
-        # 6. 抽取 HTML
         js_extract = """
 (() => {
     const results = [];
@@ -654,28 +599,53 @@ end tell
     return JSON.stringify(results);
 })()
 """
-        json_res = self._exec_applescript_js(js_extract)
-        candidates = []
-        try:
-            candidates = json.loads(json_res)
-        except Exception:
-            pass
 
-        for code in candidates:
-            if code and ("<html" in code.lower() or "<!doctype html>" in code.lower()):
-                if expected_keywords:
-                    low = code.lower()
-                    matched_kw = [kw for kw in expected_keywords if kw.lower() in low]
-                    if not matched_kw:
-                        self._log(f"⚠️ 候選 HTML 未包含指定關鍵字 ({expected_keywords[:3]})，跳過舊內容...")
-                        continue
+        while time.time() - start_time < timeout_seconds:
+            if self.is_cancelled:
+                self._log("🛑 使用者手動取消生成！")
+                return None
+
+            json_res = self._exec_applescript_js(js_extract, target_url=target_url)
+            candidates = []
+            try:
+                candidates = json.loads(json_res)
+            except Exception:
+                pass
+
+            matched_code = None
+            matched_kws = []
+            for code in candidates:
+                if code and ("<html" in code.lower() or "<!doctype html>" in code.lower()):
+                    if expected_keywords:
+                        low = code.lower()
+                        matched_kws = [kw for kw in expected_keywords if kw.lower() in low]
+                        if matched_kws:
+                            matched_code = self._clean_markdown_codeblock(code)
+                            break
                     else:
-                        self._log(f"✅ 關鍵單字與週次驗證通過（包含: {', '.join(matched_kw[:3])}）！")
-                self._log("🎉 成功從對話框/頁面提取最新 HTML 投影片！")
-                self._close_chrome_tab_and_focus_app()
-                return self._clean_markdown_codeblock(code)
+                        matched_code = self._clean_markdown_codeblock(code)
+                        break
 
-        self._log("⚠️ 頁面上未找到包含當前單字/週次的 HTML 代碼，放棄提取舊檔案。")
+            if matched_code:
+                curr_len = len(matched_code)
+                if curr_len > 1000 and curr_len == last_code_len:
+                    stable_count += 1
+                    if stable_count >= 2:
+                        kw_str = ", ".join(matched_kws[:3]) if matched_kws else "已相符"
+                        self._log(f"🎉 成功從您現有的 Chrome 視窗提取最新 HTML 投影片（關鍵字 [{kw_str}] 驗證通過，長度: {curr_len} 字元）！")
+                        self._close_chrome_tab_and_focus_app()
+                        return matched_code
+                else:
+                    last_code_len = curr_len
+                    stable_count = 0
+                self._status(f"Gemini 生成中... 已比對到新內容 (長度: {curr_len})", 0.75)
+            else:
+                elapsed = int(time.time() - start_time)
+                self._status(f"等待您現有的 Chrome 視窗生成回應... ({elapsed}s)", min(0.3 + (elapsed / timeout_seconds) * 0.6, 0.9))
+
+            time.sleep(2)
+
+        self._log("⚠️ 逾時未在您現有的 Chrome 視窗中擷取到符合單字/週次的 HTML 代碼。")
         return None
 
     def generate_html(self, prompt, target_url=None, headless=False, timeout_seconds=300, expected_keywords=None):
