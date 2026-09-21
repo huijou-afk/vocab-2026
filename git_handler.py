@@ -158,8 +158,8 @@ class GitHandler:
         self._log(f"推送至遠端倉庫 {remote_name} {branch}...")
         code, out, err = self._run_git(["push", "-u", remote_name, branch])
         if code != 0:
-            self._log("⚠️ 偵測到遠端有新版本提交，正在自動執行 git pull --rebase 同步...")
-            pull_code, pull_out, pull_err = self._run_git(["pull", "--rebase", remote_name, branch])
+            self._log("⚠️ 偵測到遠端有新版本提交，正在自動執行 git pull --rebase --autostash 同步...")
+            pull_code, pull_out, pull_err = self._run_git(["pull", "--rebase", "--autostash", "-Xours", remote_name, branch])
             if pull_code == 0:
                 self._log("🔄 成功同步遠端變更，重新嘗試推送...")
                 code, out, err = self._run_git(["push", "-u", remote_name, branch])
