@@ -341,25 +341,41 @@
     let selectedPreferredVoice = null;
 
     function initVoices() {
-      if (!('speechSynthesis' in window)) return;
-      availableVoices = window.speechSynthesis.getVoices();
-      
-      // 優先序：1. Google US English -> 2. Apple Ava -> 3. Apple Samantha -> 4. en-US 語音 -> 5. 任何英文語音
-      selectedPreferredVoice = 
-        availableVoices.find(v => v.name.includes("Google") && (v.name.includes("US English") || v.lang === "en-US")) ||
-        availableVoices.find(v => v.name.toLowerCase().includes("ava") && v.lang.startsWith("en")) ||
-        availableVoices.find(v => v.name.toLowerCase().includes("samantha") && v.lang.startsWith("en")) ||
-        availableVoices.find(v => v.lang === "en-US") ||
-        availableVoices.find(v => v.lang.startsWith("en")) ||
-        null;
-    }
+  if (!('speechSynthesis' in window)) return;
+  availableVoices = window.speechSynthesis.getVoices();
+  
+  if (!availableVoices || availableVoices.length === 0) return;
 
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.onvoiceschanged = () => {
-        initVoices();
-      };
-      initVoices();
-    }
+  // 1. 優先尋找 iOS 的 Samantha / Ava 高品質版本（Enhanced 或 Premium）
+  const enhancedAppleVoice = availableVoices.find(v => 
+    v.lang.startsWith("en") && 
+    (v.name.toLowerCase().includes("samantha") || v.name.toLowerCase().includes("ava")) &&
+    (v.name.toLowerCase().includes("enhanced") || v.name.toLowerCase().includes("premium"))
+  );
+
+  // 2. 尋找 Google US English
+  const googleVoice = availableVoices.find(v => 
+    v.name.includes("Google") && (v.name.includes("US English") || v.lang === "en-US")
+  );
+
+  // 3. 尋找一般 Samantha / Ava（避開 Compact 機械音）
+  const normalAppleVoice = availableVoices.find(v => 
+    v.lang.startsWith("en") && 
+    (v.name.toLowerCase().includes("samantha") || v.name.toLowerCase().includes("ava")) &&
+    !v.name.toLowerCase().includes("compact")
+  );
+
+  // 4. 次選其他 en-US 語音
+  const anyUSVoice = availableVoices.find(v => v.lang === "en-US");
+
+  // 判定最終採用的語音
+  selectedPreferredVoice = enhancedAppleVoice || googleVoice || normalAppleVoice || anyUSVoice || availableVoices[0] || null;
+
+  // 可在手機連接 Mac 或開啟除錯時確認抓到了哪一個
+  if (selectedPreferredVoice) {
+    console.log("當前使用的語音：", selectedPreferredVoice.name);
+  }
+}
 
     function applySpeechFixes(text) {
       if (!text) return "";
