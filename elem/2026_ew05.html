@@ -191,242 +191,281 @@
 
   <script>
     /* ==========================================================
-       1. 單字資料集與詳細設定
+       1. 單字資料集與詳細設定 [W05]2026/09/28~10/05
        ========================================================== */
     const WEEK_DATA = {
       title: "2026 一起背單字 (國小組)",
-      subTitle: "[W04]2026/09/21~09/28",
-      categories: ["家庭成員 Family", "方向與位置 Positions", "生活場所與建築 Places"]
+      subTitle: "[W05]2026/09/28~10/05",
+      categories: ["介系詞與位置 Prepositions", "生活隨身物 Daily Items", "交通工具與街道 Vehicles & Roads", "自然景觀 Nature"]
     };
 
     const VOCABULARY_LIST = [
       {
-        word: "grandfather",
-        meaning: "祖父（外公）",
-        pos: "n.",
-        category: "家庭成員",
-        collocation: "visit grandfather (拜訪祖父) / grandfather clock (老式擺鐘)",
-        sentence: "My grandfather loves planting vegetables in his garden.",
-        sentenceCn: "我的祖父喜歡在他的花園裡種蔬菜。",
-        icon: "fa-person-cane",
-        tip: "💡 祖父的白鬍鬚像棉花糖，總是有好多古老的故事！"
-      },
-      {
-        word: "grandpa",
-        meaning: "祖父（爺爺；外公）",
-        pos: "n.",
-        category: "家庭成員",
-        collocation: "dear grandpa (親愛的爺爺) / grandpa and grandma (爺爺奶奶)",
-        sentence: "Grandpa tells us interesting stories every evening.",
-        sentenceCn: "爺爺每天晚上都給我們講有趣的故事。",
-        icon: "fa-glasses",
-        tip: "💡 親切的爺爺笑瞇瞇，牽著小手一起散步！"
-      },
-      {
-        word: "grandmother",
-        meaning: "祖母（外婆）",
-        pos: "n.",
-        category: "家庭成員",
-        collocation: "visit grandmother (拜訪祖母) / loving grandmother (慈愛的祖母)",
-        sentence: "My grandmother makes the most delicious apple pie.",
-        sentenceCn: "我的外婆做最美味的蘋果派。",
-        icon: "fa-cookie-bite",
-        tip: "💡 外婆烤的蘋果派香噴噴，每一口都是幸福的味道！"
-      },
-      {
-        word: "grandma",
-        meaning: "祖母（奶奶；外婆）",
-        pos: "n.",
-        category: "家庭成員",
-        collocation: "dear grandma (親愛的奶奶) / grandma's cooking (奶奶煮的飯菜)",
-        sentence: "Grandma taught me how to knit a warm scarf.",
-        sentenceCn: "奶奶教我如何織一條溫暖的圍巾。",
-        icon: "fa-heart",
-        tip: "💡 奶奶手巧又溫柔，親手織的圍巾在冬天最溫暖！"
-      },
-      {
-        word: "baby",
-        meaning: "嬰兒",
-        pos: "n.",
-        category: "家庭成員",
-        collocation: "baby boy (男嬰) / take care of a baby (照顧嬰兒)",
-        sentence: "The baby fell asleep peacefully in the crib.",
-        sentenceCn: "小嬰兒在嬰兒床裡安詳地睡著了。",
-        icon: "fa-baby",
-        tip: "💡 噓～小寶貝睡著了，胖嘟嘟的臉頰像軟綿綿的布丁！"
-      },
-      {
-        word: "family",
-        meaning: "家人/家庭",
-        pos: "n.",
-        category: "家庭成員",
-        collocation: "family member (家庭成員) / family dinner (家庭聚餐)",
-        sentence: "I have a happy family with four members.",
-        sentenceCn: "我有一個四口之家的幸福家庭。",
-        icon: "fa-house-chimney-window",
-        tip: "💡 家是世界上最安全溫暖的城堡，每天都要抱抱家人！"
-      },
-      {
-        word: "out",
-        meaning: "向外",
-        pos: "adv.",
-        category: "方向與位置",
-        collocation: "go out (外出) / find out (查明；找出)",
-        sentence: "He took his wallet out of his pocket.",
-        sentenceCn: "他從口袋裡拿出錢包。",
-        icon: "fa-arrow-up-right-from-square",
-        tip: "💡 邁開腳步走出去，探索外面的大千世界！"
-      },
-      {
-        word: "outside",
-        meaning: "外面",
-        pos: "adv. / prep.",
-        category: "方向與位置",
-        collocation: "stay outside (待在戶外) / outside the box (跳脫常規)",
-        sentence: "The children are playing badminton outside the house.",
-        sentenceCn: "孩子們正在房子外面打羽毛球。",
-        icon: "fa-tree",
-        tip: "💡 陽光普照的日子，走出戶外跑步跳繩最健康！"
-      },
-      {
-        word: "under",
-        meaning: "在下面",
+        word: "on",
+        meaning: "在…上面",
         pos: "prep.",
-        category: "方向與位置",
-        collocation: "under the table (在桌子底下) / under control (在掌控中)",
-        sentence: "The cat is sleeping under the wooden table.",
-        sentenceCn: "貓咪正睡在木桌底下。",
-        icon: "fa-cat",
-        tip: "💡 躲在桌子底下躲貓貓，頑皮的小貓正呼呼大睡呢！"
+        category: "介系詞與位置",
+        collocation: "on time (準時) / put on (穿上)",
+        sentence: "The English textbook is on the teacher's desk.",
+        sentenceCn: "英文課本在老師的桌上。",
+        icon: "fa-arrow-down",
+        tip: "💡 東西平平整整放在桌面或物體上面，就是 on 喔！"
       },
       {
-        word: "in",
-        meaning: "在…裡面",
+        word: "at",
+        meaning: "在",
         pos: "prep.",
-        category: "方向與位置",
-        collocation: "in time (及時) / in the morning (在早晨)",
-        sentence: "We stayed in the classroom during the rain.",
-        sentenceCn: "下雨時我們待在教室裡面。",
-        icon: "fa-box-open",
-        tip: "💡 把鉛筆放進筆袋裡，整整齊齊裝在裡面！"
+        category: "介系詞與位置",
+        collocation: "at school (在學校) / at night (在夜間)",
+        sentence: "We will meet at the entrance of the museum at nine.",
+        sentenceCn: "我們九點在博物館門口集合。",
+        icon: "fa-location-dot",
+        tip: "💡 地圖上精準標記的小圖釘，鎖定某個特定地點！"
       },
       {
-        word: "movie theater",
-        meaning: "電影院",
+        word: "by",
+        meaning: "旁邊",
+        pos: "prep.",
+        category: "介系詞與位置",
+        collocation: "by the way (順帶一提) / stand by (支持；在旁守候)",
+        sentence: "Come and sit by the window with me.",
+        sentenceCn: "過來和我一起坐在窗邊吧。",
+        icon: "fa-people-arrows",
+        tip: "💡 好朋友肩並肩坐在旁邊，一起看著窗外風景！"
+      },
+      {
+        word: "umbrella",
+        meaning: "雨傘",
         pos: "n.",
-        category: "生活場所與建築",
-        collocation: "go to the movie theater (去電影院) / local movie theater (當地戲院)",
-        sentence: "We bought tickets at the movie theater to watch the latest animation.",
-        sentenceCn: "我們在電影院買了票去看最新的動畫電影。",
-        icon: "fa-film",
-        tip: "💡 燈光暗下來，抓一把香甜爆米花，精采電影開演囉！"
+        category: "生活隨身物",
+        collocation: "open an umbrella (撐開雨傘) / take an umbrella (帶雨傘)",
+        sentence: "Don't forget to take an umbrella with you because it might rain.",
+        sentenceCn: "別忘了帶把傘，因為可能會下雨。",
+        icon: "fa-umbrella",
+        tip: "💡 嘩啦啦下雨天，小雨傘撐開像一朵保護我們的小蘑菇！"
       },
       {
-        word: "museum",
-        meaning: "博物館",
+        word: "card",
+        meaning: "卡片",
         pos: "n.",
-        category: "生活場所與建築",
-        collocation: "visit a museum (參觀博物館) / history museum (歷史博物館)",
-        sentence: "The National Palace Museum houses thousands of precious ancient artworks.",
-        sentenceCn: "故宮博物院收藏了數千件珍貴的古代藝術品。",
-        icon: "fa-landmark",
-        tip: "💡 走進時光隧道，博物館裡有好多恐龍化石與珍奇寶藏！"
+        category: "生活隨身物",
+        collocation: "birthday card (生日卡片) / credit card (信用卡)",
+        sentence: "I sent a thank-you card to my teacher on Teacher's Day.",
+        sentenceCn: "我在教師節寄了一張感謝卡給我的老師。",
+        icon: "fa-envelope-open-text",
+        tip: "💡 親手寫下祝福字句，小小卡片承載滿滿的感恩與愛！"
       },
       {
-        word: "office",
-        meaning: "辦公室",
+        word: "bag",
+        meaning: "袋子",
         pos: "n.",
-        category: "生活場所與建築",
-        collocation: "post office (郵局) / head office (總部；總辦公室)",
-        sentence: "My father works hard at his computer in the office every day.",
-        sentenceCn: "我父親每天都在辦公室的電腦前努力工作。",
-        icon: "fa-building",
-        tip: "💡 鍵盤喀喀響，辦公室裡大人們正在認真工作！"
+        category: "生活隨身物",
+        collocation: "school bag (書包) / plastic bag (塑膠袋)",
+        sentence: "She packed her sports clothes into a canvas bag.",
+        sentenceCn: "她把運動服裝進帆布袋裡。",
+        icon: "fa-bag-shopping",
+        tip: "💡 書包和帆布袋大肚量，裝下上學的所有課本和文具！"
       },
       {
-        word: "police station",
-        meaning: "警察局",
+        word: "box",
+        meaning: "盒子",
         pos: "n.",
-        category: "生活場所與建築",
-        collocation: "near the police station (在警察局附近) / report to the police station (向警局報案)",
-        sentence: "The lost little girl was brought safely to the police station.",
-        sentenceCn: "走失的小女孩被安全送到了警察局。",
-        icon: "fa-shield-halved",
-        tip: "💡 迷路或遇到危險別慌張，警察叔叔阿姨會熱心保護你！"
+        category: "生活隨身物",
+        collocation: "lunch box (便當盒) / shoe box (鞋盒)",
+        sentence: "He put all his old toys into a large paper box.",
+        sentenceCn: "他把他所有的舊玩具放進一個大紙箱裡。",
+        icon: "fa-box",
+        tip: "💡 神奇百寶箱！把最心愛的積木和玩具整齊收納好！"
       },
       {
-        word: "post office",
-        meaning: "郵局",
+        word: "bus",
+        meaning: "公車（巴士）",
         pos: "n.",
-        category: "生活場所與建築",
-        collocation: "go to the post office (去郵局) / nearest post office (最近的郵局)",
-        sentence: "I need to go to the post office to mail a birthday gift to my cousin.",
-        sentenceCn: "我需要去郵局寄一份生日禮物給我的表哥。",
-        icon: "fa-envelope-circle-check",
-        tip: "💡 綠色的大郵筒，把親手寫的心意卡片寄到遠方！"
+        category: "交通工具與街道",
+        collocation: "bus stop (公車站) / take a bus (搭公車)",
+        sentence: "Many students take the bus to school every morning.",
+        sentenceCn: "許多學生每天早上搭公車去上學。",
+        icon: "fa-bus",
+        tip: "💡 大黃蜂一樣的校車或公車，嗶一聲刷卡排隊上車！"
       },
       {
-        word: "restaurant",
-        meaning: "餐廳",
+        word: "car",
+        meaning: "汽車",
         pos: "n.",
-        category: "生活場所與建築",
-        collocation: "Italian restaurant (義大利餐廳) / eat at a restaurant (在餐廳用餐)",
-        sentence: "We reserved a table at our favorite seafood restaurant for mom's birthday.",
-        sentenceCn: "我們為媽媽的生日在最喜歡的海鮮餐廳訂了一桌。",
-        icon: "fa-utensils",
-        tip: "💡 香噴噴的披薩與義大利麵上桌囉！用餐禮儀要牢記喔！"
+        category: "交通工具與街道",
+        collocation: "drive a car (開車) / sports car (跑車)",
+        sentence: "My father washed his car in front of the house.",
+        sentenceCn: "我父親在房子前洗他的汽車。",
+        icon: "fa-car",
+        tip: "💡 繫好安全帶，全家人開著汽車快樂出門旅遊囉！"
       },
       {
-        word: "school",
-        meaning: "學校",
+        word: "bike",
+        meaning: "單車",
         pos: "n.",
-        category: "生活場所與建築",
-        collocation: "go to school (去上學) / after school (放學後)",
-        sentence: "Students walk happily into the school gate every morning.",
-        sentenceCn: "學生們每天早晨開心地走進校門。",
-        icon: "fa-school",
-        tip: "💡 背起書包上學去，和好朋友一起學習、一起快樂玩耍！"
+        category: "交通工具與街道",
+        collocation: "ride a bike (騎單車) / rent a bike (租腳踏車)",
+        sentence: "We often ride our bikes around the lake on weekends.",
+        sentenceCn: "我們週末常在湖邊騎腳踏車。",
+        icon: "fa-bicycle",
+        tip: "💡 踩著腳踏板迎著微風，戴上安全帽當個追風小騎士！"
       },
       {
-        word: "shop",
+        word: "store",
         meaning: "商店",
-        pos: "n.",
-        category: "生活場所與建築",
-        collocation: "gift shop (禮品店) / open a shop (開一家店)",
-        sentence: "She bought a lovely postcard from the souvenir shop.",
-        sentenceCn: "她從紀念品商店買了一張可愛的明信片。",
-        icon: "fa-store",
-        tip: "💡 貨架上有好多文具和美味小零食，我是聰明的小顧客！"
-      },
-      {
-        word: "station",
-        meaning: "車站",
-        pos: "n.",
-        category: "生活場所與建築",
-        collocation: "train station (火車站) / gas station (加油站)",
-        sentence: "We will meet our teacher at the station entrance at eight o'clock.",
-        sentenceCn: "我們八點整在車站門口和老師會合。",
-        icon: "fa-train",
-        tip: "💡 火車嘟嘟開動了！準時在車站集合出發去冒險！"
-      },
-      {
-        word: "stop",
-        meaning: "公車站牌；停止",
         pos: "n. | v.",
-        category: "生活場所與建築",
-        collocation: "bus stop (公車站牌) / full stop (句號；完全停止)",
-        sentence: "Please stop talking and pay attention to what the teacher is explaining.",
-        sentenceCn: "請停止講話，專心聽老師的講解。",
-        icon: "fa-hand",
-        tip: "💡 紅燈停、綠燈行！在公車站牌要有禮貌排隊上車喔！"
+        category: "交通工具與街道",
+        collocation: "department store (百貨公司) / store food (儲存食物)",
+        sentence: "The convenience store is open 24 hours every day.",
+        sentenceCn: "這家便利商店每天二十四小時營業。",
+        icon: "fa-shop",
+        tip: "💡 貨架上擺滿糖果與飲料，明亮的便利商店隨時都在！"
+      },
+      {
+        word: "street",
+        meaning: "街道",
+        pos: "n.",
+        category: "交通工具與街道",
+        collocation: "cross the street (過馬路) / on the street (在街上)",
+        sentence: "Always look left and right before you cross the busy street.",
+        sentenceCn: "過繁忙的街道前務必先看左邊和右邊。",
+        icon: "fa-road",
+        tip: "💡 過馬路先走斑馬線，左看右看再快步通過最安全！"
+      },
+      {
+        word: "supermarket",
+        meaning: "超商",
+        pos: "n.",
+        category: "交通工具與街道",
+        collocation: "local supermarket (當地超商) / buy groceries at the supermarket (在超商買雜貨)",
+        sentence: "Mom went to the nearby supermarket to buy fresh vegetables and milk.",
+        sentenceCn: "媽媽去附近的超商買新鮮蔬菜和牛奶。",
+        icon: "fa-cart-shopping",
+        tip: "💡 推著推車逛超市，蔬菜水果牛奶通通挑最新鮮的！"
+      },
+      {
+        word: "lake",
+        meaning: "湖",
+        pos: "n.",
+        category: "自然景觀",
+        collocation: "Sun Moon Lake (日月潭) / lake view (湖景)",
+        sentence: "We enjoyed a peaceful boat ride on the calm lake.",
+        sentenceCn: "我們在平靜的湖面上享受了一趟寧靜的划船之旅。",
+        icon: "fa-water",
+        tip: "💡 平靜的湖面像一面大鏡子，映出周圍的青山與白雲！"
+      },
+      {
+        word: "moon",
+        meaning: "月亮",
+        pos: "n.",
+        category: "自然景觀",
+        collocation: "full moon (滿月) / moonlight (月光)",
+        sentence: "The full moon was shining brightly in the clear night sky.",
+        sentenceCn: "滿月在晴朗的夜空中明亮地照耀著。",
+        icon: "fa-moon",
+        tip: "💡 月兒圓圓像金黃月餅，照亮夜空陪伴大家進入夢鄉！"
+      },
+      {
+        word: "mountain",
+        meaning: "山",
+        pos: "n.",
+        category: "自然景觀",
+        collocation: "climb a mountain (爬山) / mountain peak (山頂)",
+        sentence: "Many hikers love to climb Jade Mountain during the autumn holidays.",
+        sentenceCn: "許多登山客喜歡在秋季連假去攀登玉山。",
+        icon: "fa-mountain",
+        tip: "💡 高聳雄偉的玉山，一步一腳印登上最高峰眺望雲海！"
+      },
+      {
+        word: "rain",
+        meaning: "雨水、下雨",
+        pos: "n. | v.",
+        category: "自然景觀",
+        collocation: "heavy rain (大雨) / rain heavily (下大雨)",
+        sentence: "It started to rain heavily, so we ran into a store for shelter.",
+        sentenceCn: "天開始下大雨，所以我們跑進一家店裡避雨。",
+        icon: "fa-cloud-showers-heavy",
+        tip: "💡 淅瀝淅瀝雨聲響，雨滴滋潤了大地與小草花朵！"
+      },
+      {
+        word: "rainbow",
+        meaning: "彩虹",
+        pos: "n.",
+        category: "自然景觀",
+        collocation: "see a rainbow (看見彩虹) / rainbow in the sky (天上的彩虹)",
+        sentence: "A beautiful rainbow appeared across the sky after the afternoon thunderstorm.",
+        sentenceCn: "午後雷陣雨過後，一道美麗的彩虹出現在天空中。",
+        icon: "fa-rainbow",
+        tip: "💡 紅橙黃綠藍靛紫，雷陣雨過後天邊掛著一道美麗彩虹橋！"
+      },
+      {
+        word: "river",
+        meaning: "河",
+        pos: "n.",
+        category: "自然景觀",
+        collocation: "river bank (河岸) / cross the river (過河)",
+        sentence: "We enjoyed riding bicycles along the scenic river bank.",
+        sentenceCn: "我們享受沿著風景優美的河岸騎單車。",
+        icon: "fa-sailboat",
+        tip: "💡 潺潺河水奔向大海，河濱自行車道騎腳踏車真舒服！"
+      },
+      {
+        word: "sky",
+        meaning: "天空",
+        pos: "n.",
+        category: "自然景觀",
+        collocation: "blue sky (藍天) / night sky (夜空)",
+        sentence: "There was not a single cloud in the bright blue sky.",
+        sentenceCn: "晴朗的藍天上一朵雲也沒有。",
+        icon: "fa-cloud",
+        tip: "💡 蔚藍廣闊的大天空，小鳥自由自在翱翔！"
       }
     ];
 
     /* ==========================================================
-       2. Google 翻譯 TTS 語音發音與音訊快取實作 (嚴禁 speechSynthesis)
+       2. Web Speech API & iOS 高品質語音優先篩選
        ========================================================== */
-    const audioCache = {};
-    let currentAudio = null;
+    let availableVoices = [];
+    let selectedPreferredVoice = null;
+
+    function initVoices() {
+      if (!('speechSynthesis' in window)) return;
+      availableVoices = window.speechSynthesis.getVoices();
+      if (!availableVoices || availableVoices.length === 0) return;
+
+      // 1. 優先尋找 iOS 的 Samantha / Ava 高品質版本（Enhanced 或 Premium）
+      const enhancedAppleVoice = availableVoices.find(v => 
+        v.lang.startsWith("en") && 
+        (v.name.toLowerCase().includes("samantha") || v.name.toLowerCase().includes("ava")) &&
+        (v.name.toLowerCase().includes("enhanced") || v.name.toLowerCase().includes("premium"))
+      );
+
+      // 2. 尋找 Google US English
+      const googleVoice = availableVoices.find(v => 
+        v.name.includes("Google") && (v.name.includes("US English") || v.lang === "en-US")
+      );
+
+      // 3. 尋找一般 Samantha / Ava（避開 Compact 機械音）
+      const normalAppleVoice = availableVoices.find(v => 
+        v.lang.startsWith("en") && 
+        (v.name.toLowerCase().includes("samantha") || v.name.toLowerCase().includes("ava")) &&
+        !v.name.toLowerCase().includes("compact")
+      );
+
+      // 4. 次選其他 en-US 語音
+      const anyUSVoice = availableVoices.find(v => v.lang === "en-US");
+
+      // 判定最終採用的語音
+      selectedPreferredVoice = enhancedAppleVoice || googleVoice || normalAppleVoice || anyUSVoice || availableVoices[0] || null;
+      if (selectedPreferredVoice) {
+        console.log("當前使用的語音：", selectedPreferredVoice.name);
+      }
+    }
+
+    if ('speechSynthesis' in window) {
+      initVoices();
+      window.speechSynthesis.onvoiceschanged = initVoices;
+    }
 
     // 發音校正映射表
     const SPEECH_FIXES = {
@@ -449,27 +488,22 @@
     }
 
     function speakText(text) {
-      if (!text) return;
+      if (!('speechSynthesis' in window) || !text) return;
+      window.speechSynthesis.cancel(); // 停止目前未說完的語音
+
       const cleanText = applySpeechFixes(text);
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.92;
 
-      // 若有正在播放的音訊，先停止
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.currentTime = 0;
+      if (!selectedPreferredVoice) {
+        initVoices();
+      }
+      if (selectedPreferredVoice) {
+        utterance.voice = selectedPreferredVoice;
       }
 
-      const url = "https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=" + encodeURIComponent(cleanText);
-
-      // 快取音訊物件
-      if (!audioCache[url]) {
-        audioCache[url] = new Audio(url);
-      }
-
-      currentAudio = audioCache[url];
-      currentAudio.currentTime = 0;
-      currentAudio.play().catch(e => {
-        console.warn("TTS 音訊播放受瀏覽器限制或網路異常：", e);
-      });
+      window.speechSynthesis.speak(utterance);
     }
 
     /* ==========================================================
@@ -810,6 +844,7 @@
       populateJumpSelect();
       fitPresentationStage();
       render();
+      initVoices();
     });
   </script>
 </body>
