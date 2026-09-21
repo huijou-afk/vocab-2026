@@ -423,7 +423,7 @@
     ];
 
     /* 發音校正映射字典 */
-    const PRONUNCIATION_MAP = {
+    const speechCorrections = {
       "I": "eye",
       "Mr.": "Mister",
       "Mrs.": "Missus",
@@ -432,16 +432,65 @@
       "St.": "Saint",
       "MRT": "M R T",
       "in": "in",
-      "out": "out"
+      "out": "out",
+      "adj.": "adjective",
+      "adv.": "adverb",
+      "pron.": "pronoun",
+      "n.": "noun",
+      "v.": "verb"
     };
 
     /* ==========================================================
-       2. 狀態管理
+       2. 狀態管理與 Web Speech API 語音優先設定
        ========================================================== */
     let currentIndex = 0; // 0 為封面, 1~20 為單字卡
     const totalCards = VOCABULARY_LIST.length; // 20
     const totalPages = totalCards + 1; // 21 頁 (0 ~ 20)
     let autoSpeak = true;
+
+    // Web Speech API 語音清單與優先人選快取
+    let availableVoices = [];
+    let selectedPreferredVoice = null;
+
+    function initVoices() {
+      if (!('speechSynthesis' in window)) return;
+      availableVoices = window.speechSynthesis.getVoices();
+      if (!availableVoices || availableVoices.length === 0) return;
+
+      // 1. 嚴格優先鎖定：iOS / macOS 的 Ava 或 Samantha「增強版 (Enhanced)」或「特級版 (Premium)」
+      const enhancedAppleVoice = availableVoices.find(v => 
+        v.lang.startsWith("en") && 
+        (v.name.toLowerCase().includes("ava") || v.name.toLowerCase().includes("samantha")) &&
+        (v.name.toLowerCase().includes("enhanced") || v.name.toLowerCase().includes("premium"))
+      );
+
+      // 2. 次選：Chrome / Android 的 Google US English
+      const googleVoice = availableVoices.find(v => 
+        v.name.includes("Google") && (v.name.includes("US English") || v.lang === "en-US")
+      );
+
+      // 3. 次選：一般 Ava 或 Samantha（過濾掉 compact 精簡機械音）
+      const normalAppleVoice = availableVoices.find(v => 
+        v.lang.startsWith("en") && 
+        (v.name.toLowerCase().includes("ava") || v.name.toLowerCase().includes("samantha")) &&
+        !v.name.toLowerCase().includes("compact")
+      );
+
+      // 4. 次選：其他 en-US 語音
+      const anyUSVoice = availableVoices.find(v => v.lang === "en-US");
+
+      // 5. 備援：任何英文語音
+      const anyEnVoice = availableVoices.find(v => v.lang.startsWith("en"));
+
+      selectedPreferredVoice = enhancedAppleVoice || googleVoice || normalAppleVoice || anyUSVoice || anyEnVoice || availableVoices[0] || null;
+    }
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        initVoices();
+      };
+      initVoices();
+    }
 
     /* DOM 元素參照 */
     const stage = document.getElementById('presentation-stage');
@@ -477,7 +526,7 @@
 
       const scaleX = (windowWidth * 0.96) / baseWidth;
       const scaleY = (availableHeight * 0.94) / baseHeight;
-      const scale = Math.min(scaleX, scaleY, 1.25); // 上限 1.25 倍避免字體模糊
+      const scale = Math.min(scaleX, scaleY, 1.25);
 
       stage.style.transform = `scale(${scale})`;
     }
@@ -485,26 +534,51 @@
     window.addEventListener('resize', fitPresentationStage);
 
     /* ==========================================================
-       4. 語音朗讀合成 (SpeechSynthesis)
+       4. 語音朗讀合成 (Web Speech API 播放核心)
        ========================================================== */
     function speakText(text) {
-      if (!('speechSynthesis' in window)) return;
-      window.speechSynthesis.cancel(); // 停止目前朗讀
+      return new Promise((resolve) => {
+        if (!('speechSynthesis' in window)) {
+          console.warn("此瀏覽器不支援 Web Speech API");
+          resolve();
+          return;
+        }
 
-      const cleanText = text.trim();
-      const speakTarget = PRONUNCIATION_MAP[cleanText] || cleanText;
-      const utterance = new SpeechSynthesisUtterance(speakTarget);
-      
-      utterance.lang = 'en-US';
-      utterance.rate = 0.85; // 專為國小學童設計的清晰適中語速
-      utterance.pitch = 1.05; // 稍微輕快活潑的音調
+        let cleanText = text.trim();
+        if (speechCorrections[cleanText]) {
+          cleanText = speechCorrections[cleanText];
+        }
 
-      // 嘗試挑選優質英文語音
-      const voices = window.speechSynthesis.getVoices();
-      const enVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha')));
-      if (enVoice) utterance.voice = enVoice;
+        if (!cleanText) {
+          resolve();
+          return;
+        }
 
-      window.speechSynthesis.speak(utterance);
+        // 停止先前尚未朗讀完的語音
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.92; // 稍慢語速，適合國小發音與例句聆聽
+        utterance.pitch = 1.0;
+
+        // 若尚未抓到語音清單，重新初始化一次
+        if (!selectedPreferredVoice && availableVoices.length === 0) {
+          initVoices();
+        }
+
+        if (selectedPreferredVoice) {
+          utterance.voice = selectedPreferredVoice;
+        }
+
+        utterance.onend = () => { resolve(); };
+        utterance.onerror = (e) => {
+          // 忽略 cancel() 導致的中斷
+          resolve();
+        };
+
+        window.speechSynthesis.speak(utterance);
+      });
     }
 
     /* ==========================================================
@@ -796,11 +870,6 @@
       populateJumpSelect();
       fitPresentationStage();
       render();
-      
-      // 預加載語音列表避免第一次朗讀延遲
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.getVoices();
-      }
     });
   </script>
 </body>
