@@ -328,10 +328,6 @@
     const totalSlides = rawWords.length + 1; // +1 for Cover
     let autoSpeechEnabled = true;
 
-    // Google Translate TTS Audio Cache & Active Player
-    const audioCache = {};
-    let currentAudioPlayer = null;
-
     // DOM Elements
     const slidesContainer = document.getElementById('slides-container');
     const slideSelector = document.getElementById('slide-selector');
@@ -339,6 +335,31 @@
     const progressBarFill = document.getElementById('progress-bar-fill');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
+
+    // 語音載入快取
+    let availableVoices = [];
+    let selectedPreferredVoice = null;
+
+    function initVoices() {
+      if (!('speechSynthesis' in window)) return;
+      availableVoices = window.speechSynthesis.getVoices();
+      
+      // 優先序：1. Google US English -> 2. Apple Ava -> 3. Apple Samantha -> 4. en-US 語音 -> 5. 任何英文語音
+      selectedPreferredVoice = 
+        availableVoices.find(v => v.name.includes("Google") && (v.name.includes("US English") || v.lang === "en-US")) ||
+        availableVoices.find(v => v.name.toLowerCase().includes("ava") && v.lang.startsWith("en")) ||
+        availableVoices.find(v => v.name.toLowerCase().includes("samantha") && v.lang.startsWith("en")) ||
+        availableVoices.find(v => v.lang === "en-US") ||
+        availableVoices.find(v => v.lang.startsWith("en")) ||
+        null;
+    }
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        initVoices();
+      };
+      initVoices();
+    }
 
     function applySpeechFixes(text) {
       if (!text) return "";
@@ -350,54 +371,65 @@
       return processed;
     }
 
-    // Google Translate TTS via HTML Audio with Promise & Caching
-    function playGoogleTTS(text) {
+    // Web Speech API 播放核心
+    function playWebSpeech(text) {
       return new Promise((resolve) => {
+        if (!('speechSynthesis' in window)) {
+          console.warn("此瀏覽器不支援 Web Speech API");
+          resolve();
+          return;
+        }
+
         const cleanText = applySpeechFixes(text).trim();
         if (!cleanText) {
           resolve();
           return;
         }
 
-        if (currentAudioPlayer) {
-          currentAudioPlayer.pause();
-          currentAudioPlayer.currentTime = 0;
+        // 停止先前尚未朗讀完的語音
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.92; // 稍慢語速，便於教學與發音聆聽
+        utterance.pitch = 1.0;
+
+        // 若尚未初始化語音，重新嘗試抓取一次
+        if (!selectedPreferredVoice && availableVoices.length === 0) {
+          initVoices();
         }
 
-        const url = "https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=" + encodeURIComponent(cleanText);
-
-        let audio = audioCache[cleanText];
-        if (!audio) {
-          audio = new Audio(url);
-          audioCache[cleanText] = audio;
+        if (selectedPreferredVoice) {
+          utterance.voice = selectedPreferredVoice;
         }
 
-        currentAudioPlayer = audio;
-        audio.currentTime = 0;
+        utterance.onend = () => { resolve(); };
+        utterance.onerror = (e) => {
+          // 忽略 cancel() 導致的中斷錯誤
+          resolve();
+        };
 
-        audio.onended = () => { resolve(); };
-        audio.onerror = () => { resolve(); };
-        audio.play().catch(() => { resolve(); });
+        window.speechSynthesis.speak(utterance);
       });
     }
 
     function speakText(text) {
-      playGoogleTTS(text);
+      playWebSpeech(text);
     }
 
     function speakSentence(sentence) {
-      playGoogleTTS(sentence);
+      playWebSpeech(sentence);
     }
 
     async function playWordAndSentenceSequence(word, sentence) {
-      await playGoogleTTS(word);
+      await playWebSpeech(word);
       await new Promise(r => setTimeout(r, 450));
-      await playGoogleTTS(sentence);
+      await playWebSpeech(sentence);
     }
 
     function speakCurrentWord() {
       if (currentSlideIndex === 0) {
-        playGoogleTTS("Welcome to English vocabulary practice!");
+        playWebSpeech("Welcome to English vocabulary practice!");
         return;
       }
       const currentSlide = document.querySelectorAll('.slide-view')[currentSlideIndex];
@@ -461,7 +493,7 @@
                     <span class="text-sky-600 font-medium text-sm sm:text-base md:text-[22px] ml-1 bg-sky-200/60 px-2.5 py-0.5 rounded-md">${item.pos}</span>
                   </div>
                 </div>
-                <button onclick="speakText('${item.word}')" class="p-2 md:p-3 bg-orange-500 hover:bg-orange-600 active:scale-95 text-white rounded-2xl shadow-md transition-transform flex items-center justify-center shrink-0" title="朗讀單字 (Google TTS)">
+                <button onclick="speakText('${item.word}')" class="p-2 md:p-3 bg-orange-500 hover:bg-orange-600 active:scale-95 text-white rounded-2xl shadow-md transition-transform flex items-center justify-center shrink-0" title="朗讀單字 (Web Speech API)">
                   <i data-lucide="volume-2" class="w-5 h-5 md:w-7 md:h-7"></i>
                 </button>
               </div>
