@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 一起背單字 (國中組) - [W05] 2026/09/28 (一)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Fredoka & Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --primary-blue: #0369a1;
+      --accent-orange: #ea580c;
+      --stage-width: 1200px;
+      --stage-height: 675px;
+    }
+
+    body {
+      font-family: 'Fredoka', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #0f172a;
+      color: #1e293b;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #viewport-wrapper {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    #presentation-stage {
+      position: relative;
+      width: var(--stage-width);
+      height: var(--stage-height);
+      transform-origin: center center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+      border-radius: 28px;
+      background-color: #ffffff;
+      overflow: hidden;
+      flex-shrink: 0;
+      transition: transform 0.15s ease-out;
+    }
+
+    .slide-view {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      transform: scale(0.985);
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .slide-view.active {
+      opacity: 1;
+      visibility: visible;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    .card-shadow {
+      box-shadow: 0 8px 24px -4px rgba(3, 105, 161, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+    }
+
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 10px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #93c5fd;
+      border-radius: 10px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #0284c7;
+    }
+
+    /* RWD Mobile Portrait (< 768px) */
+    @media (max-width: 767px) {
+      body {
+        overflow: auto;
+      }
+      #viewport-wrapper {
+        align-items: stretch;
+        height: 100vh;
+        height: 100dvh;
+      }
+      #presentation-stage {
+        width: 100% !important;
+        height: 100% !important;
+        transform: none !important;
+        border-radius: 0 !important;
+        border-width: 0 !important;
+        box-shadow: none !important;
+      }
+      .slide-view {
+        position: relative;
+        height: 100%;
+        overflow-y: auto;
+        padding: 1rem !important;
+        -webkit-overflow-scrolling: touch;
+      }
+      .slide-view:not(.active) {
+        display: none !important;
+      }
+      .mobile-deck-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1rem !important;
+        height: auto !important;
+      }
+      .mobile-card-fix {
+        width: 100% !important;
+        height: auto !important;
+        min-height: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="viewport-wrapper">
+    <main id="presentation-stage" class="relative flex flex-col justify-between bg-gradient-to-br from-sky-50 via-white to-blue-50 border-4 border-sky-200">
+      
+      <!-- Slide Content Area (No Header) -->
+      <div id="slides-container" class="relative flex-1 w-full h-full overflow-hidden">
+        
+        <!-- COVER SLIDE (Strictly 3 Elements: Title, Date, Category Tags) -->
+        <section class="slide-view active p-6 md:p-10 flex flex-col items-center justify-center text-center relative" data-title="封面 (Cover)">
+          <div class="max-w-3xl flex flex-col items-center justify-center my-auto">
+            
+            <!-- 1. Big Main Title -->
+            <h2 class="text-4xl sm:text-5xl md:text-6xl font-black text-sky-900 tracking-wide mb-6 md:mb-8 drop-shadow-sm font-['Fredoka']">
+              2026 一起背單字 <span class="text-orange-600">(國中組)</span>
+            </h2>
+
+            <!-- 2. Date -->
+            <div class="text-lg sm:text-xl md:text-2xl font-bold text-slate-700 bg-white/95 px-6 md:px-8 py-2.5 md:py-3.5 rounded-2xl border-2 border-sky-200 shadow-sm mb-6 md:mb-8">
+              📅 [W05] 2026/09/28 (一)
+            </div>
+
+            <!-- 3. Category Tags -->
+            <div class="flex flex-wrap justify-center gap-3 md:gap-3.5 max-w-xl">
+              <span class="px-4 md:px-5 py-2 md:py-2.5 rounded-xl bg-amber-50 text-amber-700 text-base md:text-xl font-bold border border-amber-200 shadow-sm">
+                🏷️ 服飾與隨身配件 (2字)
+              </span>
+              <span class="px-4 md:px-5 py-2 md:py-2.5 rounded-xl bg-indigo-50 text-indigo-700 text-base md:text-xl font-bold border border-indigo-200 shadow-sm">
+                🏷️ 數量詞與情緒特質 (3字)
+              </span>
+              <span class="px-4 md:px-5 py-2 md:py-2.5 rounded-xl bg-teal-50 text-teal-700 text-base md:text-xl font-bold border border-teal-200 shadow-sm">
+                🏷️ 自然景觀與生態 (3字)
+              </span>
+              <span class="px-4 md:px-5 py-2 md:py-2.5 rounded-xl bg-rose-50 text-rose-700 text-base md:text-xl font-bold border border-rose-200 shadow-sm">
+                🏷️ 郵務通訊與金融 (2字)
+              </span>
+            </div>
+
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Bottom Control Bar (Compact & Anti-Break Design) -->
+      <footer class="w-full px-3 md:px-8 py-2 md:py-3 bg-white/95 border-t border-sky-100 flex flex-col gap-1.5 md:gap-2 z-20 shrink-0">
+        <!-- Progress Bar -->
+        <div class="w-full bg-slate-100 h-1.5 md:h-2 rounded-full overflow-hidden border border-slate-200">
+          <div id="progress-bar-fill" class="bg-gradient-to-r from-sky-500 to-orange-400 h-full w-0 transition-all duration-300"></div>
+        </div>
+
+        <div class="flex items-center justify-between gap-1 sm:gap-2">
+          <!-- Left: Prev & Pronounce Button -->
+          <div class="flex items-center gap-1 sm:gap-2">
+            <button id="prev-btn" onclick="prevSlide()" class="flex items-center gap-1 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-sky-100 hover:bg-sky-200 active:bg-sky-300 text-sky-900 font-bold text-xs sm:text-sm transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed">
+              <i data-lucide="chevron-left" class="w-4 h-4"></i>
+              <span class="hidden sm:inline">上一頁</span>
+            </button>
+            <button id="read-current-btn" onclick="speakCurrentWord()" class="flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-orange-100 hover:bg-orange-200 active:bg-orange-300 text-orange-900 font-bold text-xs sm:text-sm transition shadow-sm" title="朗讀此頁單字與例句">
+              <i data-lucide="volume-2" class="w-4 h-4 text-orange-600"></i>
+              <span class="hidden sm:inline">朗讀</span>
+            </button>
+          </div>
+
+          <!-- Middle: Direct Jump Dropdown & Counter -->
+          <div class="flex items-center gap-1.5 sm:gap-3">
+            <span id="slide-indicator" class="text-xs sm:text-sm font-bold text-slate-600 shrink-0">1 / 10</span>
+            <div class="relative">
+              <select id="slide-selector" onchange="goToSlide(parseInt(this.value))" class="appearance-none bg-slate-50 border border-slate-300 hover:border-sky-400 text-slate-700 text-xs sm:text-xs font-bold rounded-lg pl-2 sm:pl-3 pr-6 sm:pr-8 py-1 sm:py-1.5 focus:outline-none focus:ring-2 focus:ring-sky-500 max-w-[130px] sm:max-w-[220px] truncate">
+              </select>
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-500 absolute right-1.5 sm:right-2.5 top-2 sm:top-2 pointer-events-none"></i>
+            </div>
+          </div>
+
+          <!-- Right: Next Button & Fullscreen Button -->
+          <div class="flex items-center gap-1 sm:gap-2">
+            <button id="next-btn" onclick="nextSlide()" class="flex items-center gap-1 px-3 sm:px-5 py-1.5 sm:py-2 rounded-xl bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white font-bold text-xs sm:text-sm transition shadow-md disabled:opacity-40 disabled:cursor-not-allowed">
+              <span>下一頁</span>
+              <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+            <button id="fullscreen-btn" onclick="toggleFullScreen()" class="p-1.5 sm:p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition shadow-sm" title="全螢幕切換 (快速鍵: F)">
+              <i id="fullscreen-icon" data-lucide="maximize" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <script>
+    // 1. Vocabulary Dataset for [W05] 2026/09/28 (一)
+    const rawWords = [
+      { week: 5, day: 1, word: "cap", zh: "鴨舌帽；便帽", pos: "n.", category: "服飾與隨身配件", collocations: "baseball cap (棒球帽) / wear a cap (戴鴨舌帽)", sentence: "He wore a black cap to protect his eyes from the sun.", sentenceZh: "他戴了一頂黑色鴨舌帽來遮陽。" },
+      { week: 5, day: 1, word: "some", zh: "一些；若干", pos: "det. | pron.", category: "數量詞與情緒特質", collocations: "some of (其中一些) / some money (一些錢)", sentence: "Some students are playing basketball on the playground.", sentenceZh: "有些學生正在操場上打籃球。" },
+      { week: 5, day: 1, word: "no", zh: "沒有；絕不", pos: "det. | adv.", category: "數量詞與情緒特質", collocations: "no problem (沒問題) / no idea (不知道)", sentence: "There is no doubt that practice makes perfect.", sentenceZh: "毫無疑問，熟能生巧。" },
+      { week: 5, day: 1, word: "sad", zh: "悲傷的；令人難過的", pos: "adj.", category: "數量詞與情緒特質", collocations: "feel sad (感到悲傷) / sad news (令人難過的消息)", sentence: "She felt sad when she heard about the bad news.", sentenceZh: "當她聽到那個壞消息時感到很難過。" },
+      { week: 5, day: 1, word: "pond", zh: "池塘", pos: "n.", category: "自然景觀與生態", collocations: "fish pond (魚塘) / lotus pond (蓮花池)", sentence: "Several lovely ducks are swimming in the small pond.", sentenceZh: "幾隻可愛的鴨子在小池塘裡游泳。" },
+      { week: 5, day: 1, word: "rock", zh: "岩石；搖滾樂", pos: "n. | v. 搖動", category: "自然景觀與生態", collocations: "hard rock (堅硬的岩石) / rock music (搖滾樂)", sentence: "We climbed over the large rock by the seashore.", sentenceZh: "我們爬過了海邊的大岩石。" },
+      { week: 5, day: 1, word: "rose", zh: "玫瑰花", pos: "n.", category: "自然景觀與生態", collocations: "red rose (紅玫瑰) / rose garden (玫瑰花園)", sentence: "He gave his mother a red rose on Mother's Day.", sentenceZh: "他在母親節送給媽媽一朵紅玫瑰。" },
+      { week: 5, day: 1, word: "jeans", zh: "牛仔褲", pos: "n. (恆用複數)", category: "服飾與隨身配件", collocations: "blue jeans (藍色牛仔褲) / a pair of jeans (一條牛仔褲)", sentence: "She likes wearing a pair of comfortable blue jeans on weekends.", sentenceZh: "她週末喜歡穿一條舒適的藍色牛仔褲。" },
+      { week: 5, day: 1, word: "credit card", zh: "信用卡", pos: "n. phr.", category: "郵務通訊與金融", collocations: "pay by credit card (用信用卡付款) / credit card number (信用卡卡號)", sentence: "Can I pay for this meal by credit card?", sentenceZh: "這餐我可以用信用卡付款嗎？" },
+      { week: 5, day: 1, word: "envelope", zh: "信封", pos: "n.", category: "郵務通訊與金融", collocations: "open the envelope (打開信封) / white envelope (白色信封)", sentence: "He put the handwritten letter into a clean envelope.", sentenceZh: "他把親筆信裝進一個乾淨的信封裡。" }
+    ];
+
+    // 2. Supplementary Focus Data (嚴格聚焦目標單字本體的國中會考資料庫)
+    const supplementaryData = {
+      "cap": {
+        forms: "可數名詞複數：caps；搭配動詞：wear a cap (戴帽子), put on a cap (戴上帽子), take off a cap (脫下帽子)",
+        grammar: "指前方有帽簷的鴨舌帽、無邊便帽或瓶蓋；與 hat (四周有帽簷的圓邊帽) 形成區別；作動詞表「蓋住/限制上限」。",
+        phrases: "baseball cap (棒球帽) / swimming cap (泳帽) / shower cap (浴帽) / bottle cap (瓶蓋)",
+        examPoint: "【會考帽子類別與動詞片語考點】：1. cap (前簷便帽/棒球帽) vs. hat (周圍有邊緣的帽子)；2. 動詞片語受詞為代名詞時必須置於中間：put it on (O) / take it off (O)。"
+      },
+      "some": {
+        forms: "不定代名詞/限定詞；對應詞：any (常用於否定與一般疑問句)；複合詞：someone, somebody, something",
+        grammar: "修飾「可數名詞複數」(some apples) 或「不可數名詞」(some water)；通常用於肯定句；在表示「客氣邀請、請求或期望得到肯定回答」的疑問句中亦可用 some (Would you like some tea?)。",
+        phrases: "some of + 特定名詞 (其中一些) / some..., others... (一些…，另一些…) / for some reason (不知何故)",
+        examPoint: "【會考主謂一致與句型必考鐵律】：1. some of 後面接名詞決定動詞單複數：Some of the water is clean. vs. Some of the students are tall.；2. 經典對比句型：Some... and others...。"
+      },
+      "no": {
+        forms: "否定限定詞 (no = not any / not a)；副詞 no (回答否定)；名詞複數 noes (反對票)",
+        grammar: "no 直接修飾名詞 (no money / no students)；不可寫成 no a 或 no any；句型代換：I have no time. = I do not have any time.",
+        phrases: "no problem (沒問題) / no idea (毫無頭緒) / no way (絕不可能/沒門) / there is no doubt (毫無疑問) / no longer (不再)",
+        examPoint: "【會考否定句代換公式】：1. no + 名詞 = not any + 名詞（如 I have no cars. = I don't have any cars.）；2. 標誌警示常見祈使結構：No parking! (禁止停車) / No smoking! (禁止吸菸)。"
+      },
+      "sad": {
+        forms: "比較級 sadder ➔ 最高級 saddest (單母音+單子音，重複字尾 d 加 er/est)；副詞 sadly (悲傷地)；名詞 sadness (悲傷，不可數)",
+        grammar: "形容詞指「心情悲傷的」或「令人遺憾難過的」；常搭配連綴動詞 feel / look / sound sad (感到/看起來/聽起來很悲傷)。",
+        phrases: "feel sad (感到悲傷) / sad news (令人難過的消息) / be sad about/at... (對…感到難過) / in sadness (在悲痛中)",
+        examPoint: "【會考重複字尾與連綴動詞】：1. 比較級重複字尾：sad ➔ sadder ➔ saddest；2. 連綴動詞後接形容詞：He looks sad today.（不可誤用副詞 sadly 修飾連綴動詞）。"
+      },
+      "pond": {
+        forms: "可數名詞複數：ponds；近義辨析：pool (水池/游泳池), lake (天然大型湖泊), ocean (海洋)",
+        grammar: "可數名詞，指比 lake (湖泊) 小的池塘（多為人造或小水域）；在池塘裡游泳或生活搭配介系詞 in (swim in the pond)。",
+        phrases: "fish pond (魚池) / lotus pond (蓮花池) / duck pond (鴨塘) / a big fish in a small pond (井底之蛙/小池塘裡的大魚)",
+        examPoint: "【會考水域單字規模辨析】：水域面積由小到大：puddle (水窪) ➔ pool (泳池/水池) ➔ pond (池塘) ➔ lake (湖泊) ➔ sea / ocean (海/洋)；俚語理解：a big fish in a small pond (在小圈子裡稱霸的人物)。"
+      },
+      "rock": {
+        forms: "可數/不可數名詞複數：rocks；動詞三態規則變化：rock - rocked - rocked；形容詞 rocky (多岩石的/坎坷的)",
+        grammar: "作物質名詞通常為不可數；作特定「一塊大石頭/岩石」時為可數名詞；作動詞表「前後擺動、搖晃、使震驚」。",
+        phrases: "rock music (搖滾樂) / rock and roll (搖滾風格) / as hard as rock (堅硬如石) / rock the boat (興風作浪/破壞現狀)",
+        examPoint: "【會考多義字與慣用語】：1. 名詞多義：岩石 (large rock) 與音樂風格 (rock band)；2. 閱讀測驗隱喻題：rock the boat（比喻搗亂破壞原本穩定的和諧局勢）。"
+      },
+      "rose": {
+        forms: "可數名詞複數：roses；動詞辨析：亦為動詞 rise (上升/起立，rise - rose - risen) 的過去式",
+        grammar: "可數名詞，專指玫瑰花或薔薇花；常用量詞 a rose / a bunch of roses；注意詞性與動詞三態過去式之辨析。",
+        phrases: "red rose (紅玫瑰) / a bed of roses (安樂窩/順境) / come up smelling of roses (毫髮無損脫身/全身而退)",
+        examPoint: "【會考同形異字異義辨析】：1. 名詞 rose (玫瑰花 /roz/)；2. 不規則動詞 rise 的過去式 rose (The sun rose at 5:30 this morning.)；3. 常用隱喻：Life is not a bed of roses. (人生並非一路順遂)。"
+      },
+      "jeans": {
+        forms: "恆用「複數型態」名詞 (plural noun)；計量單位：a pair of jeans (一條牛仔褲) / two pairs of jeans (兩條牛仔褲)",
+        grammar: "指牛仔布料長褲，恆用複數形 jeans；作句子主詞時動詞用複數動詞 (These jeans are cool.)；若主詞為 a pair of jeans，動詞依 pair 用單數 (This pair of jeans is cheap.)。",
+        phrases: "a pair of jeans (一條牛仔褲) / blue jeans (藍色牛仔褲) / skinny jeans (緊身牛仔褲) / wear jeans (穿牛仔褲)",
+        examPoint: "【會考主謂一致與褲類名詞鐵則】：1. jeans 恆為複數：My jeans are old.；2. 加了 pair of 後依 pair 單複數決定：A pair of blue jeans is hanging on the wall.（歷屆會考高頻文法題）！"
+      },
+      "credit card": {
+        forms: "可數名詞片語複數：credit cards；名詞 credit (信用) + card (卡片)；動詞片語：pay by credit card",
+        grammar: "可數名詞片語；「用信用卡付款」介系詞必用 by，且「不加冠詞 a」：pay by credit card；若用動詞可用 swipe a credit card (刷信用卡)。",
+        phrases: "pay by credit card (以信用卡支付) / credit card number (信用卡號碼) / accept credit cards (接受信用卡付款)",
+        examPoint: "【會考付款方式介系詞大考點】：1. pay by credit card (用信用卡付款，不加 a) vs. pay in cash (用現金付款，介系詞用 in)；2. 可數名詞單位：two credit cards。"
+      },
+      "envelope": {
+        forms: "可數名詞複數：envelopes；動詞包覆同根詞：envelop (包住/裹住 /ɪnˈvel.əp/)；字首發母音 /e/ 或 /ɑ/，單數冠詞用 an",
+        grammar: "可數名詞，指裝信件的紙封；單數前必須搭配不定冠詞 an (an envelope)；把信放進信封搭配介系詞 into (put the letter into an envelope)。",
+        phrases: "put... into an envelope (把…裝入信封) / sealed envelope (密封信封) / push the envelope (挑戰極限/突破界限)",
+        examPoint: "【會考不定冠詞與介系詞必考點】：1. 字首為母音音標，單數必搭配 an：an envelope（不可寫 a envelope）；2. 介系詞考點：put a stamp on the envelope (把郵票貼在信封上)。"
+      }
+    };
+
+    // 3. Pronunciation Override Mapping (TTS Speech Correction)
+    const pronunciationOverrides = {
+      "I": "eye",
+      "Mr.": "Mister",
+      "Mrs.": "Missus",
+      "Ms.": "Mizz",
+      "Miss": "Miss",
+      "sir": "sir",
+      "MRT": "M R T",
+      "USA": "U S A",
+      "U.S.A.": "U S A",
+      "UK": "U K",
+      "U.K.": "U K",
+      "e.g.": "for example",
+      "i.e.": "that is"
+    };
+
+    let currentSlideIndex = 0;
+    const totalSlides = rawWords.length + 1; // +1 for Cover
+    let autoSpeechEnabled = true;
+
+    // DOM Elements
+    const slidesContainer = document.getElementById('slides-container');
+    const slideSelector = document.getElementById('slide-selector');
+    const slideIndicator = document.getElementById('slide-indicator');
+    const progressBarFill = document.getElementById('progress-bar-fill');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+
+    // Web Speech API 語音清單與優先人選快取
+    let availableVoices = [];
+    let selectedPreferredVoice = null;
+
+    function initVoices() {
+      if (!('speechSynthesis' in window)) return;
+      availableVoices = window.speechSynthesis.getVoices();
+      if (!availableVoices || availableVoices.length === 0) return;
+
+      // 1. 嚴格優先鎖定：iOS / macOS 的 Ava 或 Samantha「增強版 (Enhanced)」或「特級版 (Premium)」
+      const enhancedAppleVoice = availableVoices.find(v => 
+        v.lang.startsWith("en") && 
+        (v.name.toLowerCase().includes("ava") || v.name.toLowerCase().includes("samantha")) &&
+        (v.name.toLowerCase().includes("enhanced") || v.name.toLowerCase().includes("premium"))
+      );
+
+      // 2. 次選：Chrome / Android 的 Google US English
+      const googleVoice = availableVoices.find(v => 
+        v.name.includes("Google") && (v.name.includes("US English") || v.lang === "en-US")
+      );
+
+      // 3. 次選：一般 Ava 或 Samantha（過濾掉 compact 精簡機械音）
+      const normalAppleVoice = availableVoices.find(v => 
+        v.lang.startsWith("en") && 
+        (v.name.toLowerCase().includes("ava") || v.name.toLowerCase().includes("samantha")) &&
+        !v.name.toLowerCase().includes("compact")
+      );
+
+      // 4. 次選：其他 en-US 語音
+      const anyUSVoice = availableVoices.find(v => v.lang === "en-US");
+
+      // 5. 備援：任何英文語音
+      const anyEnVoice = availableVoices.find(v => v.lang.startsWith("en"));
+
+      selectedPreferredVoice = enhancedAppleVoice || googleVoice || normalAppleVoice || anyUSVoice || anyEnVoice || availableVoices[0] || null;
+    }
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        initVoices();
+      };
+      initVoices();
+    }
+
+    function applySpeechFixes(text) {
+      if (!text) return "";
+      let processed = text;
+      Object.keys(pronunciationOverrides).forEach(key => {
+        const escapedKey = key.replace(/\./g, '\\.');
+        const regex = new RegExp(`\\b${escapedKey}\\b`, 'g');
+        processed = processed.replace(regex, pronunciationOverrides[key]);
+      });
+      return processed;
+    }
+
+    // Web Speech API 播放核心
+    function playWebSpeech(text) {
+      return new Promise((resolve) => {
+        if (!('speechSynthesis' in window)) {
+          console.warn("此瀏覽器不支援 Web Speech API");
+          resolve();
+          return;
+        }
+
+        const cleanText = applySpeechFixes(text).trim();
+        if (!cleanText) {
+          resolve();
+          return;
+        }
+
+        // 停止先前尚未朗讀完的語音
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.92; // 稍慢語速，便於聽清楚國中發音
+        utterance.pitch = 1.0;
+
+        // 若尚未初始化語音，重新嘗試抓取一次
+        if (!selectedPreferredVoice && availableVoices.length === 0) {
+          initVoices();
+        }
+
+        if (selectedPreferredVoice) {
+          utterance.voice = selectedPreferredVoice;
+        }
+
+        utterance.onend = () => { resolve(); };
+        utterance.onerror = (e) => {
+          // 忽略 cancel() 導致的中斷
+          resolve();
+        };
+
+        window.speechSynthesis.speak(utterance);
+      });
+    }
+
+    function speakText(text) {
+      playWebSpeech(text);
+    }
+
+    function speakSentence(sentence) {
+      playWebSpeech(sentence);
+    }
+
+    async function playWordAndSentenceSequence(word, sentence) {
+      await playWebSpeech(word);
+      await new Promise(r => setTimeout(r, 450));
+      await playWebSpeech(sentence);
+    }
+
+    function speakCurrentWord() {
+      if (currentSlideIndex === 0) {
+        playWebSpeech("Welcome to English vocabulary practice!");
+        return;
+      }
+      const currentSlide = document.querySelectorAll('.slide-view')[currentSlideIndex];
+      if (currentSlide) {
+        const word = currentSlide.dataset.word;
+        const sentence = currentSlide.dataset.sentence;
+        if (word && sentence) {
+          playWordAndSentenceSequence(word, sentence);
+        } else if (word) {
+          speakText(word);
+        }
+      }
+    }
+
+    function buildSlides() {
+      // 1. Cover option in select
+      const coverOpt = document.createElement('option');
+      coverOpt.value = "0";
+      coverOpt.textContent = "00. 封面 - 2026 一起背單字 (國中組)";
+      slideSelector.appendChild(coverOpt);
+
+      // 2. Generate each word slide
+      rawWords.forEach((item, idx) => {
+        const slideNum = idx + 1;
+        const supp = supplementaryData[item.word] || {
+          forms: "常規形態變化",
+          grammar: "國中基礎核心必考單字。",
+          phrases: item.collocations,
+          examPoint: "注意單字拼寫與句子搭配用法。"
+        };
+
+        // Dropdown Option
+        const opt = document.createElement('option');
+        opt.value = slideNum.toString();
+        opt.textContent = `${String(slideNum).padStart(2, '0')}. Day ${item.day} - ${item.word} (${item.zh})`;
+        slideSelector.appendChild(opt);
+
+        // Word Slide Section
+        const slideEl = document.createElement('section');
+        slideEl.className = "slide-view p-4 md:p-7 flex flex-col justify-between";
+        slideEl.dataset.title = `${item.word} (${item.zh})`;
+        slideEl.dataset.day = `Day ${item.day}`;
+        slideEl.dataset.category = item.category;
+        slideEl.dataset.word = item.word;
+        slideEl.dataset.sentence = item.sentence;
+
+        slideEl.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-5 h-full items-stretch mobile-deck-grid">
+            
+            <!-- LEFT COLUMN (Word + Collocations + Sentence) -->
+            <div class="md:col-span-7 flex flex-col justify-between gap-3 md:gap-0 md:h-[510px] mobile-card-fix">
+              
+              <!-- Word Title & POS Badge Row -->
+              <div class="flex items-center justify-between bg-white/95 px-4 md:px-6 py-2.5 md:py-3.5 rounded-2xl border-2 border-sky-200 card-shadow shrink-0">
+                <div class="flex items-baseline gap-2 md:gap-4 flex-wrap">
+                  <span class="text-4xl sm:text-5xl md:text-[58px] font-black text-orange-600 tracking-tight leading-none drop-shadow-sm font-['Fredoka']">
+                    ${item.word}
+                  </span>
+                  <div class="px-3 md:px-4 py-1 md:py-1.5 rounded-full bg-sky-100/90 text-sky-800 border border-sky-300 font-bold text-lg sm:text-xl md:text-[26px] shadow-sm flex items-center gap-1.5">
+                    <span class="text-sky-950 font-bold">${item.zh}</span>
+                    <span class="text-sky-600 font-medium text-sm sm:text-base md:text-[22px] ml-1 bg-sky-200/60 px-2.5 py-0.5 rounded-md">${item.pos}</span>
+                  </div>
+                </div>
+                <button onclick="speakText('${item.word}')" class="p-2 md:p-3 bg-orange-500 hover:bg-orange-600 active:scale-95 text-white rounded-2xl shadow-md transition-transform flex items-center justify-center shrink-0" title="朗讀單字 (Web Speech API)">
+                  <i data-lucide="volume-2" class="w-5 h-5 md:w-7 md:h-7"></i>
+                </button>
+              </div>
+
+              <!-- Collocation Card (Desktop Height: 185px) -->
+              <div class="bg-gradient-to-br from-white to-sky-50/60 p-3 md:p-4 rounded-2xl border-2 border-sky-100 card-shadow flex flex-col justify-center md:h-[185px] shrink-0">
+                <div class="flex items-center gap-2 mb-1.5 md:mb-2">
+                  <span class="p-1 md:p-1.5 bg-sky-600 text-white rounded-lg flex items-center justify-center shadow-xs">
+                    <i data-lucide="link-2" class="w-3.5 h-3.5 md:w-4 md:h-4"></i>
+                  </span>
+                  <h3 class="text-lg md:text-[24px] font-extrabold text-sky-900 tracking-tight">常用搭配詞 (Collocations)</h3>
+                </div>
+                <div class="text-base sm:text-lg md:text-[23px] font-semibold text-slate-700 bg-white/80 p-2.5 md:p-3 rounded-xl border border-sky-100 leading-snug">
+                  ${item.collocations}
+                </div>
+              </div>
+
+              <!-- Sentence Card (Desktop Height: 225px) -->
+              <div class="bg-gradient-to-br from-white to-amber-50/40 p-3 md:p-4 rounded-2xl border-2 border-orange-100 card-shadow flex flex-col justify-center md:h-[225px] shrink-0">
+                <div class="flex items-center justify-between mb-1.5 md:mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="p-1 md:p-1.5 bg-orange-500 text-white rounded-lg flex items-center justify-center shadow-xs">
+                      <i data-lucide="message-square-quote" class="w-3.5 h-3.5 md:w-4 md:h-4"></i>
+                    </span>
+                    <h3 class="text-lg md:text-[24px] font-extrabold text-orange-950 tracking-tight">實用例句 (Example Sentence)</h3>
+                  </div>
+                  <button onclick="speakSentence('${item.sentence.replace(/'/g, "\\'")}')" class="text-orange-600 hover:text-orange-800 text-xs font-bold flex items-center gap-1 bg-orange-100/80 px-2 md:px-2.5 py-1 rounded-lg">
+                    <i data-lucide="volume-1" class="w-3.5 h-3.5"></i>
+                    <span>朗讀例句</span>
+                  </button>
+                </div>
+                <div class="bg-white/80 p-2.5 md:p-3 rounded-xl border border-orange-100 flex flex-col gap-1 md:gap-1.5 justify-center flex-1">
+                  <p class="text-base sm:text-lg md:text-[25px] font-bold text-slate-800 leading-snug tracking-normal">
+                    ${item.sentence}
+                  </p>
+                  <p class="text-sm sm:text-base md:text-[23px] font-medium text-slate-600 leading-tight">
+                    ${item.sentenceZh}
+                  </p>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN (Supplementary Panel: Desktop Width 440px, Height 510px) -->
+            <div class="md:col-span-5 w-full md:h-[510px] bg-white rounded-2xl border-2 border-sky-300 card-shadow flex flex-col p-4 md:p-5 justify-between mobile-card-fix">
+              
+              <!-- Header -->
+              <div class="flex items-center gap-2 pb-2 border-b border-sky-200 shrink-0">
+                <span class="p-1 md:p-1.5 bg-sky-700 text-white rounded-lg">
+                  <i data-lucide="graduation-cap" class="w-4 h-4 md:w-5 md:h-5"></i>
+                </span>
+                <h3 class="text-lg md:text-[25px] font-black text-sky-900 tracking-tight">國中重點補充 (Exam Focus)</h3>
+              </div>
+
+              <!-- Content items -->
+              <div class="flex-1 overflow-y-auto pr-1 py-2 flex flex-col gap-2.5 md:gap-3 custom-scroll">
+                
+                <!-- Forms / Changes -->
+                <div class="bg-sky-50/80 p-2.5 md:p-3 rounded-xl border border-sky-200">
+                  <div class="text-base md:text-[25px] font-black text-sky-900 flex items-center gap-1.5 mb-1">
+                    <span>🔹</span> <span>變化 / 格位 / 形態</span>
+                  </div>
+                  <div class="text-sm sm:text-base md:text-[23px] font-medium text-slate-700 leading-snug">
+                    ${supp.forms}
+                  </div>
+                </div>
+
+                <!-- Exam Focus Point -->
+                <div class="bg-orange-50/80 p-2.5 md:p-3 rounded-xl border border-orange-200">
+                  <div class="text-base md:text-[25px] font-black text-orange-950 flex items-center gap-1.5 mb-1">
+                    <span>🎯</span> <span>會考常考要點</span>
+                  </div>
+                  <div class="text-sm sm:text-base md:text-[23px] font-medium text-slate-700 leading-snug">
+                    ${supp.examPoint}
+                  </div>
+                </div>
+
+                <!-- Useful Phrases & Grammar -->
+                <div class="bg-slate-50 p-2.5 md:p-3 rounded-xl border border-slate-200">
+                  <div class="text-base md:text-[25px] font-black text-slate-900 flex items-center gap-1.5 mb-1">
+                    <span>💡</span> <span>常用片語與文法</span>
+                  </div>
+                  <div class="text-sm sm:text-base md:text-[23px] font-medium text-slate-700 leading-snug">
+                    ${supp.phrases}
+                  </div>
+                  ${supp.grammar ? `<div class="text-xs sm:text-sm md:text-[21px] text-slate-500 mt-1 border-t border-slate-200 pt-1 leading-tight">${supp.grammar}</div>` : ''}
+                </div>
+
+              </div>
+
+              <!-- Footer Tag in Panel -->
+              <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-xs font-semibold text-slate-400 shrink-0">
+                <span>單字編號：W05-D1-#${slideNum}</span>
+                <span class="bg-sky-50 text-sky-600 px-2.5 py-0.5 rounded-full font-bold">會考必備單字</span>
+              </div>
+
+            </div>
+
+          </div>
+        `;
+        slidesContainer.appendChild(slideEl);
+      });
+
+      // Render Lucide icons
+      lucide.createIcons();
+    }
+
+    function updateSlideUI() {
+      const slides = document.querySelectorAll('.slide-view');
+      slides.forEach((slide, idx) => {
+        if (idx === currentSlideIndex) {
+          slide.classList.add('active');
+          if (window.innerWidth < 768) {
+            slide.scrollTop = 0; // Reset scroll on mobile
+          }
+        } else {
+          slide.classList.remove('active');
+        }
+      });
+
+      slideSelector.value = currentSlideIndex.toString();
+      slideIndicator.textContent = `${currentSlideIndex} / ${totalSlides - 1}`;
+      if (currentSlideIndex === 0) {
+        slideIndicator.textContent = `封面 / ${totalSlides - 1}`;
+      }
+
+      const progressPercent = (currentSlideIndex / (totalSlides - 1)) * 100;
+      progressBarFill.style.width = `${progressPercent}%`;
+
+      prevBtn.disabled = currentSlideIndex === 0;
+      nextBtn.disabled = currentSlideIndex === totalSlides - 1;
+
+      const currentSlide = slides[currentSlideIndex];
+
+      if (autoSpeechEnabled && currentSlideIndex > 0) {
+        const wordToSpeak = currentSlide.dataset.word;
+        const sentenceToSpeak = currentSlide.dataset.sentence;
+        if (wordToSpeak && sentenceToSpeak) {
+          playWordAndSentenceSequence(wordToSpeak, sentenceToSpeak);
+        } else if (wordToSpeak) {
+          speakText(wordToSpeak);
+        }
+      }
+    }
+
+    function goToSlide(index) {
+      if (index >= 0 && index < totalSlides) {
+        currentSlideIndex = index;
+        updateSlideUI();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlideIndex > 0) {
+        goToSlide(currentSlideIndex - 1);
+      }
+    }
+
+    function nextSlide() {
+      if (currentSlideIndex < totalSlides - 1) {
+        goToSlide(currentSlideIndex + 1);
+      }
+    }
+
+    function fitPresentationStage() {
+      const stage = document.getElementById('presentation-stage');
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+
+      // Disable transform scale for mobile portrait (< 768px)
+      if (windowWidth < 768) {
+        stage.style.transform = 'none';
+        return;
+      }
+
+      const baseWidth = 1200;
+      const baseHeight = 675;
+
+      const scaleX = (windowWidth * 0.96) / baseWidth;
+      const scaleY = (windowHeight * 0.96) / baseHeight;
+      const scale = Math.min(scaleX, scaleY, 1.15);
+
+      stage.style.transform = `scale(${scale})`;
+    }
+
+    function toggleFullScreen() {
+      const doc = window.document;
+      const docEl = doc.documentElement;
+
+      const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+      const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+
+      if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+        if (requestFullScreen) {
+          requestFullScreen.call(docEl);
+        }
+      } else {
+        if (cancelFullScreen) {
+          cancelFullScreen.call(doc);
+        }
+      }
+    }
+
+    function updateFullscreenIcon() {
+      const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+      const btn = document.getElementById('fullscreen-btn');
+      if (!btn) return;
+      
+      btn.innerHTML = isFullscreen 
+        ? `<i data-lucide="minimize" class="w-4 h-4"></i>` 
+        : `<i data-lucide="maximize" class="w-4 h-4"></i>`;
+      lucide.createIcons();
+    }
+
+    function initInteractions() {
+      // Keyboard shortcuts
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'Space' || e.key === 'PageDown') {
+          e.preventDefault();
+          nextSlide();
+        } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+          e.preventDefault();
+          prevSlide();
+        } else if (e.key === 'Home') {
+          e.preventDefault();
+          goToSlide(0);
+        } else if (e.key === 'End') {
+          e.preventDefault();
+          goToSlide(totalSlides - 1);
+        } else if (e.key === 'f' || e.key === 'F') {
+          e.preventDefault();
+          toggleFullScreen();
+        }
+      });
+
+      // Fullscreen change events
+      ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(ev => {
+        document.addEventListener(ev, () => {
+          updateFullscreenIcon();
+          setTimeout(fitPresentationStage, 100);
+        });
+      });
+
+      // Touch swipe gestures
+      let touchStartX = 0;
+      let touchStartY = 0;
+      const stage = document.getElementById('presentation-stage');
+
+      stage.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+      }, { passive: true });
+
+      stage.addEventListener('touchend', (e) => {
+        const touchEndX = e.changedTouches[0].screenX;
+        const touchEndY = e.changedTouches[0].screenY;
+        const diffX = touchEndX - touchStartX;
+        const diffY = touchEndY - touchStartY;
+
+        // Horizontal swipe detection
+        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 45) {
+          if (diffX < 0) {
+            nextSlide();
+          } else {
+            prevSlide();
+          }
+        }
+      }, { passive: true });
+
+      window.addEventListener('resize', fitPresentationStage);
+      window.addEventListener('orientationchange', () => {
+        setTimeout(fitPresentationStage, 200);
+      });
+    }
+
+    window.onload = function() {
+      buildSlides();
+      fitPresentationStage();
+      initInteractions();
+      updateSlideUI();
+    };
+  </script>
+</body>
+</html>
