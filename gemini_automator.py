@@ -528,27 +528,14 @@ end tell
         self._log("🎉 成功對接至您目前已開啟的 Chrome 視窗（Rogery LDT）！直接在畫面上執行自動化...")
         self._status("已連線至您目前的 Chrome 視窗...", 0.2)
 
-        # 3. 啟用 Canvas 模式
-        self._status("正在確保/開啟 Canvas 模式...", 0.3)
-        js_canvas = """
-(() => {
-    if (document.querySelector("canvas-container") || document.querySelector(".monaco-editor")) return "ALREADY_CANVAS";
-    const btns = Array.from(document.querySelectorAll("button, [role=\\\"button\\\"]"));
-    const btn = btns.find(b => {
-        const t = (b.innerText || b.getAttribute("aria-label") || b.getAttribute("mattooltip") || "").toLowerCase();
-        return t.includes("canvas") || t.includes("畫布");
-    });
-    if (btn) { btn.click(); return "CLICKED_CANVAS"; }
-    return "NO_CANVAS_BTN";
-})()
-"""
-        c_res = self._exec_applescript_js(js_canvas, target_url=target_url)
-        self._log(f"🎨 Canvas 模式狀態: {c_res}")
-        time.sleep(1.5)
-
-        # 4. 填入提示詞並提交
+        # 3. 準備提交提示詞
         self._status("正在將單字提示詞填入輸入框並自動送出...", 0.5)
-        b64_prompt = base64.b64encode(prompt.encode('utf-8')).decode('utf-8')
+        # 補上強效指示：要求直接在對話框中輸出 Markdown 程式碼區塊，避開 Canvas
+        full_prompt_text = prompt.strip()
+        if "請勿開啟或使用 Canvas 模式" not in full_prompt_text:
+            full_prompt_text += "\n\n【重要指示】：請務必將完整的 HTML 原始碼直接在對話框中用 ```html 與 ``` 程式碼區塊包覆輸出，請勿開啟或使用 Canvas 模式。"
+
+        b64_prompt = base64.b64encode(full_prompt_text.encode('utf-8')).decode('utf-8')
         js_submit = f"""
 (() => {{
     const b64 = "{b64_prompt}";
@@ -577,7 +564,7 @@ end tell
         sub_res = self._exec_applescript_js(js_submit, target_url=target_url)
         self._log(f"🚀 提示詞提交結果: {sub_res}")
 
-        # 5. 等待生成與即時輪詢提取 HTML 程式碼
+        # 4. 等待生成與即時輪詢提取 HTML 程式碼
         start_time = time.time()
         last_code_len = 0
         stable_count = 0
@@ -589,14 +576,28 @@ end tell
     function cleanSnippet(txt) {
         if (!txt || txt.length < 300) return null;
         const low = txt.toLowerCase();
-        if (!low.includes('<html') && !low.includes('<!doctype html')) return null;
+        const idx = low.indexOf('<!doctype html');
+        const idx2 = low.indexOf('<html');
+        let startPos = -1;
+        if (idx !== -1 && (idx2 === -1 || idx < idx2)) startPos = idx;
+        else if (idx2 !== -1) startPos = idx2;
 
-        const m = txt.match(/```(?:html)?\s*(<!DOCTYPE html[\s\S]*?)(?:```|$)/i) ||
-                  txt.match(/```(?:html)?\s*(<html[\s\S]*?)(?:```|$)/i) ||
-                  txt.match(/(<!DOCTYPE html[\s\S]*?<\/html>)/i) ||
-                  txt.match(/(<html[\s\S]*?<\/html>)/i);
+        if (startPos !== -1) {
+            let clean = txt.substring(startPos);
+            const endIdx = clean.toLowerCase().lastIndexOf('</html>');
+            if (endIdx !== -1) {
+                clean = clean.substring(0, endIdx + 7);
+            }
+            clean = clean.replace(/```\\s*$/, '').trim();
+            if (clean.length > 300) return clean;
+        }
+
+        const m = txt.match(/```(?:html)?\\s*(<!DOCTYPE html[\\s\\S]*?)(?:```|$)/i) ||
+                  txt.match(/```(?:html)?\\s*(<html[\\s\\S]*?)(?:```|$)/i) ||
+                  txt.match(/(<!DOCTYPE html[\\s\\S]*?<\\/html>)/i) ||
+                  txt.match(/(<html[\\s\\S]*?<\\/html>)/i);
         if (m && m[1] && m[1].length > 300) return m[1];
-        return txt;
+        return null;
     }
 
     /* A. 優先掃描 Gemini 的對話組件 (code-block, message-content, model-response 等) */
