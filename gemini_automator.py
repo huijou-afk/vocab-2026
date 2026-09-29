@@ -190,8 +190,34 @@ class GeminiAutomator:
         )
         return context, False
 
+    def check_login_status_applescript(self):
+        """優先利用 AppleScript 檢查畫面上已開啟的 Chrome 是否包含已登入的 Gemini 分頁"""
+        script = '''
+tell application "Google Chrome"
+    repeat with w in windows
+        repeat with t in tabs of w
+            set u to URL of t
+            if u contains "gemini.google.com" then
+                set tit to title of t
+                if tit does not contain "Sign in" and tit does not contain "登入" and tit does not contain "Accounts" then
+                    return "LOGGED_IN"
+                end if
+            end if
+        end repeat
+    end repeat
+end tell
+return "NOT_LOGGED_IN"
+'''
+        try:
+            res = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=5)
+            return res.stdout.strip() == "LOGGED_IN"
+        except Exception:
+            return False
+
     def check_login_status_headless(self):
         """背景靜默檢查是否已登入"""
+        if self.check_login_status_applescript():
+            return True
         self._ensure_profile_dir()
         try:
             with sync_playwright() as p:
@@ -202,57 +228,72 @@ class GeminiAutomator:
                 logged = self.is_logged_in(page)
                 return logged
         except Exception as e:
-            self._log(f"靜默檢查登入時發生錯誤: {str(e)}")
+            self._log(f"靜默檢查登入時提示: {str(e)}")
             return False
 
     def launch_browser_for_login(self, auto_click_signin=True):
         """專門提供給使用者手動登入的模式，自動點擊登入並即時監控登入成功"""
+        if self.check_login_status_applescript():
+            self._log("🎉 偵測到您目前已開啟的 Chrome 視窗已成功連線至 Gemini！")
+            self._status("Google 帳號已成功連線！", 1.0)
+            return True
+
         self._ensure_profile_dir()
         self._log("正在連線或啟動 Chrome 視窗導向 Google 登入頁面...")
         self._status("請在 Chrome 視窗中登入您的 Google 帳號...", 0.4)
 
-        with sync_playwright() as p:
-            context, _ = self._get_browser_context(p, headless=False)
-            page = context.pages[0] if context.pages else context.new_page()
-            page.goto(self.gemini_url, wait_until="domcontentloaded")
-            time.sleep(2)
-
-            # 若未登入且需要自動點擊登入按鈕
-            if auto_click_signin and not self.is_logged_in(page):
-                try:
-                    signin_btn = page.locator('button:has-text("登入"), a:has-text("登入"), a[href*="accounts.google.com"]').first
-                    if signin_btn.is_visible(timeout=2000):
-                        signin_btn.click()
-                        self._log("已為您自動點擊「登入」，請在視窗中選擇或輸入您的 Google 帳號。")
-                except Exception:
-                    pass
-
-            self._log("等待使用者登入完成（偵測到登入後將自動完成設定）...")
-            start_wait = time.time()
-            logged_in = False
-
-            while time.time() - start_wait < 300:
-                try:
-                    # 如果使用者關閉了視窗
-                    if page.is_closed():
-                        self._log("瀏覽器視窗已被關閉。")
-                        break
-                    if self.is_logged_in(page):
-                        logged_in = True
-                        break
-                except Exception:
-                    pass
+        try:
+            with sync_playwright() as p:
+                context, _ = self._get_browser_context(p, headless=False)
+                page = context.pages[0] if context.pages else context.new_page()
+                page.goto(self.gemini_url, wait_until="domcontentloaded")
                 time.sleep(2)
 
-            if logged_in:
-                self._log("🎉 成功登入 Google 帳號並進入 Gemini！憑證已保存。")
-                self._status("Google 帳號已成功登入！", 1.0)
-                time.sleep(1.5)
-            else:
-                self._log("⚠️ 尚未完成登入。")
-                self._status("尚未完成登入", 0.0)
+                # 若未登入且需要自動點擊登入按鈕
+                if auto_click_signin and not self.is_logged_in(page):
+                    try:
+                        signin_btn = page.locator('button:has-text("登入"), a:has-text("登入"), a[href*="accounts.google.com"]').first
+                        if signin_btn.is_visible(timeout=2000):
+                            signin_btn.click()
+                            self._log("已為您自動點擊「登入」，請在視窗中選擇或輸入您的 Google 帳號。")
+                    except Exception:
+                        pass
 
-            return logged_in
+                self._log("等待使用者登入完成（偵測到登入後將自動完成設定）...")
+                start_wait = time.time()
+                logged_in = False
+
+                while time.time() - start_wait < 300:
+                    if self.check_login_status_applescript():
+                        logged_in = True
+                        break
+                    try:
+                        if page.is_closed():
+                            self._log("瀏覽器視窗已被關閉。")
+                            break
+                        if self.is_logged_in(page):
+                            logged_in = True
+                            break
+                    except Exception:
+                        pass
+                    time.sleep(2)
+
+                if logged_in:
+                    self._log("🎉 成功登入 Google 帳號並進入 Gemini！憑證已保存。")
+                    self._status("Google 帳號已成功登入！", 1.0)
+                    time.sleep(1.5)
+                else:
+                    self._log("⚠️ 尚未完成登入。")
+                    self._status("尚未完成登入", 0.0)
+
+                return logged_in
+        except Exception as e:
+            if self.check_login_status_applescript():
+                self._log("🎉 偵測到您目前已開啟的 Chrome 視窗已連線 Gemini！")
+                self._status("Google 帳號連線正常", 1.0)
+                return True
+            self._log(f"啟動登入瀏覽器時提示: {e}")
+            return False
 
     def _activate_canvas_mode(self, page):
         """主動檢查並啟用 Gemini 的 Canvas (畫布) 模式"""
