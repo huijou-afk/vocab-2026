@@ -368,11 +368,28 @@ def assemble_html_junior(week_title, parsed_words, enrichment_json_str):
             "sentenceZh": item["sentence"]["cn"]
         })
 
+    supp_data_map = {}
+    if isinstance(supp_data, dict):
+        for k, v in supp_data.items():
+            if isinstance(v, dict):
+                k_str = str(k).strip()
+                k_clean = re.sub(r'[^a-zA-Z0-9\s\-]', '', k_str).lower()
+                supp_data_map[k_str] = v
+                supp_data_map[k_str.lower()] = v
+                supp_data_map[k_clean] = v
+
     final_supp_data = {}
     for item in parsed_words:
         w = item["word"]
         w_clean = re.sub(r'[^a-zA-Z0-9\s\-]', '', w).strip().lower()
-        sd = supp_data.get(w) or supp_data.get(w_clean) or {}
+        w_lower = str(w).strip().lower()
+        sd = (
+            supp_data_map.get(w_clean)
+            or supp_data_map.get(w_lower)
+            or supp_data_map.get(w.strip())
+            or supp_data.get(w)
+            or {}
+        )
         final_supp_data[w] = {
             "forms": sd.get("forms") or f"三態 / 變化 / 衍生詞",
             "examPoint": sd.get("examPoint") or f"【會考核心考點】：1. 掌握 {w} 的核心語意與主要例句搭配；2. 注意標點與修飾位置。",
