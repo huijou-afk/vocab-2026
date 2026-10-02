@@ -7,10 +7,10 @@ BASE_DIR = Path(os.environ.get("VOCAB_PROJECT_DIR", Path(__file__).parent.resolv
 
 def parse_input_words(raw_text):
     """
-    解析使用者輸入的文字檔 (Tab/多空格分隔)，精準提取：
-    - week_title (如 [W07]2026/10/13~10/20)
-    - parsed_words_list (包含 word, posChinese, collocation, sentence, category)
-    同時自動過濾「欄位標題列」(如 單字\t中文\t搭配詞\t例句)
+    解析使用者輸入的文字檔 (Tab/多空格分隔)，精準支援兩種欄位格式：
+    格式 A (5欄位): 分類 \t 單字 \t 中文 \t 搭配詞 \t 例句
+    格式 B (4欄位): 單字 \t 中文 \t 搭配詞 \t 例句 (\t 分類)
+    同時自動過濾「欄位標題列」(如 分類\t單字\t中文\t搭配詞\t例句)
     """
     lines = [l.strip() for l in raw_text.strip().splitlines() if l.strip()]
     week_title = "[W01]"
@@ -18,7 +18,7 @@ def parse_input_words(raw_text):
 
     for line in lines:
         # 1. Date / Week Header Line
-        if line.startswith("[") or "2026" in line or "日期" in line:
+        if line.startswith("[") or "2026" in line or "日期" in line or "週次" in line:
             m = re.search(r'(\[?W\d+\]?.*?\d{4}/\d{1,2}/\d{1,2}~\d{1,2}/\d{1,2})', line)
             if m:
                 week_title = m.group(1)
@@ -38,23 +38,31 @@ def parse_input_words(raw_text):
         col1 = parts[1].strip().lower()
 
         # 3. 強效過濾表格欄位標題列
-        header_keywords_col0 = ["單字", "word", "words", "vocab", "vocabulary", "單字名稱", "目標單字"]
-        header_keywords_col1 = ["中文", "詞性", "中文/詞性", "meaning", "chinese", "pos", "詞性與中文", "中文對應", "詞性標籤"]
-        
+        header_keywords_col0 = ["分類", "單字", "word", "words", "vocab", "vocabulary", "單字名稱", "目標單字"]
+        header_keywords_col1 = ["單字", "中文", "詞性", "中文/詞性", "meaning", "chinese", "pos", "詞性與中文", "中文對應", "詞性標籤"]
+
         if col0 in header_keywords_col0 or col1 in header_keywords_col1 or "單字清單" in line or "欄位標題" in line:
             print(f"ℹ️ 自動跳過表格欄位標題列: '{line}'")
             continue
 
-        word = parts[0].strip()
-        pos_cn = parts[1].strip()
+        # 4. 自動偵測欄位排列 (Format A vs Format B)
+        # Format A: Col 0 = 分類, Col 1 = 單字, Col 2 = 中文, Col 3 = 搭配詞, Col 4 = 例句
+        # Format B: Col 0 = 單字, Col 1 = 中文, Col 2 = 搭配詞, Col 3 = 例句
+        if len(parts) >= 3 and re.search(r'[a-zA-Z]', parts[1]) and not re.search(r'^[a-zA-Z\s\-]+$', parts[0]):
+            category = parts[0].strip()
+            word = parts[1].strip()
+            pos_cn = parts[2].strip()
+            collocation_str = parts[3].strip() if len(parts) > 3 else ""
+            sentence_str = parts[4].strip() if len(parts) > 4 else ""
+        else:
+            category = parts[4].strip() if len(parts) > 4 else ""
+            word = parts[0].strip()
+            pos_cn = parts[1].strip()
+            collocation_str = parts[2].strip() if len(parts) > 2 else ""
+            sentence_str = parts[3].strip() if len(parts) > 3 else ""
 
-        collocation_str = parts[2].strip() if len(parts) > 2 else ""
         collocation = parse_collocation(collocation_str)
-
-        sentence_str = parts[3].strip() if len(parts) > 3 else ""
         sentence = parse_sentence(sentence_str)
-
-        category = parts[4].strip() if len(parts) > 4 else ""
 
         parsed_words.append({
             "word": word,
@@ -112,16 +120,16 @@ def build_lightweight_prompt(track_id, words_text):
     """
     week_title, parsed_words = parse_input_words(words_text)
     word_list_formatted = "\n".join([
-        f"{idx+1}. {item['word']} ({item['posChinese']})"
+        f"{idx+1}. {item['word']} ({item['posChinese']}) - 分類: {item['category'] or '未指定'}"
         for idx, item in enumerate(parsed_words)
     ])
 
     prompt = f"""你是一位精通兒童美語教學與單字卡設計的專家。請根據下方提供的一週單字清單，為每個單字設計 4 個創意學習欄位：
-1. posChinese: 包含中文與英文詞性縮寫的對應標籤（例如 "熱的 adj."、"女孩 n."、"游泳 v."、"陽光明媚的 adj."，請勿顯示 IPA 音標）。
-2. category: 大分類名稱（必須對應歸納出的 week_tags 主題之一）。
-3. icon: 最符合單字語意且適合國小生認知的 FontAwesome v6.4 (free) 圖示 class 名稱（只需寫名稱本身，不要包含 `fa-solid` 前綴，如 "fa-sun", "fa-wind", "fa-cloud-showers-heavy"）。
-4. badge: 4字以內的可愛情境徽章標籤（如 "烈日炎炎", "雨水濕潤"）。
-5. themeTag: 4字以內的主題標籤（如 "夏日氣候", "自然微風"）。
+1. posChinese: 包含中文與英文詞性縮寫的對應標籤（例如 "樹 n."、"帽子 n."、"灰色的 adj."、"重的是 adj."，若原始資料未附詞性請補上 n./v./adj./adv. 標籤，請勿顯示 IPA 音標）。
+2. category: 大分類名稱（請沿用單字清單中的分類，或對應歸納出的 week_tags 主題之一）。
+3. icon: 最符合單字語意且適合國小生認知的 FontAwesome v6.4 (free) 圖示 class 名稱（只需寫名稱本身，不要包含 `fa-solid` 前綴，如 "fa-tree", "fa-hat-cowboy", "fa-shirt"）。
+4. badge: 4字以內的可愛情境徽章標籤（如 "綠意盎然", "保暖遮陽"）。
+5. themeTag: 4字以內的主題標籤（如 "自然植物", "穿著配件"）。
 6. tip: 20~45 字的「趣味聯想記憶法」，必須以 `💡 ` 開頭（包含燈泡 Emoji 與空格）。內容需親切可愛。
 
 同時請根據單字分類歸納 3~4 個大分類主題標籤 (week_tags)。
@@ -132,13 +140,13 @@ def build_lightweight_prompt(track_id, words_text):
   "week_tags": ["自然與天氣", "衣物與配件", "形容詞"],
   "enrichments": [
     {{
-      "word": "hot",
-      "posChinese": "熱的 adj.",
+      "word": "tree",
+      "posChinese": "樹 n.",
       "category": "自然與天氣",
-      "icon": "fa-sun",
-      "badge": "烈日炎炎",
-      "themeTag": "夏日氣候",
-      "tip": "💡 天氣好 hot 時要多補充水分，去游泳池玩水最消暑了！"
+      "icon": "fa-tree",
+      "badge": "綠意盎然",
+      "themeTag": "自然植物",
+      "tip": "💡 tree 是挺拔的大樹，小鳥最喜歡在樹枝上蓋窩唱歌囉！"
     }}
   ]
 }}
@@ -154,8 +162,10 @@ def assemble_html(track_id, week_title, parsed_words, enrichment_json_str):
     """
     將使用者解析的單字資料與 Gemini 回傳的 JSON 創意欄位縫合，並塞入本機 HTML 範本中
     """
-    # 1. 解析 Gemini 回傳的 JSON
-    week_tags = ["日常生活", "實用單字", "情境學習"]
+    # 從解析資料提取大分類
+    extracted_categories = list(dict.fromkeys([item["category"] for item in parsed_words if item["category"]]))
+    week_tags = extracted_categories if extracted_categories else ["日常生活", "實用單字", "情境學習"]
+
     enrichments_dict = {}
 
     if enrichment_json_str:
@@ -167,7 +177,7 @@ def assemble_html(track_id, week_title, parsed_words, enrichment_json_str):
             
             data = json.loads(clean_str)
             if isinstance(data, dict):
-                if "week_tags" in data and isinstance(data["week_tags"], list):
+                if "week_tags" in data and isinstance(data["week_tags"], list) and not extracted_categories:
                     week_tags = data["week_tags"]
                 items = data.get("enrichments") or data.get("vocab_data") or []
                 for it in items:
@@ -194,7 +204,7 @@ def assemble_html(track_id, week_title, parsed_words, enrichment_json_str):
 
         pos_cn = e.get("posChinese") or item["posChinese"]
 
-        category_val = e.get("category") or item.get("category") or week_tags[0]
+        category_val = item.get("category") or e.get("category") or week_tags[0]
 
         vocab_entry = {
             "word": item["word"],
