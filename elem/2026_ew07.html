@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 一起背單字 (國小組) - [W07]</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Google Fonts: Fredoka & Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            butter: '#fffdf7',
+            cardBg: '#ffffff',
+            sunnyYellow: '#FCD34D',
+            warmOrange: '#ea580c',
+            softOrange: '#ffedd5',
+            skyBlue: '#0284c7',
+            softBlue: '#e0f2fe',
+            leafGreen: '#16a34a',
+            bubblePink: '#f43f5e',
+            cuteBorder: '#fbbf24'
+          },
+          fontFamily: {
+            fredoka: ['Fredoka', 'Noto Sans TC', 'sans-serif'],
+            noto: ['Noto Sans TC', 'sans-serif']
+          },
+          boxShadow: {
+            'cute-3d': '0 8px 0 #eab308, 0 14px 20px rgba(0,0,0,0.06)',
+            'btn-3d': '0 4px 0 #ca8a04',
+            'btn-3d-active': '0 1px 0 #ca8a04',
+            'card-soft': '0 10px 25px -5px rgba(234, 88, 12, 0.07), 0 8px 10px -6px rgba(0, 0, 0, 0.04)',
+            'pill-3d': '0 3px 0 rgba(0,0,0,0.1)'
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: #fffdf7;
+      font-family: 'Fredoka', 'Noto Sans TC', sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* Fixed 16:9 presentation viewport on larger screens (>=768px) */
+    @media (min-width: 768px) {
+      #presentation-viewport {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 74px; /* Space for bottom control bar */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      #presentation-stage {
+        width: 1200px;
+        height: 675px;
+        transform-origin: center center;
+        transition: transform 0.15s ease-out;
+        position: relative;
+        flex-shrink: 0;
+      }
+    }
+
+    /* Responsive mobile layout (<768px) */
+    @media (max-width: 767.98px) {
+      body {
+        overflow-y: auto;
+        height: auto;
+        min-height: 100vh;
+      }
+      #presentation-viewport {
+        position: relative;
+        width: 100%;
+        min-height: calc(100vh - 84px);
+        padding-bottom: 96px; /* Avoid overlapping sticky controls */
+        display: block;
+      }
+      #presentation-stage {
+        width: 100% !important;
+        height: auto !important;
+        transform: none !important;
+        position: relative;
+        padding: 12px;
+      }
+    }
+
+    /* Floating background shapes */
+    .bg-bubble {
+      position: absolute;
+      border-radius: 9999px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Cute 3D Yellow border for slides */
+    .slide-container {
+      background: #ffffff;
+      border: 4px solid #fbbf24;
+      border-radius: 32px;
+      box-shadow: 0 10px 0 #f59e0b, 0 20px 30px rgba(245, 158, 11, 0.12);
+      position: relative;
+      z-index: 10;
+      overflow: hidden;
+    }
+
+    /* Smooth animated transitions */
+    .slide-enter {
+      animation: popIn 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes popIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.96) translateY(12px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    /* Mascot bouncy animation */
+    @keyframes floaty {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-7px) rotate(1.5deg); }
+    }
+    .animate-floaty {
+      animation: floaty 3.5s ease-in-out infinite;
+    }
+
+    /* Pulsing sound ring */
+    @keyframes soundPulse {
+      0% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.4); }
+      70% { box-shadow: 0 0 0 14px rgba(234, 88, 12, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0); }
+    }
+    .speaking-pulse {
+      animation: soundPulse 1.2s infinite;
+    }
+
+    select::-ms-expand {
+      display: none;
+    }
+  </style>
+</head>
+<body class="flex flex-col justify-between select-none bg-[#fffdf7]">
+
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div class="bg-bubble w-72 h-72 bg-amber-100/60 -top-20 -left-20 blur-2xl"></div>
+    <div class="bg-bubble w-96 h-96 bg-orange-100/50 -bottom-24 -right-24 blur-3xl"></div>
+    <div class="bg-bubble w-48 h-48 bg-sky-100/50 top-1/3 right-10 blur-xl"></div>
+    <!-- Starry accents -->
+    <i class="fa-solid fa-star text-amber-300 text-2xl absolute top-8 left-12 opacity-50 animate-pulse"></i>
+    <i class="fa-solid fa-cloud text-amber-200 text-3xl absolute top-16 right-20 opacity-60"></i>
+    <i class="fa-solid fa-sparkles text-orange-300 text-xl absolute bottom-28 left-20 opacity-60"></i>
+  </div>
+
+  <main id="presentation-viewport">
+    <div id="presentation-stage" class="w-full h-full flex items-center justify-center p-2 md:p-4">
+      <div id="slide-content-host" class="w-full h-full">
+        <!-- Dynamically rendered via JavaScript renderSlide() -->
+      </div>
+    </div>
+  </main>
+
+  <footer class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t-2 border-amber-300 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-3 py-2 md:px-6 md:py-2.5">
+    <!-- Progress Bar on top of controls -->
+    <div class="w-full bg-amber-100 h-2 rounded-full mb-2 overflow-hidden">
+      <div id="progress-bar-fill" class="bg-gradient-to-r from-amber-400 to-orange-500 h-full rounded-full transition-all duration-300" style="width: 0%;"></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2 md:gap-4 flex-wrap md:flex-nowrap">
+      <!-- Left Controls: Prev, Jump Select, Next -->
+      <div class="flex items-center gap-1.5 md:gap-3">
+        <button id="btn-prev" onclick="goToPrevSlide()" title="上一頁 (←)" class="bg-amber-400 hover:bg-amber-500 active:translate-y-0.5 text-slate-800 font-bold px-3 py-1.5 md:px-4 md:py-2 rounded-2xl shadow-btn-3d flex items-center gap-1.5 transition text-sm md:text-base border border-amber-500">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span class="hidden sm:inline">上一頁</span>
+        </button>
+
+        <!-- Dropdown Jump Select -->
+        <div class="relative inline-flex items-center">
+          <select id="slide-selector" onchange="onSelectorChange(this.value)" class="bg-amber-50 border-2 border-amber-400 font-bold text-slate-800 text-xs md:text-sm rounded-2xl px-3 py-1.5 md:py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-orange-400 cursor-pointer shadow-sm appearance-none">
+            <!-- Populated dynamically -->
+          </select>
+          <i class="fa-solid fa-chevron-down text-amber-600 text-xs absolute right-3 pointer-events-none"></i>
+        </div>
+
+        <button id="btn-next" onclick="goToNextSlide()" title="下一頁 (→ 或 空白鍵)" class="bg-amber-400 hover:bg-amber-500 active:translate-y-0.5 text-slate-800 font-bold px-3 py-1.5 md:px-4 md:py-2 rounded-2xl shadow-btn-3d flex items-center gap-1.5 transition text-sm md:text-base border border-amber-500">
+          <span class="hidden sm:inline">下一頁</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+
+      <!-- Center Audio Controls -->
+      <div class="flex items-center gap-2 md:gap-3">
+        <!-- Manual Speak Button -->
+        <button id="btn-speak-word" onclick="speakCurrentWord()" title="手動朗讀單字" class="bg-orange-500 hover:bg-orange-600 text-white font-bold px-3 py-1.5 md:px-4 md:py-2 rounded-2xl shadow-md active:translate-y-0.5 flex items-center gap-2 transition text-xs md:text-sm">
+          <i class="fa-solid fa-volume-high"></i>
+          <span>朗讀單字</span>
+        </button>
+
+        <!-- Auto Speak Toggle Switch -->
+        <button id="btn-toggle-auto" onclick="toggleAutoSpeech()" title="切換自動發音" class="bg-emerald-50 hover:bg-emerald-100 border-2 border-emerald-500 text-emerald-800 font-bold px-2.5 py-1.5 md:px-3.5 md:py-2 rounded-2xl flex items-center gap-1.5 transition text-xs md:text-sm">
+          <i id="auto-speak-icon" class="fa-solid fa-toggle-on text-emerald-600 text-base"></i>
+          <span id="auto-speak-text">自動發音: 開</span>
+        </button>
+      </div>
+
+      <!-- Right Controls: Slide indicator & Fullscreen -->
+      <div class="flex items-center gap-2">
+        <span id="slide-indicator" class="text-xs md:text-sm font-bold text-amber-900/70 bg-amber-100/80 px-2.5 py-1 rounded-xl hidden lg:inline-block">
+          封面
+        </span>
+
+        <!-- Fullscreen Button -->
+        <button id="btn-fullscreen" onclick="toggleFullscreen()" title="切換全螢幕 (快速鍵: F)" class="bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 font-bold px-3 py-1.5 md:px-3.5 md:py-2 rounded-2xl transition active:scale-95 flex items-center gap-1.5 text-xs md:text-sm">
+          <i id="fullscreen-icon" class="fa-solid fa-expand"></i>
+          <span class="hidden sm:inline">全螢幕</span>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Speech pronunciation correction dictionary */
+    const SPEECH_CORRECTIONS = {
+      'Mr.': 'Mister',
+      'Mrs.': 'Missus',
+      'MRT': 'M R T',
+      'women': 'wimin',
+      'I': 'eye',
+      'Dr.': 'Doctor',
+      'sir': 'sir',
+      'bus stop': 'bus stop'
+    };
+
+    /* Category tags for W07 */
+    const WEEK_TAGS = ['自然與天氣', '衣物與配件', '形容詞'];
+
+    /* 20 Vocabulary entries for [W07]2026/10/13~10/20 */
+    const VOCAB_DATA = [
+      {
+        word: "hot",
+        posChinese: "熱的 adj.",
+        category: "自然與天氣",
+        collocation: {
+          en: "hot weather",
+          cn: "熱天氣",
+          extraEn: "hot summer",
+          extraCn: "炎熱的夏天"
+        },
+        sentence: {
+          en: "It is very hot today, so let's go swimming.",
+          cn: "今天天氣非常熱，我們去游泳吧。"
+        },
+        icon: "fa-sun",
+        badge: "烈日炎炎",
+        themeTag: "夏日氣候",
+        tip: "💡 天氣好 hot 時要多補充水分，去游泳池玩水最消暑了！"
+      },
+      {
+        word: "sunny",
+        posChinese: "陽光明媚的 adj.",
+        category: "自然與天氣",
+        collocation: {
+          en: "sunny day",
+          cn: "晴天",
+          extraEn: "sunny weather",
+          extraCn: "晴朗的天氣"
+        },
+        sentence: {
+          en: "We decided to have a picnic on a sunny day.",
+          cn: "我們決定在一個晴朗的日子去野餐。"
+        },
+        icon: "fa-sun-plant-wilt",
+        badge: "陽光晴空",
+        themeTag: "好天氣",
+        tip: "💡 sun (太陽) + ny 變成 sunny (陽光明媚的)，陽光灑下來心情真好！"
+      },
+      {
+        word: "windy",
+        posChinese: "風大的 adj.",
+        category: "自然與天氣",
+        collocation: {
+          en: "windy day",
+          cn: "大風天",
+          extraEn: "cold and windy",
+          extraCn: "又冷風又大"
+        },
+        sentence: {
+          en: "It was so windy that my hat blew off.",
+          cn: "風太大了，把我的帽子吹走了。"
+        },
+        icon: "fa-wind",
+        badge: "涼風吹拂",
+        themeTag: "風向氣候",
+        tip: "💡 wind (風) 加上 y 變成 windy (風大的)，大風吹時要拿好帽子喔！"
+      },
+      {
+        word: "cloudy",
+        posChinese: "多雲的 adj.",
+        category: "自然與天氣",
+        collocation: {
+          en: "cloudy sky",
+          cn: "多雲的天態",
+          extraEn: "cloudy weather",
+          extraCn: "陰天"
+        },
+        sentence: {
+          en: "The sky is cloudy, so it might rain later.",
+          cn: "天空多雲，待會可能會下雨。"
+        },
+        icon: "fa-cloud",
+        badge: "朵朵白雲",
+        themeTag: "天空景致",
+        tip: "💡 cloud (雲) 加上 y 變成 cloudy (多雲的)，像天空鋪滿棉花糖！"
+      },
+      {
+        word: "rainy",
+        posChinese: "下雨的 adj.",
+        category: "自然與天氣",
+        collocation: {
+          en: "rainy season",
+          cn: "雨季",
+          extraEn: "rainy day",
+          extraCn: "下雨天"
+        },
+        sentence: {
+          en: "I like staying indoors on a rainy day.",
+          cn: "在下雨天我喜歡待在室內。"
+        },
+        icon: "fa-cloud-showers-heavy",
+        badge: "雨滴淅瀝",
+        themeTag: "雨天情境",
+        tip: "💡 rain (雨) 加上 y 變成 rainy (下雨的)，記得帶雨傘出門才不會濕透！"
+      },
+      {
+        word: "wind",
+        posChinese: "風 n.",
+        category: "自然與天氣",
+        collocation: {
+          en: "strong wind",
+          cn: "強風",
+          extraEn: "blow in the wind",
+          extraCn: "在風中飄揚"
+        },
+        sentence: {
+          en: "The cool wind refreshed us after the long walk.",
+          cn: "漫長散步後，涼爽的風讓我們振作精神。"
+        },
+        icon: "fa-fan",
+        badge: "自然微風",
+        themeTag: "空氣流動",
+        tip: "💡 涼爽的 wind 吹在臉上非常舒服，還能吹動風車轉啊轉！"
+      },
+      {
+        word: "wet",
+        posChinese: "濕的 adj.",
+        category: "自然與天氣",
+        collocation: {
+          en: "wet floor",
+          cn: "濕滑地面",
+          extraEn: "get wet",
+          extraCn: "弄濕"
+        },
+        sentence: {
+          en: "Don't forget your umbrella, or you'll get wet.",
+          cn: "別忘了帶傘，否則你會弄濕。"
+        },
+        icon: "fa-droplet",
+        badge: "雨水濕潤",
+        themeTag: "水分狀態",
+        tip: "💡 淋到雨衣服就變 wet，地面濕濕走路要特別小心！"
+      },
+      {
+        word: "sun",
+        posChinese: "太陽 n.",
+        category: "自然與天氣",
+        collocation: {
+          en: "bright sun",
+          cn: "明亮太陽",
+          extraEn: "sun rise",
+          extraCn: "太陽升起"
+        },
+        sentence: {
+          en: "The sun rises in the east every morning.",
+          cn: "太陽每天早晨從東方升起。"
+        },
+        icon: "fa-sun",
+        badge: "萬物能量",
+        themeTag: "宇宙天體",
+        tip: "💡 每天早晨升起的赤紅太陽就是 sun，帶給我們光明與溫暖！"
+      },
+      {
+        word: "sea",
+        posChinese: "海洋 n.",
+        category: "自然與天氣",
+        collocation: {
+          en: "near the sea",
+          cn: "在海邊",
+          extraEn: "deep sea",
+          extraCn: "深海"
+        },
+        sentence: {
+          en: "They spent their summer vacation by the sea.",
+          cn: "他們在海邊度過了暑假。"
+        },
+        icon: "fa-water",
+        badge: "蔚藍大海",
+        themeTag: "海洋世界",
+        tip: "💡 蔚藍廣闊的大海叫 sea，夏天去海邊看浪花聽海浪聲最棒了！"
+      },
+      {
+        word: "flower",
+        posChinese: "花 n.",
+        category: "自然與天氣",
+        collocation: {
+          en: "pick flowers",
+          cn: "採花",
+          extraEn: "colorful flower",
+          extraCn: "五彩繽紛的花朵"
+        },
+        sentence: {
+          en: "She planted a beautiful red flower in the garden.",
+          cn: "她在花園裡種了一朵美麗的紅花。"
+        },
+        icon: "fa-spa",
+        badge: "花香四溢",
+        themeTag: "美麗植物",
+        tip: "💡 花園裡開滿繽紛的花朵叫 flower，散發著淡淡香氣！"
+      },
+      {
+        word: "towel",
+        posChinese: "毛巾 n.",
+        category: "衣物與配件",
+        collocation: {
+          en: "bath towel",
+          cn: "浴巾",
+          extraEn: "dry with a towel",
+          extraCn: "用毛巾擦乾"
+        },
+        sentence: {
+          en: "Bring a towel with you when you go to the pool.",
+          cn: "去游泳池時帶一條毛巾。"
+        },
+        icon: "fa-rug",
+        badge: "擦拭必備",
+        themeTag: "日常用品",
+        tip: "💡 洗完澡或游完泳後，拿柔軟的 towel 把身上水珠擦乾！"
+      },
+      {
+        word: "bored",
+        posChinese: "感到無聊的 adj.",
+        category: "形容詞",
+        collocation: {
+          en: "feel bored",
+          cn: "感到無聊",
+          extraEn: "bored student",
+          extraCn: "感到無趣的學生"
+        },
+        sentence: {
+          en: "He felt bored because he had nothing to do.",
+          cn: "他感到無聊，因為他沒事可做。"
+        },
+        icon: "fa-face-rolling-eyes",
+        badge: "心情發呆",
+        themeTag: "情緒感覺",
+        tip: "💡 人(主詞)「感到無聊」用 bored，沒事做發呆時常常會有這種感受！"
+      },
+      {
+        word: "boring",
+        posChinese: "令人無聊的 adj.",
+        category: "形容詞",
+        collocation: {
+          en: "boring movie",
+          cn: "令人無聊的電影",
+          extraEn: "boring talk",
+          extraCn: "無聊的演講"
+        },
+        sentence: {
+          en: "The movie was so boring that I fell asleep.",
+          cn: "這部電影太無聊了，我都睡著了。"
+        },
+        icon: "fa-face-meh",
+        badge: "枯燥乏味",
+        themeTag: "事物特徵",
+        tip: "💡 事物「令人感到無聊」用 boring，看了一部 boring 電視劇容易睡著！"
+      },
+      {
+        word: "busy",
+        posChinese: "忙碌的 adj.",
+        category: "形容詞",
+        collocation: {
+          en: "busy street",
+          cn: "熱鬧的街道",
+          extraEn: "busy with work",
+          extraCn: "忙於工作"
+        },
+        sentence: {
+          en: "My mother is busy preparing dinner in the kitchen.",
+          cn: "我媽媽正在廚房忙著準備晚餐。"
+        },
+        icon: "fa-clock",
+        badge: "行程滿滿",
+        themeTag: "生活狀態",
+        tip: "💡 busy 是忙碌的，媽媽在廚房忙著做飯，小蜜蜂採蜜也很 busy！"
+      },
+      {
+        word: "different",
+        posChinese: "不同的 adj.",
+        category: "形容詞",
+        collocation: {
+          en: "different culture",
+          cn: "不同的文化",
+          extraEn: "different opinion",
+          extraCn: "不同的意見"
+        },
+        sentence: {
+          en: "Every student in the class has a different idea.",
+          cn: "班上的每個學生都有不同的想法。"
+        },
+        icon: "fa-shapes",
+        badge: "獨一無二",
+        themeTag: "比較對比",
+        tip: "💡 每個人都有 different (不同的) 想法與特色，互相包容尊重最重要！"
+      },
+      {
+        word: "easy",
+        posChinese: "容易的 adj.",
+        category: "形容詞",
+        collocation: {
+          en: "easy question",
+          cn: "簡單的問題",
+          extraEn: "take it easy",
+          extraCn: "放輕鬆"
+        },
+        sentence: {
+          en: "This math problem is easy for her to solve.",
+          cn: "這道數學題對她來說很容易解答。"
+        },
+        icon: "fa-circle-check",
+        badge: "輕鬆搞定",
+        themeTag: "難易程度",
+        tip: "💡 題目簡單叫 easy，讀懂單字後考試題題都是 easy 喔！"
+      },
+      {
+        word: "excited",
+        posChinese: "感到興奮的 adj.",
+        category: "形容詞",
+        collocation: {
+          en: "excited crowd",
+          cn: "興奮的人群",
+          extraEn: "excited about the trip",
+          extraCn: "對旅行感到興奮"
+        },
+        sentence: {
+          en: "The kids were excited when they heard about the beach trip.",
+          cn: "孩子們聽到去海灘旅行時感到非常興奮。"
+        },
+        icon: "fa-face-laugh-beam",
+        badge: "歡呼雀躍",
+        themeTag: "開心情緒",
+        tip: "💡 人(主詞)「感到興奮」用 excited，要去遠足戶外教學大家都很 excited！"
+      },
+      {
+        word: "exciting",
+        posChinese: "令人興奮的 adj.",
+        category: "形容詞",
+        collocation: {
+          en: "exciting game",
+          cn: "刺激的比賽",
+          extraEn: "exciting news",
+          extraCn: "令人興奮的消息"
+        },
+        sentence: {
+          en: "It was an exciting basketball match between the two teams.",
+          cn: "這是兩隊之間一場令人興奮的籃球比賽。"
+        },
+        icon: "fa-trophy",
+        badge: "精彩刺激",
+        themeTag: "事物魅力",
+        tip: "💡 事物「令人興奮」用 exciting，一場精彩絕倫的籃球賽真 exciting！"
+      },
+      {
+        word: "favorite",
+        posChinese: "最喜歡的 adj.",
+        category: "形容詞",
+        collocation: {
+          en: "favorite color",
+          cn: "最喜歡的顏色",
+          extraEn: "favorite song",
+          extraCn: "最喜歡的歌曲"
+        },
+        sentence: {
+          en: "Pizza is my favorite food for dinner.",
+          cn: "披薩是我晚餐最喜歡的食物。"
+        },
+        icon: "fa-heart",
+        badge: "心中最愛",
+        themeTag: "個人喜好",
+        tip: "💡 favorite 是心中「最喜歡的」，像披薩就是很多人最愛的 favorite 晚餐！"
+      },
+      {
+        word: "full",
+        posChinese: "滿的/飽的 adj.",
+        category: "形容詞",
+        collocation: {
+          en: "full moon",
+          cn: "滿月",
+          extraEn: "feel full",
+          extraCn: "感到吃飽了"
+        },
+        sentence: {
+          en: "I am full after eating two large bowls of rice.",
+          cn: "吃了兩大碗飯後我飽了。"
+        },
+        icon: "fa-drumstick-bite",
+        badge: "肚子飽飽",
+        themeTag: "充實狀態",
+        tip: "💡 吃了兩碗滿滿大碗飯肚子很 full，天上的月亮圓圓的也是 full moon！"
+      }
+    ];
+
+    /* Presentation state variables */
+    let currentSlide = 0; // 0 = Cover, 1..20 = Vocabulary
+    const totalSlides = VOCAB_DATA.length + 1; // 21 slides in total
+    let autoSpeakEnabled = true;
+    let isSpeaking = false;
+  </script>
+
+  <script>
+    /* Initialize slide jump dropdown options */
+    function initSelectorOptions() {
+      const selector = document.getElementById('slide-selector');
+      selector.innerHTML = '';
+
+      // Cover option
+      const coverOpt = document.createElement('option');
+      coverOpt.value = '0';
+      coverOpt.textContent = '封面：2026 一起背單字';
+      selector.appendChild(coverOpt);
+
+      // Word options
+      VOCAB_DATA.forEach((item, idx) => {
+        const opt = document.createElement('option');
+        const num = String(idx + 1).padStart(2, '0');
+        opt.value = String(idx + 1);
+        opt.textContent = `${num}. ${item.word}`;
+        selector.appendChild(opt);
+      });
+    }
+
+    /* Render current active slide */
+    function renderSlide() {
+      const container = document.getElementById('slide-content-host');
+      const progressBar = document.getElementById('progress-bar-fill');
+      const selector = document.getElementById('slide-selector');
+      const indicator = document.getElementById('slide-indicator');
+
+      // Update progress bar
+      const progressPercent = (currentSlide / (totalSlides - 1)) * 100;
+      progressBar.style.width = `${progressPercent}%`;
+
+      // Update dropdown selector
+      selector.value = String(currentSlide);
+
+      if (currentSlide === 0) {
+        indicator.textContent = '封面';
+        container.innerHTML = renderCoverSlide();
+      } else {
+        const item = VOCAB_DATA[currentSlide - 1];
+        const numStr = String(currentSlide).padStart(2, '0');
+        const totalStr = String(VOCAB_DATA.length).padStart(2, '0');
+        indicator.textContent = `${numStr} / ${totalStr}`;
+        container.innerHTML = renderWordSlide(item, numStr, totalStr);
+      }
+
+      // If auto-speak enabled & not cover slide, pronounce the word
+      if (autoSpeakEnabled && currentSlide > 0) {
+        const currentItem = VOCAB_DATA[currentSlide - 1];
+        setTimeout(() => {
+          speakText(currentItem.word, 'word');
+        }, 180);
+      }
+    }
+
+    /* Render Cover slide */
+    function renderCoverSlide() {
+      const tagPills = WEEK_TAGS.map(tag => `
+        <span class="px-5 py-2.5 rounded-full bg-amber-100 text-amber-900 border-2 border-amber-300 font-bold text-lg md:text-xl shadow-pill-3d tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-star text-amber-500 text-sm"></i> ${tag}
+        </span>
+      `).join('');
+
+      return `
+        <div class="slide-container slide-enter w-full h-full flex flex-col justify-between p-8 md:p-12 relative">
+          <!-- Top decorative badge row -->
+          <div class="flex justify-between items-center z-10">
+            <span class="bg-amber-400 text-amber-950 font-black px-4 py-1.5 rounded-2xl text-base md:text-lg tracking-wider shadow-sm flex items-center gap-2 border border-amber-500">
+              <i class="fa-solid fa-graduation-cap"></i> 國小美語專欄
+            </span>
+            <div class="text-amber-500 text-2xl flex gap-2">
+              <i class="fa-solid fa-star animate-bounce"></i>
+              <i class="fa-solid fa-sparkles"></i>
+            </div>
+          </div>
+
+          <!-- Main center hero content -->
+          <div class="flex flex-col items-center justify-center text-center my-auto z-10">
+            <!-- Cute Mascot Floating Icon -->
+            <div class="w-24 h-24 md:w-32 md:h-32 bg-gradient-to-tr from-amber-400 to-orange-400 rounded-full flex items-center justify-center text-white text-5xl md:text-6xl shadow-cute-3d mb-6 animate-floaty border-4 border-white">
+              <i class="fa-solid fa-book-open-reader"></i>
+            </div>
+
+            <!-- Big Title -->
+            <h1 class="text-4xl md:text-6xl lg:text-7xl font-black text-slate-800 tracking-tight mb-4 drop-shadow-sm font-fredoka">
+              2026 一起背單字 <span class="text-warmOrange">(國小組)</span>
+            </h1>
+
+            <!-- Subtitle strictly following user format -->
+            <div class="inline-block bg-orange-100 border-2 border-orange-400 text-orange-800 font-black px-6 py-2 rounded-2xl text-2xl md:text-3xl mb-8 shadow-sm font-fredoka">
+              [W07]2026/10/13~10/20
+            </div>
+
+            <!-- Pure category capsules -->
+            <div class="flex flex-wrap justify-center items-center gap-3 md:gap-4 max-w-4xl">
+              ${tagPills}
+            </div>
+          </div>
+
+          <!-- Bottom Action Prompt -->
+          <div class="flex justify-center items-center z-10">
+            <button onclick="goToNextSlide()" class="bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-slate-900 font-black text-xl md:text-2xl px-8 py-3.5 rounded-3xl shadow-btn-3d flex items-center gap-3 transition transform active:scale-95 border-2 border-amber-500">
+              <span>開始翻卡學習</span>
+              <i class="fa-solid fa-circle-arrow-right text-2xl"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    /* Render Word slide */
+    function renderWordSlide(item, numStr, totalStr) {
+      return `
+        <div class="slide-container slide-enter w-full h-full flex flex-col justify-between p-6 md:p-8">
+          <!-- Top Row: Category Tag & Slide Counter (Strictly 20px) -->
+          <div class="flex justify-between items-center mb-2">
+            <span class="bg-amber-100 text-amber-900 border-2 border-amber-400 font-bold px-4 py-1.5 rounded-2xl shadow-sm flex items-center gap-2" style="font-size: 20px;">
+              <i class="fa-solid fa-tag text-amber-600"></i> ${item.category}
+            </span>
+            <span class="font-black tracking-widest text-slate-600 bg-slate-100 px-4 py-1.5 rounded-2xl border border-slate-300" style="font-size: 20px;">
+              ${numStr} / ${totalStr}
+            </span>
+          </div>
+
+          <!-- Main 2-Column Content -->
+          <div class="flex-1 flex flex-col md:flex-row gap-6 md:gap-8 items-stretch justify-center my-auto">
+            
+            <!-- Left Column: Word, Collocation & Sentence -->
+            <div class="flex-1 flex flex-col justify-between space-y-4">
+              
+              <!-- Word Header Row -->
+              <div class="flex flex-wrap items-center gap-4">
+                <h2 class="font-black tracking-tight text-warmOrange font-fredoka flex items-center gap-4" style="font-size: 64px; line-height: 1;">
+                  ${item.word}
+                </h2>
+                <!-- Pronounce Button -->
+                <button onclick="speakText('${item.word}', 'word')" title="發音" class="w-14 h-14 rounded-full bg-amber-100 hover:bg-amber-200 border-2 border-amber-400 text-warmOrange flex items-center justify-center text-2xl shadow-md transition transform active:scale-90 flex-shrink-0">
+                  <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <!-- Part of Speech & Chinese Capsule (26px) -->
+                <div class="bg-softBlue text-skyBlue border-2 border-sky-400 font-bold px-5 py-2 rounded-full shadow-sm" style="font-size: 26px;">
+                  ${item.posChinese}
+                </div>
+              </div>
+
+              <!-- Card 1: Common Collocations -->
+              <div class="bg-amber-50/70 border-2 border-amber-300 rounded-3xl p-4 md:p-5 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center gap-2 font-bold text-amber-900 mb-2" style="font-size: 24px;">
+                  <i class="fa-solid fa-puzzle-piece text-amber-600"></i>
+                  <span>常用搭配詞</span>
+                </div>
+                <div class="text-slate-800 space-y-2" style="font-size: 23px; line-height: 1.4;">
+                  <div class="flex items-baseline gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block flex-shrink-0"></span>
+                    <span class="font-semibold font-fredoka text-slate-900">${item.collocation.en}</span>
+                    <span class="text-slate-600 font-normal">(${item.collocation.cn})</span>
+                  </div>
+                  ${item.collocation.extraEn ? `
+                  <div class="flex items-baseline gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block flex-shrink-0"></span>
+                    <span class="font-semibold font-fredoka text-slate-900">${item.collocation.extraEn}</span>
+                    <span class="text-slate-600 font-normal">(${item.collocation.extraCn})</span>
+                  </div>
+                  ` : ''}
+                </div>
+              </div>
+
+              <!-- Card 2: Practical Example Sentence -->
+              <div class="bg-orange-50/70 border-2 border-orange-300 rounded-3xl p-4 md:p-5 shadow-sm hover:shadow-md transition">
+                <div class="flex justify-between items-center mb-2">
+                  <div class="flex items-center gap-2 font-bold text-orange-950" style="font-size: 24px;">
+                    <i class="fa-solid fa-comment-dots text-orange-600"></i>
+                    <span>實用例句</span>
+                  </div>
+                  <!-- Dedicated Sentence Pronunciation Button -->
+                  <button onclick="speakText(\`${item.sentence.en.replace(/'/g, "\\'")}\`, 'sentence')" title="聆聽完整例句" class="px-3.5 py-1 rounded-xl bg-orange-200 hover:bg-orange-300 text-orange-900 text-sm font-bold flex items-center gap-1.5 transition active:scale-95 border border-orange-400">
+                    <i class="fa-solid fa-volume-low"></i> 聽例句
+                  </button>
+                </div>
+                <div class="space-y-1.5">
+                  <p class="font-fredoka text-slate-900 font-medium tracking-wide" style="font-size: 25px; line-height: 1.35;">
+                    ${item.sentence.en}
+                  </p>
+                  <p class="text-slate-600 font-normal" style="font-size: 23px; line-height: 1.35;">
+                    ${item.sentence.cn}
+                  </p>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Right Column: Fun Association Panel (Desktop fixed 440px width x 500px height) -->
+            <div class="w-full md:w-[440px] md:h-[500px] flex-shrink-0 bg-gradient-to-b from-amber-50 via-white to-orange-50 border-4 border-amber-300 rounded-3xl p-6 flex flex-col justify-between items-center text-center shadow-cute-3d">
+              
+              <!-- Top Badges (20px) -->
+              <div class="w-full flex justify-between items-center" style="font-size: 20px;">
+                <span class="bg-amber-400 text-amber-950 font-black px-4 py-1 rounded-full shadow-sm flex items-center gap-1.5 border border-amber-500">
+                  <i class="fa-solid fa-lightbulb"></i> 趣味聯想
+                </span>
+                <span class="bg-orange-100 text-orange-800 font-bold px-3.5 py-1 rounded-full border border-orange-300">
+                  # ${item.themeTag}
+                </span>
+              </div>
+
+              <!-- Center Cute Big Icon -->
+              <div class="my-auto py-4 flex flex-col items-center justify-center">
+                <div class="w-36 h-36 md:w-40 md:h-40 rounded-3xl bg-gradient-to-tr from-amber-300 to-orange-400 text-white flex items-center justify-center text-7xl md:text-8xl shadow-lg animate-floaty border-4 border-white">
+                  <i class="fa-solid ${item.icon}"></i>
+                </div>
+                <div class="mt-3 px-4 py-1 bg-amber-200/80 text-amber-900 font-black rounded-xl text-base tracking-wider">
+                  ${item.badge}
+                </div>
+              </div>
+
+              <!-- Bottom Mascot Tip (Strictly 24px on desktop, 20px on mobile) -->
+              <div class="w-full bg-white border-2 border-amber-300 rounded-2xl p-4 shadow-sm">
+                <p class="text-amber-950 font-medium tracking-wide text-[20px] md:text-[24px] leading-relaxed">
+                  ${item.tip}
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      `;
+    }
+  </script>
+
+  <script>
+    /* Responsive stage scaling algorithm */
+    function fitPresentationStage() {
+      const stage = document.getElementById('presentation-stage');
+      const viewport = document.getElementById('presentation-viewport');
+      if (!stage || !viewport) return;
+
+      const viewportWidth = viewport.clientWidth;
+      const viewportHeight = viewport.clientHeight;
+
+      // Mobile check: width < 768px -> release fixed scale, switch to fluid RWD
+      if (window.innerWidth < 768) {
+        stage.style.transform = 'none';
+        stage.style.width = '100%';
+        stage.style.height = 'auto';
+        return;
+      }
+
+      // Desktop / Landscape: 1200 x 675 (16:9)
+      const baseWidth = 1200;
+      const baseHeight = 675;
+
+      stage.style.width = `${baseWidth}px`;
+      stage.style.height = `${baseHeight}px`;
+
+      // Allow 24px margin
+      const padding = 24;
+      const availableW = viewportWidth - padding;
+      const availableH = viewportHeight - padding;
+
+      const scaleX = availableW / baseWidth;
+      const scaleY = availableH / baseHeight;
+      const scale = Math.min(scaleX, scaleY, 1.25);
+
+      stage.style.transform = `scale(${scale})`;
+    }
+
+    window.addEventListener('resize', fitPresentationStage);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(fitPresentationStage, 200);
+    });
+  </script>
+
+  <script>
+    let voices = [];
+
+    function loadVoices() {
+      if ('speechSynthesis' in window) {
+        voices = window.speechSynthesis.getVoices();
+      }
+    }
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+      loadVoices();
+    }
+
+    /* Pronounce text with word correction table */
+    function speakText(rawText, type = 'word') {
+      if (!('speechSynthesis' in window)) {
+        return;
+      }
+
+      window.speechSynthesis.cancel(); // Stop any pending speech
+
+      let cleaned = rawText.trim();
+
+      // Apply correction table if exact or starting match
+      if (SPEECH_CORRECTIONS[cleaned]) {
+        cleaned = SPEECH_CORRECTIONS[cleaned];
+      } else {
+        // Replace punctuation words if in sentences
+        Object.keys(SPEECH_CORRECTIONS).forEach(key => {
+          const regex = new RegExp(`\\b${key}\\b`, 'g');
+          cleaned = cleaned.replace(regex, SPEECH_CORRECTIONS[key]);
+        });
+      }
+
+      const utterance = new SpeechSynthesisUtterance(cleaned);
+      utterance.lang = 'en-US';
+
+      // Pick preferred English natural voice
+      if (voices.length === 0) loadVoices();
+      const preferredVoice = voices.find(v => (v.lang === 'en-US' || v.lang.startsWith('en')) && (v.name.includes('Samantha') || v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Jenny')));
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+
+      // Slightly slower speech rate for elementary students
+      utterance.rate = type === 'word' ? 0.85 : 0.9;
+      utterance.pitch = 1.05;
+
+      const speakBtn = document.getElementById('btn-speak-word');
+      utterance.onstart = () => {
+        isSpeaking = true;
+        if (speakBtn) speakBtn.classList.add('speaking-pulse');
+      };
+      utterance.onend = () => {
+        isSpeaking = false;
+        if (speakBtn) speakBtn.classList.remove('speaking-pulse');
+      };
+      utterance.onerror = () => {
+        isSpeaking = false;
+        if (speakBtn) speakBtn.classList.remove('speaking-pulse');
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function speakCurrentWord() {
+      if (currentSlide === 0) {
+        speakText("Welcome to English vocabulary class!");
+      } else {
+        const item = VOCAB_DATA[currentSlide - 1];
+        speakText(item.word, 'word');
+      }
+    }
+
+    function toggleAutoSpeech() {
+      autoSpeakEnabled = !autoSpeakEnabled;
+      const icon = document.getElementById('auto-speak-icon');
+      const text = document.getElementById('auto-speak-text');
+      const btn = document.getElementById('btn-toggle-auto');
+
+      if (autoSpeakEnabled) {
+        icon.className = 'fa-solid fa-toggle-on text-emerald-600 text-base';
+        text.textContent = '自動發音: 開';
+        btn.classList.remove('border-slate-300', 'bg-slate-50', 'text-slate-600');
+        btn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-800');
+        speakCurrentWord();
+      } else {
+        icon.className = 'fa-solid fa-toggle-off text-slate-400 text-base';
+        text.textContent = '自動發音: 關';
+        btn.classList.remove('border-emerald-500', 'bg-emerald-50', 'text-emerald-800');
+        btn.classList.add('border-slate-300', 'bg-slate-50', 'text-slate-600');
+      }
+    }
+  </script>
+
+  <script>
+    function goToSlide(index) {
+      if (index < 0) index = 0;
+      if (index >= totalSlides) index = totalSlides - 1;
+      currentSlide = index;
+      renderSlide();
+    }
+
+    function goToNextSlide() {
+      if (currentSlide < totalSlides - 1) {
+        goToSlide(currentSlide + 1);
+      } else {
+        goToSlide(0);
+      }
+    }
+
+    function goToPrevSlide() {
+      if (currentSlide > 0) {
+        goToSlide(currentSlide - 1);
+      }
+    }
+
+    function onSelectorChange(val) {
+      goToSlide(parseInt(val, 10));
+    }
+
+    /* Keyboard navigation: Left, Right, Spacebar, F, S */
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
+
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        goToNextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        goToPrevSlide();
+      } else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleFullscreen();
+      } else if (e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        speakCurrentWord();
+      }
+    });
+
+    /* Touch swipe gesture for tablet & mobile */
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+
+    window.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      touchEndY = e.changedTouches[0].screenY;
+      handleSwipeGesture();
+    }, { passive: true });
+
+    function handleSwipeGesture() {
+      const diffX = touchEndX - touchStartX;
+      const diffY = touchEndY - touchStartY;
+      const threshold = 55;
+
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > threshold) {
+        if (diffX < 0) {
+          goToNextSlide();
+        } else {
+          goToPrevSlide();
+        }
+      }
+    }
+
+    /* Fullscreen API Handling */
+    function toggleFullscreen() {
+      const icon = document.getElementById('fullscreen-icon');
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().then(() => {
+          if (icon) icon.className = 'fa-solid fa-compress';
+        }).catch(err => {
+          console.warn('Fullscreen error:', err);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().then(() => {
+            if (icon) icon.className = 'fa-solid fa-expand';
+          });
+        }
+      }
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+      const icon = document.getElementById('fullscreen-icon');
+      if (!icon) return;
+      if (document.fullscreenElement) {
+        icon.className = 'fa-solid fa-compress';
+      } else {
+        icon.className = 'fa-solid fa-expand';
+      }
+      fitPresentationStage();
+    });
+
+    /* Initialize application on DOM ready */
+    window.addEventListener('DOMContentLoaded', () => {
+      initSelectorOptions();
+      renderSlide();
+      fitPresentationStage();
+    });
+  </script>
+</body>
+</html>
