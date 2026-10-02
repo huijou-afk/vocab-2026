@@ -92,10 +92,20 @@ class AppAPI:
 
         self.active_track = cfg.get("active_track", "junior")
 
+        tracks_info = {}
+        for tid, tinfo in cfg.get("tracks", {}).items():
+            if isinstance(tinfo, dict):
+                tracks_info[tid] = {
+                    "id": tinfo.get("id", tid),
+                    "name": tinfo.get("name", tid),
+                    "gemini_url": tinfo.get("gemini_url", ""),
+                    "badge": tinfo.get("badge", "")
+                }
+
         return {
             "version": get_app_version(),
             "active_track": self.active_track,
-            "tracks": cfg.get("tracks", {}),
+            "tracks": tracks_info,
             "words_data": words_data,
             "remote_url": remote_url,
             "has_remote": bool(remote_url)
@@ -234,7 +244,8 @@ class AppAPI:
             cfg["tracks"][track_id] = {}
 
         cfg["tracks"][track_id]["gemini_url"] = gemini_url.strip()
-        cfg["tracks"][track_id]["prompt_template"] = prompt_template.strip()
+        if prompt_template and prompt_template.strip():
+            cfg["tracks"][track_id]["prompt_template"] = prompt_template.strip()
 
         with open(CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(cfg, f, ensure_ascii=False, indent=2)
