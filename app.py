@@ -382,6 +382,16 @@ class AppAPI:
         fn = self.pending_filename
         return self.start_generation(track, words, fn)
 
+    def cancel_pending_upload(self):
+        """取消待上傳狀態並強制結束流程（保留本地生成的投影片，不上傳 GitHub）"""
+        target_name = self.pending_file.name if self.pending_file else "投影片"
+        self.pending_file = None
+        if self.window:
+            self.window.evaluate_js("window.setPendingConfirmState(false)")
+        self._status_js("已強制結束（保留本地，未上傳 GitHub）", 1.0)
+        self._log_js(f"🛑 已強制結束流程：已保留本地 {target_name}，未上傳至 GitHub。")
+        return {"status": "ok"}
+
     def preview_latest(self):
         """開啟最近生成的 HTML 檔進行預覽"""
         target = self.latest_html_file
@@ -879,13 +889,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               <span id="pendingFilenameText" style="color: #38bdf8; font-family: monospace;">--</span>
             </div>
           </div>
-          <div style="font-size: 0.78rem; color: #cbd5e1;">請在瀏覽器中確認排版無誤。確定無誤請點【確定上傳 GitHub】，不滿意請點【重新生成】。</div>
-          <div style="display: flex; gap: 8px;">
+          <div style="font-size: 0.78rem; color: #cbd5e1;">請在瀏覽器中確認排版無誤。不需上傳請點【強制結束 (不上傳)】，確定無誤請點【確定上傳 GitHub】。</div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <button class="btn btn-secondary" onclick="onPreviewLatest()" style="padding: 6px 10px; font-size: 0.78rem;">
               🌐 再次開啟預覽
             </button>
             <button class="btn btn-warning" onclick="onRegenerate()" style="padding: 6px 10px; font-size: 0.78rem; font-weight: 700;">
               🔄 重新生成
+            </button>
+            <button class="btn btn-danger" onclick="onCancelPendingUpload()" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 700;">
+              🛑 強制結束 (不上傳)
             </button>
             <button class="btn btn-success" onclick="onConfirmUpload()" style="padding: 6px 14px; font-size: 0.82rem; font-weight: 700; flex: 1;">
               ☁️ 確定上傳 GitHub
@@ -1131,6 +1144,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     function onConfirmUpload() {
       if (window.pywebview) {
         window.pywebview.api.confirm_upload_github();
+      }
+    }
+
+    function onCancelPendingUpload() {
+      if (confirm("確定要強制結束作業且不上傳 GitHub 嗎？\n（本地已產生的投影片檔案將予以保留）")) {
+        if (window.pywebview) {
+          window.pywebview.api.cancel_pending_upload();
+        }
       }
     }
 
