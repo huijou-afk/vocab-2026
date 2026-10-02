@@ -10,6 +10,7 @@ from datetime import datetime
 import webview
 from gemini_automator import GeminiAutomator
 from git_handler import GitHandler
+import slide_builder
 
 BASE_DIR = Path(os.environ.get("VOCAB_PROJECT_DIR", Path(__file__).parent.resolve()))
 CONFIG_FILE = BASE_DIR / "config.json"
@@ -264,59 +265,37 @@ class AppAPI:
                     log_callback=self._log_js
                 )
 
-                self._log_js(f"🎯 啟動「{track_name}」單字投影片生成流程...")
+                self._log_js(f"🎯 啟動「{track_name}」單字 AI 創意欄位提取流程...")
                 self._log_js(f"📁 目標資料夾: {target_folder}/ | 目標 Gemini 網址: {gemini_url}")
 
-                prompt = prompt_template.replace("{words}", words.strip())
-
-                # 提取當天具體日期 (如 2026/09/22, 09/22) 與當天目標英文單字作為防抓錯視窗/舊日期的校驗關鍵字
-                date_keywords = []
-                date_match = re.search(r'(\d{4}/\d{1,2}/\d{1,2})', words)
-                if date_match:
-                    full_date = date_match.group(1) # e.g. 2026/09/22
-                    date_keywords.append(full_date)
-                    parts = full_date.split("/")
-                    if len(parts) == 3:
-                        m_str, d_str = parts[1], parts[2]
-                        date_keywords.append(f"{m_str}/{d_str}")
-                        date_keywords.append(f"{int(m_str)}/{int(d_str)}")
-
-                w_match = re.search(r'\[?(W\d+)\]?', words, re.IGNORECASE)
-                if w_match:
-                    tag = w_match.group(1).upper()
-                    date_keywords.append(f"[{tag}]")
-                    date_keywords.append(tag)
-
-                vocab_keywords = []
-                for line in words.strip().splitlines():
-                    line = line.strip()
-                    if not line or line.startswith("日期") or line.startswith("單字清單"):
-                        continue
-                    parts = re.split(r'[\t,]', line)
-                    if parts and parts[0].strip():
-                        w = parts[0].strip()
-                        if re.match(r'^[a-zA-Z\s\-]+$', w) and len(w) > 1:
-                            vocab_keywords.append(w)
-                    if len(vocab_keywords) >= 10:
-                        break
+                lightweight_prompt, week_title, parsed_words = slide_builder.build_lightweight_prompt(track_id, words)
 
                 expected_keywords = {
-                    "date_keywords": date_keywords,
-                    "vocab_keywords": vocab_keywords
+                    "vocab_keywords": [p["word"] for p in parsed_words[:5]]
                 }
 
-                html = automator.generate_html(
-                    prompt,
+                raw_response = automator.generate_html(
+                    lightweight_prompt,
                     target_url=gemini_url,
                     headless=False,
+                    timeout_seconds=90,
                     expected_keywords=expected_keywords
                 )
-                if not html:
-                    self._status_js("生成失敗或未能擷取 HTML", 0.0)
-                    self._log_js("❌ 未能成功取得符合規格的投影片內容。")
+                if not raw_response:
+                    self._status_js("提取失敗或未能擷取 Gemini 回應", 0.0)
+                    self._log_js("❌ 未能成功取得 Gemini 的 AI 創意欄位。")
                     return
 
-                self._log_js(f"🎉 成功擷取 HTML 投影片！總長度 {len(html)} 字元。")
+                self._log_js("🎉 成功取得 Gemini AI 創意欄位！正在由本機組裝 100% 精準的 HTML 投影片...")
+
+                html = slide_builder.assemble_html(
+                    track_id=track_id,
+                    week_title=week_title,
+                    parsed_words=parsed_words,
+                    enrichment_json_str=raw_response
+                )
+
+                self._log_js(f"🎉 成功組裝 HTML 投影片！總長度 {len(html)} 字元。")
                 filename = custom_filename.strip() if custom_filename else None
                 saved_file = git.save_html(html, filename=filename, folder=target_folder)
                 self.latest_html_file = saved_file

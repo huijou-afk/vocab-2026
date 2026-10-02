@@ -515,41 +515,53 @@ end tell
             pass
 
     def _validate_candidate_html(self, code, expected_keywords):
-        """強校驗函數：驗證 HTML 是否有效且包含當天具體日期 (如 2026/09/22 或 09/22) 與當天單字"""
-        if not code or len(code) < 500:
-            return False, ""
-        low = code.lower()
-        if "<html" not in low and "<!doctype html>" not in low:
+        """強校驗函數：驗證 HTML 或 JSON 是否有效且包含指定關鍵字"""
+        if not code or len(code) < 30:
             return False, ""
 
-        if not expected_keywords:
-            return True, "無關鍵字限制"
+        clean_code = code.strip()
+        
+        # 1. 驗證 JSON 回應
+        if clean_code.startswith("{") or clean_code.startswith("["):
+            try:
+                import json
+                data = json.loads(clean_code)
+                if isinstance(data, dict) and ("enrichments" in data or "vocab_data" in data or "week_tags" in data):
+                    return True, "JSON AI 創意資料驗證通過"
+                if isinstance(data, list) and len(data) > 0:
+                    return True, "JSON 陣列驗證通過"
+            except Exception:
+                pass
 
-        if isinstance(expected_keywords, dict):
-            date_kws = expected_keywords.get("date_keywords", [])
-            vocab_kws = expected_keywords.get("vocab_keywords", [])
+        # 2. 驗證 HTML 回應
+        low = clean_code.lower()
+        if "<html" in low or "<!doctype html>" in low:
+            if not expected_keywords:
+                return True, "無關鍵字限制"
 
-            # 1. 強效日期校驗：若有具體月/日 (如 2026/09/22 或 09/22 或 9/22)，必須包含！
-            specific_dates = [kw for kw in date_kws if "/" in kw]
-            if specific_dates:
-                matched_specific = [kw for kw in specific_dates if kw.lower() in low]
-                if not matched_specific:
-                    return False, f"未包含當天具體日期 ({specific_dates[:2]})"
+            if isinstance(expected_keywords, dict):
+                date_kws = expected_keywords.get("date_keywords", [])
+                vocab_kws = expected_keywords.get("vocab_keywords", [])
 
-            # 2. 當天單字校驗
-            if vocab_kws:
-                matched_vocab = [kw for kw in vocab_kws if kw.lower() in low]
-                if not matched_vocab:
-                    return False, f"未包含當天單字 ({vocab_kws[:3]})"
-                return True, f"日期 [{', '.join(specific_dates[:2])}] 與單字 [{', '.join(matched_vocab[:3])}]"
+                specific_dates = [kw for kw in date_kws if "/" in kw]
+                if specific_dates:
+                    matched_specific = [kw for kw in specific_dates if kw.lower() in low]
+                    if not matched_specific:
+                        return False, f"未包含當天具體日期 ({specific_dates[:2]})"
 
-            return True, f"日期 [{', '.join(specific_dates[:2])}]"
+                if vocab_kws:
+                    matched_vocab = [kw for kw in vocab_kws if kw.lower() in low]
+                    if not matched_vocab:
+                        return False, f"未包含當天單字 ({vocab_kws[:3]})"
+                    return True, f"日期 [{', '.join(specific_dates[:2])}] 與單字 [{', '.join(matched_vocab[:3])}]"
 
-        # 舊版 list 格式相容
-        matched_kw = [kw for kw in expected_keywords if kw.lower() in low]
-        if matched_kw:
-            return True, f"關鍵字 [{', '.join(matched_kw[:3])}]"
-        return False, "未包含指定關鍵字"
+                return True, f"日期 [{', '.join(specific_dates[:2])}]"
+
+            matched_kw = [kw for kw in expected_keywords if kw.lower() in low]
+            if matched_kw:
+                return True, f"關鍵字 [{', '.join(matched_kw[:3])}]"
+
+        return False, "未包含指定內容"
 
     def _generate_via_applescript(self, prompt, target_url=None, timeout_seconds=300, expected_keywords=None):
         """利用 AppleScript 直連操控使用者畫面上已開啟的 Chrome 分頁，零新視窗！"""
@@ -615,8 +627,28 @@ end tell
     const results = [];
 
     function cleanSnippet(txt) {
-        if (!txt || txt.length < 300) return null;
+        if (!txt || txt.length < 30) return null;
         const low = txt.toLowerCase();
+
+        // 1. 優先檢查 JSON codeblock
+        const mJson = txt.match(/```(?:json)?\s*([\s\S]*?)(?:```|$)/i);
+        if (mJson && mJson[1]) {
+            const cleanJson = mJson[1].trim();
+            if (cleanJson.startsWith('{') || cleanJson.startsWith('[')) {
+                return cleanJson;
+            }
+        }
+
+        const idxBrace = txt.indexOf('{');
+        const idxEndBrace = txt.lastIndexOf('}');
+        if (idxBrace !== -1 && idxEndBrace > idxBrace) {
+            const cleanBrace = txt.substring(idxBrace, idxEndBrace + 1).trim();
+            if (cleanBrace.length > 50 && (cleanBrace.includes('enrichments') || cleanBrace.includes('week_tags') || cleanBrace.includes('word'))) {
+                return cleanBrace;
+            }
+        }
+
+        // 2. 檢查 HTML codeblock
         const idx = low.indexOf('<!doctype html');
         const idx2 = low.indexOf('<html');
         let startPos = -1;
@@ -629,15 +661,15 @@ end tell
             if (endIdx !== -1) {
                 clean = clean.substring(0, endIdx + 7);
             }
-            clean = clean.replace(/```\\s*$/, '').trim();
-            if (clean.length > 300) return clean;
+            clean = clean.replace(/```\s*$/, '').trim();
+            if (clean.length > 200) return clean;
         }
 
-        const m = txt.match(/```(?:html)?\\s*(<!DOCTYPE html[\\s\\S]*?)(?:```|$)/i) ||
-                  txt.match(/```(?:html)?\\s*(<html[\\s\\S]*?)(?:```|$)/i) ||
-                  txt.match(/(<!DOCTYPE html[\\s\\S]*?<\\/html>)/i) ||
-                  txt.match(/(<html[\\s\\S]*?<\\/html>)/i);
-        if (m && m[1] && m[1].length > 300) return m[1];
+        const m = txt.match(/```(?:html)?\s*(<!DOCTYPE html[\s\S]*?)(?:```|$)/i) ||
+                  txt.match(/```(?:html)?\s*(<html[\s\S]*?)(?:```|$)/i) ||
+                  txt.match(/(<!DOCTYPE html[\s\S]*?<\/html>)/i) ||
+                  txt.match(/(<html[\s\S]*?<\/html>)/i);
+        if (m && m[1] && m[1].length > 200) return m[1];
         return null;
     }
 
