@@ -129,6 +129,10 @@ class AppAPI:
         """啟動程式時自動執行的背景登入狀態檢測"""
         def _worker():
             try:
+                import asyncio
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+
                 cfg = {}
                 if CONFIG_FILE.exists():
                     with open(CONFIG_FILE, "r", encoding="utf-8") as f:
@@ -176,6 +180,10 @@ class AppAPI:
 
         def _worker():
             try:
+                import asyncio
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+
                 cfg = {}
                 if CONFIG_FILE.exists():
                     with open(CONFIG_FILE, "r", encoding="utf-8") as f:
@@ -1289,6 +1297,28 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </html>
 """
 
+def get_auto_filename_py(text, track_id="junior"):
+    if not text:
+        return ""
+    if track_id == "junior":
+        m = re.search(r'(?:日期[：:])?\s*\[?([Ww]\d{1,2})\]?\s*(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})(?:\(([\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u65e5])\))?', text)
+        if m:
+            week = m.group(1).lower()
+            year = m.group(2)
+            w_map = {'一':'d1', '二':'d2', '三':'d3', '四':'d4', '五':'d5', '六':'d6', '日':'d7'}
+            d_suffix = w_map.get(m.group(5), '') if m.group(5) else ''
+            if d_suffix:
+                return f"{year}_{week}{d_suffix}"
+            else:
+                return f"{year}_{week}_{m.group(3).zfill(2)}{m.group(4).zfill(2)}"
+    else:
+        m = re.search(r'(?:日期[：:])?\s*\[?([Ww]\d{1,2})\]?\s*(\d{4})', text)
+        if m:
+            w_num = re.sub(r'[Ww]', '', m.group(1)).zfill(2)
+            year = m.group(2)
+            return f"{year}_ew{w_num}"
+    return ""
+
 def main():
     api = AppAPI()
     ver = get_app_version()
@@ -1303,12 +1333,17 @@ def main():
 
     html_content = HTML_TEMPLATE.replace('id="appVersion">v1.0.0<', f'id="appVersion">v{ver}<')
     if sample_words:
-        # 避免 HTML 逸出字元衝突
         safe_sample = sample_words.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
         html_content = html_content.replace(
             '<textarea id="wordsInput" placeholder="在此貼入單字清單資料..."></textarea>',
             f'<textarea id="wordsInput" placeholder="在此貼入單字清單資料...">{safe_sample}</textarea>'
         )
+        auto_fn = get_auto_filename_py(sample_words, "junior")
+        if auto_fn:
+            html_content = html_content.replace(
+                '<input type="text" id="filenameInput" placeholder=',
+                f'<input type="text" id="filenameInput" value="{auto_fn}" placeholder='
+            )
 
     window = webview.create_window(
         title=f"單字投影片自動生成器 v{ver}",
