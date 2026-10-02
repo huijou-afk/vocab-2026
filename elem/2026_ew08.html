@@ -930,69 +930,104 @@
   </script>
 
   <script>
-    let voices = [];
+    let selectedPreferredVoice = null;
+    let availableVoices = [];
 
-    function loadVoices() {
-      if ('speechSynthesis' in window) {
-        voices = window.speechSynthesis.getVoices();
-      }
-    }
-
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.onvoiceschanged = loadVoices;
-      loadVoices();
-    }
-
-    /* Pronounce text with word correction table */
-    function speakText(rawText, type = 'word') {
-      if (!('speechSynthesis' in window)) {
-        return;
-      }
-
-      window.speechSynthesis.cancel(); // Stop any pending speech
-
-      let cleaned = rawText.trim();
-
-      // Apply correction table if exact or starting match
+    function applySpeechFixes(text) {
+      if (!text) return "";
+      let cleaned = text.trim();
       if (SPEECH_CORRECTIONS[cleaned]) {
         cleaned = SPEECH_CORRECTIONS[cleaned];
       } else {
-        // Replace punctuation words if in sentences
         Object.keys(SPEECH_CORRECTIONS).forEach(key => {
           const regex = new RegExp(`\\b${key}\\b`, 'g');
           cleaned = cleaned.replace(regex, SPEECH_CORRECTIONS[key]);
         });
       }
+      return cleaned;
+    }
 
-      const utterance = new SpeechSynthesisUtterance(cleaned);
-      utterance.lang = 'en-US';
+    function initVoices() {
+      if (!('speechSynthesis' in window)) return;
+      availableVoices = window.speechSynthesis.getVoices();
+      if (!availableVoices || availableVoices.length === 0) return;
 
-      // Pick preferred English natural voice
-      if (voices.length === 0) loadVoices();
-      const preferredVoice = voices.find(v => (v.lang === 'en-US' || v.lang.startsWith('en')) && (v.name.includes('Samantha') || v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Jenny')));
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
+      // 1. 優先尋找 iOS 的 Samantha / Ava 高品質版本（Enhanced 或 Premium）
+      const enhancedAppleVoice = availableVoices.find(v => 
+        v.lang.startsWith("en") && 
+        (v.name.toLowerCase().includes("samantha") || v.name.toLowerCase().includes("ava")) &&
+        (v.name.toLowerCase().includes("enhanced") || v.name.toLowerCase().includes("premium"))
+      );
+
+      // 2. 尋找 Google US English
+      const googleVoice = availableVoices.find(v => 
+        v.name.includes("Google") && (v.name.includes("US English") || v.lang === "en-US")
+      );
+
+      // 3. 尋找一般 Samantha / Ava（避開 Compact 機械音）
+      const normalAppleVoice = availableVoices.find(v => 
+        v.lang.startsWith("en") && 
+        (v.name.toLowerCase().includes("samantha") || v.name.toLowerCase().includes("ava")) &&
+        !v.name.toLowerCase().includes("compact")
+      );
+
+      // 4. 次選其他 en-US 語音
+      const anyUSVoice = availableVoices.find(v => v.lang === "en-US");
+
+      // 判定最終採用的語音
+      selectedPreferredVoice = enhancedAppleVoice || googleVoice || normalAppleVoice || anyUSVoice || availableVoices[0] || null;
+      if (selectedPreferredVoice) {
+        console.log("當前使用的語音：", selectedPreferredVoice.name);
       }
+    }
 
-      // Slightly slower speech rate for elementary students
-      utterance.rate = type === 'word' ? 0.85 : 0.9;
-      utterance.pitch = 1.05;
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = initVoices;
+      initVoices();
+    }
 
-      const speakBtn = document.getElementById('btn-speak-word');
-      utterance.onstart = () => {
-        isSpeaking = true;
-        if (speakBtn) speakBtn.classList.add('speaking-pulse');
-      };
-      utterance.onend = () => {
-        isSpeaking = false;
-        if (speakBtn) speakBtn.classList.remove('speaking-pulse');
-      };
-      utterance.onerror = () => {
-        isSpeaking = false;
-        if (speakBtn) speakBtn.classList.remove('speaking-pulse');
-      };
+    /* Pronounce text with word correction table */
+    function speakText(rawText, type = 'word') {
+      return new Promise((resolve) => {
+        if (!('speechSynthesis' in window)) {
+          resolve();
+          return;
+        }
 
-      window.speechSynthesis.speak(utterance);
+        window.speechSynthesis.cancel(); // Stop any pending speech
+
+        const cleanText = applySpeechFixes(rawText);
+        if (!cleanText) {
+          resolve();
+          return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        if (!selectedPreferredVoice && availableVoices.length === 0) initVoices();
+        if (selectedPreferredVoice) {
+          utterance.voice = selectedPreferredVoice;
+        }
+        utterance.lang = 'en-US';
+        utterance.rate = type === 'word' ? 0.85 : 0.92;
+
+        const speakBtn = document.getElementById('btn-speak-word');
+        utterance.onstart = () => {
+          isSpeaking = true;
+          if (speakBtn) speakBtn.classList.add('speaking-pulse');
+        };
+        utterance.onend = () => {
+          isSpeaking = false;
+          if (speakBtn) speakBtn.classList.remove('speaking-pulse');
+          resolve();
+        };
+        utterance.onerror = () => {
+          isSpeaking = false;
+          if (speakBtn) speakBtn.classList.remove('speaking-pulse');
+          resolve();
+        };
+
+        window.speechSynthesis.speak(utterance);
+      });
     }
 
     function speakCurrentWord() {
