@@ -1204,7 +1204,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     function onCancelPendingUpload() {
-      if (confirm("確定要強制結束作業且不上傳 GitHub 嗎？\n（本地已產生的投影片檔案將予以保留）")) {
+      if (confirm(`確定要強制結束作業且不上傳 GitHub 嗎？\n（本地已產生的投影片檔案將予以保留）`)) {
         if (window.pywebview) {
           window.pywebview.api.cancel_pending_upload();
         }
