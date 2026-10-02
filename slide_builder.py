@@ -10,12 +10,14 @@ def parse_input_words(raw_text):
     解析使用者輸入的文字檔 (Tab/多空格分隔)，精準提取：
     - week_title (如 [W07]2026/10/13~10/20)
     - parsed_words_list (包含 word, posChinese, collocation, sentence, category)
+    同時自動過濾「欄位標題列」(如 單字\t中文\t搭配詞\t例句)
     """
     lines = [l.strip() for l in raw_text.strip().splitlines() if l.strip()]
     week_title = "[W01]"
     parsed_words = []
 
     for line in lines:
+        # 1. Date / Week Header Line
         if line.startswith("[") or "2026" in line or "日期" in line:
             m = re.search(r'(\[?W\d+\]?.*?\d{4}/\d{1,2}/\d{1,2}~\d{1,2}/\d{1,2})', line)
             if m:
@@ -24,14 +26,23 @@ def parse_input_words(raw_text):
                 week_title = line
             continue
 
-        if line.startswith("單字清單") or line.startswith("word\t"):
-            continue
-
+        # 2. Split line by Tab or multiple spaces
         parts = line.split("\t")
         if len(parts) < 2:
             parts = [p.strip() for p in re.split(r'\s{2,}', line) if p.strip()]
 
         if not parts or len(parts) < 2:
+            continue
+
+        col0 = parts[0].strip().lower()
+        col1 = parts[1].strip().lower()
+
+        # 3. 強效過濾表格欄位標題列
+        header_keywords_col0 = ["單字", "word", "words", "vocab", "vocabulary", "單字名稱", "目標單字"]
+        header_keywords_col1 = ["中文", "詞性", "中文/詞性", "meaning", "chinese", "pos", "詞性與中文", "中文對應", "詞性標籤"]
+        
+        if col0 in header_keywords_col0 or col1 in header_keywords_col1 or "單字清單" in line or "欄位標題" in line:
+            print(f"ℹ️ 自動跳過表格欄位標題列: '{line}'")
             continue
 
         word = parts[0].strip()
@@ -63,9 +74,14 @@ def parse_collocation(col_str):
     res = {"en": "", "cn": "", "extraEn": "", "extraCn": ""}
 
     def parse_single(s):
+        # 格式1: "hot weather (熱天氣)" 或 "hot weather （熱天氣）"
         m = re.search(r'^(.*?)\s*[\(（](.*?)[\)）]\s*$', s)
         if m:
             return m.group(1).strip(), m.group(2).strip()
+        # 格式2: "hot weather 熱天氣"
+        m2 = re.search(r'^([a-zA-Z\s\-]+)\s+([\u4e00-\u9fa5]+.*?)$', s)
+        if m2:
+            return m2.group(1).strip(), m2.group(2).strip()
         return s, ""
 
     if len(items) >= 1:
@@ -85,6 +101,9 @@ def parse_sentence(sen_str):
     m = re.search(r'^(.*?)\s*[\(（](.*?)[\)）]\s*$', sen_str)
     if m:
         return {"en": m.group(1).strip(), "cn": m.group(2).strip()}
+    m2 = re.search(r'^([a-zA-Z0-9\s\,\.\!\?\'\-]+?)\s*([\u4e00-\u9fa5].*?)$', sen_str)
+    if m2:
+        return {"en": m2.group(1).strip(), "cn": m2.group(2).strip()}
     return {"en": sen_str, "cn": ""}
 
 def build_lightweight_prompt(track_id, words_text):
@@ -98,10 +117,12 @@ def build_lightweight_prompt(track_id, words_text):
     ])
 
     prompt = f"""你是一位精通兒童美語教學與單字卡設計的專家。請根據下方提供的一週單字清單，為每個單字設計 4 個創意學習欄位：
-1. icon: 最符合單字語意且適合國小生認知的 FontAwesome v6.4 (free) 圖示 class 名稱（只需寫名稱本身，不要包含 `fa-solid` 前綴，如 "fa-sun", "fa-wind", "fa-cloud-showers-heavy"）。
-2. badge: 4字以內的可愛情境徽章標籤（如 "烈日炎炎", "雨水濕潤"）。
-3. themeTag: 4字以內的主題標籤（如 "夏日氣候", "自然微風"）。
-4. tip: 20~45 字的「趣味聯想記憶法」，必須以 `💡 ` 開頭（包含燈泡 Emoji 與空格）。內容需親切可愛。
+1. posChinese: 包含中文與英文詞性縮寫的對應標籤（例如 "熱的 adj."、"女孩 n."、"游泳 v."、"陽光明媚的 adj."，請勿顯示 IPA 音標）。
+2. category: 大分類名稱（必須對應歸納出的 week_tags 主題之一）。
+3. icon: 最符合單字語意且適合國小生認知的 FontAwesome v6.4 (free) 圖示 class 名稱（只需寫名稱本身，不要包含 `fa-solid` 前綴，如 "fa-sun", "fa-wind", "fa-cloud-showers-heavy"）。
+4. badge: 4字以內的可愛情境徽章標籤（如 "烈日炎炎", "雨水濕潤"）。
+5. themeTag: 4字以內的主題標籤（如 "夏日氣候", "自然微風"）。
+6. tip: 20~45 字的「趣味聯想記憶法」，必須以 `💡 ` 開頭（包含燈泡 Emoji 與空格）。內容需親切可愛。
 
 同時請根據單字分類歸納 3~4 個大分類主題標籤 (week_tags)。
 
@@ -131,7 +152,7 @@ def build_lightweight_prompt(track_id, words_text):
 
 def assemble_html(track_id, week_title, parsed_words, enrichment_json_str):
     """
-    將使用者解析的單字資料與 Gemini 回傳的 JSON 4個創意欄位縫合，並塞入本機 HTML 範本中
+    將使用者解析的單字資料與 Gemini 回傳的 JSON 創意欄位縫合，並塞入本機 HTML 範本中
     """
     # 1. 解析 Gemini 回傳的 JSON
     week_tags = ["日常生活", "實用單字", "情境學習"]
@@ -139,7 +160,6 @@ def assemble_html(track_id, week_title, parsed_words, enrichment_json_str):
 
     if enrichment_json_str:
         try:
-            # 清理 markdown codeblock 標籤
             clean_str = enrichment_json_str.strip()
             m = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', clean_str, re.IGNORECASE)
             if m:
@@ -152,33 +172,34 @@ def assemble_html(track_id, week_title, parsed_words, enrichment_json_str):
                 items = data.get("enrichments") or data.get("vocab_data") or []
                 for it in items:
                     if isinstance(it, dict) and "word" in it:
-                        enrichments_dict[it["word"].strip().lower()] = it
+                        w_clean = re.sub(r'[^a-zA-Z0-9\s\-]', '', it["word"]).strip().lower()
+                        enrichments_dict[w_clean] = it
             elif isinstance(data, list):
                 for it in data:
                     if isinstance(it, dict) and "word" in it:
-                        enrichments_dict[it["word"].strip().lower()] = it
+                        w_clean = re.sub(r'[^a-zA-Z0-9\s\-]', '', it["word"]).strip().lower()
+                        enrichments_dict[w_clean] = it
         except Exception as e:
             print(f"⚠️ 解析 Gemini JSON 提示: {e}")
 
     # 2. 縫合 VOCAB_DATA
     vocab_data = []
     for item in parsed_words:
-        w_key = item["word"].strip().lower()
-        e = enrichments_dict.get(w_key, {})
+        w_clean = re.sub(r'[^a-zA-Z0-9\s\-]', '', item["word"]).strip().lower()
+        e = enrichments_dict.get(w_clean, {})
 
         icon_val = e.get("icon", "fa-star")
         if icon_val.startswith("fa-solid "):
             icon_val = icon_val.replace("fa-solid ", "")
 
-        pos_cn = e.get("posChinese", item["posChinese"])
-        if not re.search(r'\b(adj|n|v|adv|prep|conj|pron)\b', pos_cn, re.I):
-            # 如果 posChinese 沒有詞性標記，嘗試從單字原始詞性補上
-            pass
+        pos_cn = e.get("posChinese") or item["posChinese"]
+
+        category_val = e.get("category") or item.get("category") or week_tags[0]
 
         vocab_entry = {
             "word": item["word"],
             "posChinese": pos_cn,
-            "category": e.get("category") or item.get("category") or week_tags[0],
+            "category": category_val,
             "collocation": item["collocation"],
             "sentence": item["sentence"],
             "icon": icon_val,
