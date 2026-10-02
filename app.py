@@ -1052,7 +1052,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         appInitialized = false;
       }
     }
-    }
 
     function switchTrack(trackId) {
       if (trackId === currentTrack) return;
