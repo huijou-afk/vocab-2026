@@ -1,8 +1,9 @@
+import os
 import json
 import re
 from pathlib import Path
 
-BASE_DIR = Path(__file__).parent.resolve()
+BASE_DIR = Path(os.environ.get("VOCAB_PROJECT_DIR", Path(__file__).parent.resolve()))
 
 def parse_input_words(raw_text):
     """
@@ -188,13 +189,31 @@ def assemble_html(track_id, week_title, parsed_words, enrichment_json_str):
         vocab_data.append(vocab_entry)
 
     # 3. 讀取本機 HTML 樣板
-    template_path = BASE_DIR / "elem" / "2026_ew03.html"
-    if track_id == "junior":
-        # 如果國中組有預設範本，也可以在此處理
-        template_path = BASE_DIR / "junior" / "2026_w05d5.html"
+    folder_name = "elem" if track_id == "elem" else "junior"
+    possible_roots = [
+        Path(os.environ.get("VOCAB_PROJECT_DIR", "")),
+        Path(__file__).parent.resolve(),
+        BASE_DIR,
+        Path.cwd()
+    ]
 
-    if not template_path.exists():
-        template_path = BASE_DIR / "elem" / "2026_ew03.html"
+    template_path = None
+    for root in possible_roots:
+        if not root or not root.exists():
+            continue
+        candidate_folder = root / folder_name
+        if candidate_folder.exists():
+            pref_file = candidate_folder / ("2026_ew03.html" if track_id == "elem" else "2026_w05d5.html")
+            if pref_file.exists():
+                template_path = pref_file
+                break
+            html_files = sorted(list(candidate_folder.glob("*.html")))
+            if html_files:
+                template_path = html_files[-1]
+                break
+
+    if not template_path or not template_path.exists():
+        raise FileNotFoundError(f"找不到 {folder_name}/ 目錄下的 HTML 範本檔案。")
 
     template_code = template_path.read_text(encoding="utf-8")
 
