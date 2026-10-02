@@ -190,29 +190,48 @@ class GeminiAutomator:
         )
         return context, False
 
-    def check_login_status_applescript(self):
-        """優先利用 AppleScript 檢查畫面上已開啟的 Chrome 是否包含已登入的 Gemini 分頁"""
+    def check_login_status_applescript_fast(self):
+        """極速檢查 Chrome 執行狀態與 Gemini 分頁"""
         script = '''
-tell application "Google Chrome"
-    repeat with w in windows
-        repeat with t in tabs of w
-            set u to URL of t
-            if u contains "gemini.google.com" then
-                set tit to title of t
-                if tit does not contain "Sign in" and tit does not contain "登入" and tit does not contain "Accounts" then
-                    return "LOGGED_IN"
-                end if
-            end if
-        end repeat
-    end repeat
+tell application "System Events"
+    if not (exists process "Google Chrome") then
+        return "NOT_RUNNING"
+    end if
 end tell
-return "NOT_LOGGED_IN"
+
+tell application "Google Chrome"
+    try
+        repeat with w in windows
+            repeat with t in tabs of w
+                set u to URL of t
+                if u contains "gemini.google.com" then
+                    set tit to title of t
+                    if tit does not contain "Sign in" and tit does not contain "登入" and tit does not contain "Accounts" then
+                        return "LOGGED_IN"
+                    end if
+                end if
+            end repeat
+        end repeat
+    end try
+end tell
+return "CHROME_RUNNING_NO_GEMINI"
 '''
         try:
-            res = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=5)
-            return res.stdout.strip() == "LOGGED_IN"
+            res = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=3)
+            out = res.stdout.strip()
+            if out == "LOGGED_IN":
+                return "logged_in"
+            elif out == "CHROME_RUNNING_NO_GEMINI":
+                return "chrome_running"
+            else:
+                return "not_running"
         except Exception:
-            return False
+            return "not_running"
+
+    def check_login_status_applescript(self):
+        """優先利用 AppleScript 檢查畫面上已開啟的 Chrome 是否包含已登入的 Gemini 分頁"""
+        st = self.check_login_status_applescript_fast()
+        return st in ["logged_in", "chrome_running"]
 
     def check_login_status_headless(self):
         """背景靜默檢查是否已登入"""

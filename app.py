@@ -148,19 +148,20 @@ class AppAPI:
                     self.window.evaluate_js("window.setLoginState('checking')")
 
                 # 優先使用極速 AppleScript 檢測現有 Chrome
-                logged = automator.check_login_status_applescript()
-                if not logged:
-                    logged = automator.check_login_status_headless()
-
-                if logged:
+                st = automator.check_login_status_applescript_fast()
+                if st in ["logged_in", "chrome_running"]:
                     self.is_logged_in = True
-                    self._log_js("✅ 成功對接 Chrome！Google 帳號已連線。")
+                    if st == "logged_in":
+                        self._log_js("✅ 成功對接 Chrome！Gemini 對話視窗已就緒。")
+                    else:
+                        self._log_js("✅ 成功對接 Google Chrome 瀏覽器！準備就緒。")
                     self._status_js("準備就緒 (Google 帳號已連線)", 1.0)
                     if self.window:
                         self.window.evaluate_js("window.setLoginState('logged_in')")
                 else:
                     self.is_logged_in = False
-                    self._log_js("ℹ️ 未偵測到連線中的 Gemini 視窗。您可隨時點擊右上角「點擊登入 Google」進行對接。")
+                    self._log_js("ℹ️ 未偵測到運行的 Chrome。您可以隨時點擊右上角「點擊登入 Google」進行對接。")
+                    self._status_js("未連線 Chrome，點擊右上角可開啟登入", 0.0)
                     if self.window:
                         self.window.evaluate_js("window.setLoginState('logged_out')")
             except Exception as e:
