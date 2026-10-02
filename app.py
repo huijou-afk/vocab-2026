@@ -116,11 +116,53 @@ class AppAPI:
         return {"status": "ok", "active_track": track_id}
 
     def auto_init_login(self):
-        """啟動程式時自動執行的登入檢測與自動登入引導"""
+        """啟動程式時自動執行的背景登入狀態檢測"""
+        def _worker():
+            try:
+                cfg = {}
+                if CONFIG_FILE.exists():
+                    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                        cfg = json.load(f)
+
+                automator = GeminiAutomator(
+                    cfg,
+                    status_callback=self._status_js,
+                    log_callback=self._log_js
+                )
+
+                if self.window:
+                    self.window.evaluate_js("window.setLoginState('checking')")
+
+                # 優先使用極速 AppleScript 檢測現有 Chrome
+                logged = automator.check_login_status_applescript()
+                if not logged:
+                    logged = automator.check_login_status_headless()
+
+                if logged:
+                    self.is_logged_in = True
+                    self._log_js("✅ 成功對接 Chrome！Google 帳號已連線。")
+                    self._status_js("準備就緒 (Google 帳號已連線)", 1.0)
+                    if self.window:
+                        self.window.evaluate_js("window.setLoginState('logged_in')")
+                else:
+                    self.is_logged_in = False
+                    self._log_js("ℹ️ 未偵測到連線中的 Gemini 視窗。您可隨時點擊右上角「點擊登入 Google」進行對接。")
+                    if self.window:
+                        self.window.evaluate_js("window.setLoginState('logged_out')")
+            except Exception as e:
+                self._log_js(f"檢查登入狀態提示: {str(e)}")
+                if self.window:
+                    self.window.evaluate_js("window.setLoginState('logged_out')")
+
+        threading.Thread(target=_worker, daemon=True).start()
+
+    def manual_login_google(self):
+        """使用者主動點擊登入按鈕引導連線/登入"""
         if self.is_running:
-            return
+            return {"status": "busy"}
+
         self.is_running = True
-        self.window.evaluate_js("window.setRunningState(true, '連線檢查中...')")
+        self.window.evaluate_js("window.setRunningState(true, '開啟 Chrome 登入中...')")
 
         def _worker():
             try:
@@ -135,47 +177,27 @@ class AppAPI:
                     log_callback=self._log_js
                 )
 
-                self._log_js("正在自動檢查 Google 帳號登入狀態...")
-                self._status_js("正在自動檢查 Google 登入狀態...", 0.15)
-                self.window.evaluate_js("window.setLoginState('checking')")
+                self.window.evaluate_js("window.setLoginState('logging_in')")
+                self._log_js("🚀 正在開啟/對接 Chrome 瀏覽器...")
+                success = automator.launch_browser_for_login(auto_click_signin=True)
 
-                logged = automator.check_login_status_headless()
-                if logged:
+                if success or automator.check_login_status_applescript():
                     self.is_logged_in = True
-                    self._log_js("✅ Google 帳號已自動登入！Gemini 連線正常。")
-                    self._status_js("準備就緒 (Google 帳號已自動登入)", 1.0)
+                    self._log_js("🎉 Google 帳號已成功對接！")
+                    self._status_js("登入對接成功！可直接生成投影片", 1.0)
                     self.window.evaluate_js("window.setLoginState('logged_in')")
                 else:
                     self.is_logged_in = False
-                    self._log_js("⚠️ 尚未偵測到 Google 登入憑證，正在自動為您彈出 Chrome 登入視窗...")
-                    self._status_js("請在彈出的 Chrome 視窗中完成 Google 登入...", 0.4)
-                    self.window.evaluate_js("window.setLoginState('logging_in')")
-                    
-                    automator.launch_browser_for_login(auto_click_signin=True)
-                    
-                    recheck = automator.check_login_status_headless()
-                    if recheck:
-                        self.is_logged_in = True
-                        self._log_js("🎉 恭喜！Google 帳號已登入成功並永久記住！日後打開本程式都將自動保持登入。")
-                        self._status_js("登入成功！已就緒，可直接生成投影片", 1.0)
-                        self.window.evaluate_js("window.setLoginState('logged_in')")
-                    else:
-                        self.is_logged_in = False
-                        self._log_js("尚未完成登入，您可以隨時點擊右上角「重新登入」按鈕。")
-                        self._status_js("尚未登入 Google", 0.0)
-                        self.window.evaluate_js("window.setLoginState('logged_out')")
+                    self._log_js("尚未完成登入對接，您可以再點擊一次登入按鈕。")
+                    self.window.evaluate_js("window.setLoginState('logged_out')")
             except Exception as e:
-                self._log_js(f"檢查登入時發生錯誤: {str(e)}")
-                self._status_js(f"錯誤: {str(e)}", 0.0)
+                self._log_js(f"登入對接過程提示: {str(e)}")
+                self.window.evaluate_js("window.setLoginState('logged_out')")
             finally:
                 self.is_running = False
                 self.window.evaluate_js("window.setRunningState(false)")
 
         threading.Thread(target=_worker, daemon=True).start()
-
-    def manual_login_google(self):
-        """使用者主動點擊登入按鈕"""
-        self.auto_init_login()
         return {"status": "started"}
 
     def set_repo(self, url):
@@ -961,25 +983,34 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     let wordsMemory = { junior: "", elem: "" };
     let sampleWords = { junior: "", elem: "" };
 
-    window.addEventListener('DOMContentLoaded', async () => {
-      // 監聽文字輸入以自適應檔名
-      document.getElementById('wordsInput').addEventListener('input', (e) => {
-        wordsMemory[currentTrack] = e.target.value;
-        tryAutoFilename(e.target.value);
-      });
+    let appInitialized = false;
 
-      // 初始化資料
-      if (window.pywebview) {
-        initApp();
-      } else {
-        window.addEventListener('pywebviewready', initApp);
+    window.addEventListener('DOMContentLoaded', () => {
+      // 監聽文字輸入以自適應檔名
+      const input = document.getElementById('wordsInput');
+      if (input) {
+        input.addEventListener('input', (e) => {
+          wordsMemory[currentTrack] = e.target.value;
+          tryAutoFilename(e.target.value);
+        });
       }
+
+      window.addEventListener('pywebviewready', initApp);
+      initApp();
     });
 
     async function initApp() {
+      if (appInitialized) return;
+      if (!window.pywebview || !window.pywebview.api) {
+        setTimeout(initApp, 100);
+        return;
+      }
+      appInitialized = true;
       try {
         const data = await window.pywebview.api.get_initial_data();
-        document.getElementById('appVersion').textContent = 'v' + data.version;
+        if (data && data.version) {
+          document.getElementById('appVersion').textContent = 'v' + data.version;
+        }
 
         tracksData = data.tracks || {};
         sampleWords = data.words_data || {};
@@ -1007,7 +1038,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         window.pywebview.api.auto_init_login();
       } catch (err) {
         appendLog("[前端錯誤] 初始化失敗: " + err);
+        appInitialized = false;
       }
+    }
     }
 
     function switchTrack(trackId) {
@@ -1244,9 +1277,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
 def main():
     api = AppAPI()
+    ver = get_app_version()
+    html_content = HTML_TEMPLATE.replace('id="appVersion">v1.0.0<', f'id="appVersion">v{ver}<')
     window = webview.create_window(
-        title=f"單字投影片自動生成器 v{get_app_version()}",
-        html=HTML_TEMPLATE,
+        title=f"單字投影片自動生成器 v{ver}",
+        html=html_content,
         js_api=api,
         width=1000,
         height=720,
