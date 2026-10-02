@@ -996,6 +996,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     let appInitialized = false;
 
+    window.addEventListener('pywebviewready', initApp);
+
     window.addEventListener('DOMContentLoaded', () => {
       // 監聽文字輸入以自適應檔名
       const input = document.getElementById('wordsInput');
@@ -1004,16 +1006,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           wordsMemory[currentTrack] = e.target.value;
           tryAutoFilename(e.target.value);
         });
+        if (input.value) {
+          tryAutoFilename(input.value);
+        }
       }
 
-      window.addEventListener('pywebviewready', initApp);
       initApp();
     });
 
     async function initApp() {
       if (appInitialized) return;
-      if (!window.pywebview || !window.pywebview.api) {
-        setTimeout(initApp, 100);
+      if (!window.pywebview || !window.pywebview.api || typeof window.pywebview.api.get_initial_data !== 'function') {
+        setTimeout(initApp, 50);
         return;
       }
       appInitialized = true;
@@ -1288,7 +1292,24 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 def main():
     api = AppAPI()
     ver = get_app_version()
+    
+    sample_words = ""
+    words_file = BASE_DIR / "words_junior.txt"
+    if words_file.exists():
+        try:
+            sample_words = words_file.read_text(encoding="utf-8").strip()
+        except Exception:
+            pass
+
     html_content = HTML_TEMPLATE.replace('id="appVersion">v1.0.0<', f'id="appVersion">v{ver}<')
+    if sample_words:
+        # 避免 HTML 逸出字元衝突
+        safe_sample = sample_words.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        html_content = html_content.replace(
+            '<textarea id="wordsInput" placeholder="在此貼入單字清單資料..."></textarea>',
+            f'<textarea id="wordsInput" placeholder="在此貼入單字清單資料...">{safe_sample}</textarea>'
+        )
+
     window = webview.create_window(
         title=f"單字投影片自動生成器 v{ver}",
         html=html_content,
