@@ -526,10 +526,8 @@ end tell
             try:
                 import json
                 data = json.loads(clean_code)
-                if isinstance(data, dict) and ("enrichments" in data or "vocab_data" in data or "week_tags" in data):
+                if isinstance(data, (dict, list)):
                     return True, "JSON AI 創意資料驗證通過"
-                if isinstance(data, list) and len(data) > 0:
-                    return True, "JSON 陣列驗證通過"
             except Exception:
                 pass
 
@@ -643,7 +641,7 @@ end tell
         const idxEndBrace = txt.lastIndexOf('}');
         if (idxBrace !== -1 && idxEndBrace > idxBrace) {
             const cleanBrace = txt.substring(idxBrace, idxEndBrace + 1).trim();
-            if (cleanBrace.length > 50 && (cleanBrace.includes('enrichments') || cleanBrace.includes('week_tags') || cleanBrace.includes('word'))) {
+            if (cleanBrace.length > 50 && (cleanBrace.includes('supplementary') || cleanBrace.includes('enrichments') || cleanBrace.includes('week_tags') || cleanBrace.includes('category_tags') || cleanBrace.includes('word'))) {
                 return cleanBrace;
             }
         }
