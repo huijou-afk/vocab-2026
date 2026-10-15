@@ -541,14 +541,48 @@ end tell
         clean_code = code.strip()
         
         # 1. 驗證 JSON 回應
-        if clean_code.startswith("{") or clean_code.startswith("["):
-            try:
-                import json
-                data = json.loads(clean_code)
-                if isinstance(data, (dict, list)):
-                    return True, "JSON AI 創意資料驗證通過"
-            except Exception:
-                pass
+        temp_json_str = clean_code
+        m_fence = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', temp_json_str, re.IGNORECASE)
+        if m_fence:
+            temp_json_str = m_fence.group(1).strip()
+        idx_b = temp_json_str.find('{')
+        idx_bk = temp_json_str.find('[')
+        start_idx = -1
+        if idx_b != -1 and idx_bk != -1:
+            start_idx = min(idx_b, idx_bk)
+        elif idx_b != -1:
+            start_idx = idx_b
+        elif idx_bk != -1:
+            start_idx = idx_bk
+
+        if start_idx != -1:
+            end_idx = max(temp_json_str.rfind('}'), temp_json_str.rfind(']'))
+            if end_idx > start_idx:
+                candidate_slice = temp_json_str[start_idx:end_idx+1].strip()
+                try:
+                    import json
+                    data = json.loads(candidate_slice)
+                    if isinstance(data, (dict, list)):
+                        if not expected_keywords:
+                            return True, "JSON AI 創意資料驗證通過"
+
+                        vocab_kws = []
+                        if isinstance(expected_keywords, dict):
+                            vocab_kws = expected_keywords.get("vocab_keywords", [])
+                        elif isinstance(expected_keywords, (list, set, tuple)):
+                            vocab_kws = list(expected_keywords)
+
+                        if vocab_kws:
+                            low_json = candidate_slice.lower()
+                            matched_vocab = [kw for kw in vocab_kws if kw.strip() and kw.strip().lower() in low_json]
+                            required = min(2, len(vocab_kws))
+                            if len(matched_vocab) < required:
+                                return False, f"未包含當天單字 ({vocab_kws[:3]})"
+                            return True, f"JSON AI 創意資料驗證通過 (單字: [{', '.join(matched_vocab[:3])}])"
+
+                        return True, "JSON AI 創意資料驗證通過"
+                except Exception:
+                    pass
 
         # 2. 驗證 HTML 回應
         low = clean_code.lower()
@@ -1165,8 +1199,39 @@ end tell
         return None
 
     def _clean_markdown_codeblock(self, text):
+        if not text:
+            return ""
         text = text.strip()
+
+        # 1. 如果包含 JSON 物件，優先提取最外層合法 JSON
+        idx_b = text.find('{')
+        idx_bk = text.find('[')
+        start_idx = -1
+        if idx_b != -1 and idx_bk != -1:
+            start_idx = min(idx_b, idx_bk)
+        elif idx_b != -1:
+            start_idx = idx_b
+        elif idx_bk != -1:
+            start_idx = idx_bk
+
+        if start_idx != -1 and not ("<html" in text.lower() or "<!doctype" in text.lower()):
+            end_idx = max(text.rfind('}'), text.rfind(']'))
+            if end_idx > start_idx:
+                candidate = text[start_idx:end_idx+1].strip()
+                try:
+                    import json
+                    json.loads(candidate)
+                    return candidate
+                except Exception:
+                    pass
+
+        # 2. 如果是 HTML codeblock 或標準 markdown
+        m = re.match(r'^```[a-zA-Z0-9_-]*\s*\n?([\s\S]*?)\n?```$', text)
+        if m:
+            return m.group(1).strip()
         if text.startswith("```html"):
+            text = text[7:]
+        elif text.startswith("```json"):
             text = text[7:]
         elif text.startswith("```"):
             text = text[3:]

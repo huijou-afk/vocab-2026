@@ -221,6 +221,34 @@ def build_lightweight_prompt_junior(track_id, words_text):
 
     return prompt, week_title, parsed_words
 
+def extract_json_data(enrichment_json_str):
+    """強效解析 JSON：相容 markdown 圍欄、開頭語言標籤 (JSON\n) 以及周圍多餘文字"""
+    if not enrichment_json_str:
+        return None
+    clean_str = str(enrichment_json_str).strip()
+    m = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', clean_str, re.IGNORECASE)
+    if m:
+        clean_str = m.group(1).strip()
+    if not (clean_str.startswith('{') or clean_str.startswith('[')):
+        idx_b = clean_str.find('{')
+        idx_bk = clean_str.find('[')
+        start = -1
+        if idx_b != -1 and idx_bk != -1:
+            start = min(idx_b, idx_bk)
+        elif idx_b != -1:
+            start = idx_b
+        elif idx_bk != -1:
+            start = idx_bk
+        if start != -1:
+            end = max(clean_str.rfind('}'), clean_str.rfind(']'))
+            if end > start:
+                clean_str = clean_str[start:end+1].strip()
+    try:
+        return json.loads(clean_str)
+    except Exception as e:
+        print(f"⚠️ 解析 Gemini JSON 失敗: {e}")
+        return None
+
 def assemble_html(track_id, week_title, parsed_words, enrichment_json_str):
     if track_id == "junior":
         return assemble_html_junior(week_title, parsed_words, enrichment_json_str)
@@ -233,28 +261,20 @@ def assemble_html_elem(week_title, parsed_words, enrichment_json_str):
     enrichments_dict = {}
 
     if enrichment_json_str:
-        try:
-            clean_str = enrichment_json_str.strip()
-            m = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', clean_str, re.IGNORECASE)
-            if m:
-                clean_str = m.group(1).strip()
-            
-            data = json.loads(clean_str)
-            if isinstance(data, dict):
-                if "week_tags" in data and isinstance(data["week_tags"], list) and not extracted_categories:
-                    week_tags = data["week_tags"]
-                items = data.get("enrichments") or data.get("vocab_data") or []
-                for it in items:
-                    if isinstance(it, dict) and "word" in it:
-                        w_clean = re.sub(r'[^a-zA-Z0-9\s\-]', '', it["word"]).strip().lower()
-                        enrichments_dict[w_clean] = it
-            elif isinstance(data, list):
-                for it in data:
-                    if isinstance(it, dict) and "word" in it:
-                        w_clean = re.sub(r'[^a-zA-Z0-9\s\-]', '', it["word"]).strip().lower()
-                        enrichments_dict[w_clean] = it
-        except Exception as e:
-            print(f"⚠️ 解析 Gemini JSON 提示: {e}")
+        data = extract_json_data(enrichment_json_str)
+        if isinstance(data, dict):
+            if "week_tags" in data and isinstance(data["week_tags"], list) and not extracted_categories:
+                week_tags = data["week_tags"]
+            items = data.get("enrichments") or data.get("vocab_data") or []
+            for it in items:
+                if isinstance(it, dict) and "word" in it:
+                    w_clean = re.sub(r'[^a-zA-Z0-9\s\-]', '', it["word"]).strip().lower()
+                    enrichments_dict[w_clean] = it
+        elif isinstance(data, list):
+            for it in data:
+                if isinstance(it, dict) and "word" in it:
+                    w_clean = re.sub(r'[^a-zA-Z0-9\s\-]', '', it["word"]).strip().lower()
+                    enrichments_dict[w_clean] = it
 
     vocab_data = []
     for item in parsed_words:
@@ -320,17 +340,10 @@ def assemble_html_junior(week_title, parsed_words, enrichment_json_str):
     supp_data = {}
 
     if enrichment_json_str:
-        try:
-            clean_str = enrichment_json_str.strip()
-            m = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', clean_str, re.IGNORECASE)
-            if m:
-                clean_str = m.group(1).strip()
-            data = json.loads(clean_str)
-            if isinstance(data, dict):
-                category_tags = data.get("category_tags") or data.get("categoryTags") or []
-                supp_data = data.get("supplementaryData") or data.get("supplementary_data") or {}
-        except Exception as e:
-            print(f"⚠️ 解析 Junior Gemini JSON 提示: {e}")
+        data = extract_json_data(enrichment_json_str)
+        if isinstance(data, dict):
+            category_tags = data.get("category_tags") or data.get("categoryTags") or []
+            supp_data = data.get("supplementaryData") or data.get("supplementary_data") or {}
 
     if not category_tags:
         extracted = list(dict.fromkeys([w["category"] for w in parsed_words if w["category"]]))
