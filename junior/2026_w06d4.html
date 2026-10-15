@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 一起背單字 (國中組) - [W06] 日期：[W06]2026/10/22(四)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Fredoka & Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --primary-blue: #0369a1;
+      --accent-orange: #ea580c;
+      --stage-width: 1200px;
+      --stage-height: 675px;
+    }
+
+    body {
+      font-family: 'Fredoka', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #0f172a;
+      color: #1e293b;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #viewport-wrapper {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    #presentation-stage {
+      position: relative;
+      width: var(--stage-width);
+      height: var(--stage-height);
+      transform-origin: center center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+      border-radius: 28px;
+      background-color: #ffffff;
+      overflow: hidden;
+      flex-shrink: 0;
+      transition: transform 0.15s ease-out;
+    }
+
+    .slide-view {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      transform: scale(0.985);
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .slide-view.active {
+      opacity: 1;
+      visibility: visible;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    .card-shadow {
+      box-shadow: 0 8px 24px -4px rgba(3, 105, 161, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+    }
+
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 10px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #93c5fd;
+      border-radius: 10px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #0284c7;
+    }
+
+    /* RWD Mobile Portrait (< 768px) */
+    @media (max-width: 767px) {
+      body {
+        overflow: auto;
+      }
+      #viewport-wrapper {
+        align-items: stretch;
+        height: 100vh;
+        height: 100dvh;
+      }
+      #presentation-stage {
+        width: 100% !important;
+        height: 100% !important;
+        transform: none !important;
+        border-radius: 0 !important;
+        border-width: 0 !important;
+        box-shadow: none !important;
+      }
+      .slide-view {
+        position: relative;
+        height: 100%;
+        overflow-y: auto;
+        padding: 1rem !important;
+        -webkit-overflow-scrolling: touch;
+      }
+      .slide-view:not(.active) {
+        display: none !important;
+      }
+      .mobile-deck-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1rem !important;
+        height: auto !important;
+      }
+      .mobile-card-fix {
+        width: 100% !important;
+        height: auto !important;
+        min-height: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="viewport-wrapper">
+    <main id="presentation-stage" class="relative flex flex-col justify-between bg-gradient-to-br from-sky-50 via-white to-blue-50 border-4 border-sky-200">
+      
+      <!-- Slide Content Area (No Header) -->
+      <div id="slides-container" class="relative flex-1 w-full h-full overflow-hidden">
+        
+        <!-- COVER SLIDE (Strictly 3 Elements: Title, Date, Category Tags) -->
+        <section class="slide-view active p-6 md:p-10 flex flex-col items-center justify-center text-center relative" data-title="封面 (Cover)">
+          <div class="max-w-3xl flex flex-col items-center justify-center my-auto">
+            
+            <!-- 1. Big Main Title -->
+            <h2 class="text-4xl sm:text-5xl md:text-6xl font-black text-sky-900 tracking-wide mb-6 md:mb-8 drop-shadow-sm font-['Fredoka']">
+              2026 一起背單字 <span class="text-orange-600">(國中組)</span>
+            </h2>
+
+            <!-- 2. Date -->
+            <div class="text-lg sm:text-xl md:text-2xl font-bold text-slate-700 bg-white/95 px-6 md:px-8 py-2.5 md:py-3.5 rounded-2xl border-2 border-sky-200 shadow-sm mb-6 md:mb-8">
+              📅 日期：[W06]2026/10/22(四)
+            </div>
+
+            <!-- 3. Category Tags -->
+            <div class="flex flex-wrap justify-center gap-3 md:gap-3.5 max-w-xl">
+              <span class="px-4 md:px-5 py-2 md:py-2.5 rounded-xl bg-amber-50 text-amber-700 text-base md:text-xl font-bold border border-amber-200 shadow-sm">🏷️ 身體與生理狀態形容詞 (4字)</span>
+              <span class="px-4 md:px-5 py-2 md:py-2.5 rounded-xl bg-amber-50 text-amber-700 text-base md:text-xl font-bold border border-amber-200 shadow-sm">🏷️ 所有格代名詞與修飾詞 (2字)</span>
+              <span class="px-4 md:px-5 py-2 md:py-2.5 rounded-xl bg-amber-50 text-amber-700 text-base md:text-xl font-bold border border-amber-200 shadow-sm">🏷️ 描述性質與時間形容詞 (2字)</span>
+              <span class="px-4 md:px-5 py-2 md:py-2.5 rounded-xl bg-amber-50 text-amber-700 text-base md:text-xl font-bold border border-amber-200 shadow-sm">🏷️ 城市景觀與交通名詞 (2字)</span>
+            </div>
+
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Bottom Control Bar (Compact & Anti-Break Design) -->
+      <footer class="w-full px-3 md:px-8 py-2 md:py-3 bg-white/95 border-t border-sky-100 flex flex-col gap-1.5 md:gap-2 z-20 shrink-0">
+        <!-- Progress Bar -->
+        <div class="w-full bg-slate-100 h-1.5 md:h-2 rounded-full overflow-hidden border border-slate-200">
+          <div id="progress-bar-fill" class="bg-gradient-to-r from-sky-500 to-orange-400 h-full w-0 transition-all duration-300"></div>
+        </div>
+
+        <div class="flex items-center justify-between gap-1 sm:gap-2">
+          <!-- Left: Prev & Pronounce Button -->
+          <div class="flex items-center gap-1 sm:gap-2">
+            <button id="prev-btn" onclick="prevSlide()" class="flex items-center gap-1 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-sky-100 hover:bg-sky-200 active:bg-sky-300 text-sky-900 font-bold text-xs sm:text-sm transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed">
+              <i data-lucide="chevron-left" class="w-4 h-4"></i>
+              <span class="hidden sm:inline">上一頁</span>
+            </button>
+            <button id="read-current-btn" onclick="speakCurrentWord()" class="flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-orange-100 hover:bg-orange-200 active:bg-orange-300 text-orange-900 font-bold text-xs sm:text-sm transition shadow-sm" title="朗讀此頁單字與例句">
+              <i data-lucide="volume-2" class="w-4 h-4 text-orange-600"></i>
+              <span class="hidden sm:inline">朗讀</span>
+            </button>
+          </div>
+
+          <!-- Middle: Direct Jump Dropdown & Counter -->
+          <div class="flex items-center gap-1.5 sm:gap-3">
+            <span id="slide-indicator" class="text-xs sm:text-sm font-bold text-slate-600 shrink-0">1 / 10</span>
+            <div class="relative">
+              <select id="slide-selector" onchange="goToSlide(parseInt(this.value))" class="appearance-none bg-slate-50 border border-slate-300 hover:border-sky-400 text-slate-700 text-xs sm:text-xs font-bold rounded-lg pl-2 sm:pl-3 pr-6 sm:pr-8 py-1 sm:py-1.5 focus:outline-none focus:ring-2 focus:ring-sky-500 max-w-[130px] sm:max-w-[220px] truncate">
+              </select>
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-500 absolute right-1.5 sm:right-2.5 top-2 sm:top-2 pointer-events-none"></i>
+            </div>
+          </div>
+
+          <!-- Right: Next Button & Fullscreen Button -->
+          <div class="flex items-center gap-1 sm:gap-2">
+            <button id="next-btn" onclick="nextSlide()" class="flex items-center gap-1 px-3 sm:px-5 py-1.5 sm:py-2 rounded-xl bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white font-bold text-xs sm:text-sm transition shadow-md disabled:opacity-40 disabled:cursor-not-allowed">
+              <span>下一頁</span>
+              <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+            <button id="fullscreen-btn" onclick="toggleFullScreen()" class="p-1.5 sm:p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition shadow-sm" title="全螢幕切換 (快速鍵: F)">
+              <i id="fullscreen-icon" data-lucide="maximize" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <script>
+    // 1. Vocabulary Dataset for [W05] 2026/10/02 (五)
+    const rawWords = [
+  {
+    "week": 6,
+    "day": 5,
+    "word": "back",
+    "zh": "打包;背部",
+    "pos": "n.",
+    "category": "國中核心單字",
+    "collocations": "back home (回家) / turn back (轉身；折返)",
+    "sentence": "He injured his back while lifting the heavy box.",
+    "sentenceZh": "他在搬那個重箱子時扭傷了背部。"
+  },
+  {
+    "week": 6,
+    "day": 5,
+    "word": "hungry",
+    "zh": "飢餓的",
+    "pos": "n.",
+    "category": "國中核心單字",
+    "collocations": "feel hungry (感到飢餓) / hungry for (渴望)",
+    "sentence": "I always feel hungry after the PE class.",
+    "sentenceZh": "體育課結束後我總是覺得很餓。"
+  },
+  {
+    "week": 6,
+    "day": 5,
+    "word": "sick",
+    "zh": "生病的",
+    "pos": "n.",
+    "category": "國中核心單字",
+    "collocations": "feel sick (感到不適 () / 噁心) ()",
+    "sentence": "She stayed in bed all day because she was sick.",
+    "sentenceZh": "她因為生病而在床上躺了一整天。"
+  },
+  {
+    "week": 6,
+    "day": 5,
+    "word": "thirsty",
+    "zh": "口渴的",
+    "pos": "n.",
+    "category": "國中核心單字",
+    "collocations": "feel thirsty (感到口渴) / thirsty for knowledge (渴望求知)",
+    "sentence": "Drink some water if you feel thirsty after running.",
+    "sentenceZh": "跑步後如果覺得口渴就喝點水。"
+  },
+  {
+    "week": 6,
+    "day": 5,
+    "word": "our",
+    "zh": "我們的",
+    "pos": "n.",
+    "category": "國中核心單字",
+    "collocations": "our team (我們的隊伍) / our school (我們的學校)",
+    "sentence": "Our teacher encouraged us to study hard for the exam.",
+    "sentenceZh": "我們的老師鼓勵我們要為考試努力讀書。"
+  },
+  {
+    "week": 6,
+    "day": 5,
+    "word": "past",
+    "zh": "過去的；以前的",
+    "pos": "n.",
+    "category": "國中核心單字",
+    "collocations": "in the past (在過去) / past experience (過去的經驗)",
+    "sentence": "In the past, people traveled on foot or by horse.",
+    "sentenceZh": "在過去，人們靠步行或騎馬旅行。"
+  },
+  {
+    "week": 6,
+    "day": 5,
+    "word": "poor",
+    "zh": "貧困的",
+    "pos": "n.",
+    "category": "國中核心單字",
+    "collocations": "poor health (健康狀況不佳) / poor family (貧困家庭)",
+    "sentence": "He grew up in a poor family but worked hard to succeed.",
+    "sentenceZh": "他出身貧困家庭，但透過努力工作獲得了成功。"
+  },
+  {
+    "week": 6,
+    "day": 5,
+    "word": "real",
+    "zh": "真正的",
+    "pos": "n.",
+    "category": "國中核心單字",
+    "collocations": "real life (現實生活) / real friend (真正的朋友)",
+    "sentence": "A real friend will always support you in difficult times.",
+    "sentenceZh": "真正的朋友總會在困難時期支持你。"
+  },
+  {
+    "week": 6,
+    "day": 5,
+    "word": "bridge",
+    "zh": "橋",
+    "pos": "n.",
+    "category": "國中核心單字",
+    "collocations": "cross the bridge (過橋) / build a bridge (造橋)",
+    "sentence": "They walked slowly across the long wooden bridge.",
+    "sentenceZh": "他們慢慢走過那座長長的木橋。"
+  },
+  {
+    "week": 6,
+    "day": 5,
+    "word": "traffic",
+    "zh": "交通",
+    "pos": "n.",
+    "category": "國中核心單字",
+    "collocations": "heavy traffic (交通繁忙) / traffic jam (交通堵塞)",
+    "sentence": "The heavy morning traffic made me late for school.",
+    "sentenceZh": "早晨繁忙的交通讓我上學遲到了。"
+  }
+];
+
+    // 2. Supplementary Focus Data (嚴格聚焦目標單字本體的國中會考資料庫)
+    const supplementaryData = {
+  "back": {
+    "forms": "複數形 backs；動詞 back (後退/支援)；副詞 back (向後/回)",
+    "examPoint": "【會考核心一字多義與動詞片語考點】：1. back 可當名詞（身體的「背部」）或副詞/介系詞（向後、回到原處）。 2. 高頻片語 come back (回來) 或 go back (回去) 為會考必考方向動詞。",
+    "phrases": "come back (回來) / on the back of (在...背面) / turn one's back on (背棄/不理睬)",
+    "grammar": "當 back 作副詞表示「返回」時，若接地方副詞 (如 home, here, there) 則不可加介系詞 to。"
+  },
+  "hungry": {
+    "forms": "比較級 hungrier ➔ 最高級 hungriest；副詞 hungrily (飢餓地)；名詞 hunger (飢餓)",
+    "examPoint": "【會考核心情緒與生理形容詞考點】：1. 常考句型 be hungry for (渴望...)。 2. 子音加 y 結尾的形容詞，比較級變化為去 y 改 -ier (hungrier)。",
+    "phrases": "feel hungry (覺得餓) / hungry for success (渴望成功) / hungry ghost (餓鬼)",
+    "grammar": "形容生理需求時常用連綴動詞 feel hungry，也可作名詞 hunger 的形容詞衍生型。"
+  },
+  "sick": {
+    "forms": "比較級 sicker ➔ 最高級 sickest；名詞 sickness (疾病)；同義詞 ill",
+    "examPoint": "【會考核心形容詞詞義與位置限制考點】：1. sick 與 ill 均可表示「生病的」，但 sick 可放在名詞前面作前置修飾 (a sick man)，而 ill 通常作敘述形容詞（置於 be 動詞後）。 2. 閱讀測驗常考請假或身體不適情境。",
+    "phrases": "fall sick (生病) / sick leave (病假) / homesick (想家的)",
+    "grammar": "sick 除了表示生病外，也可表示「噁心想吐的」 (feel sick)，在會考中屬於高頻實用詞彙。"
+  },
+  "thirsty": {
+    "forms": "比較級 thirstier ➔ 最高級 thirstiest；副詞 thirstily；名詞 thirst (口渴)",
+    "examPoint": "【會考核心生理狀態與介系詞搭配考點】：1. 常考句型 be thirsty for (渴望/對...求知若渴)。 2. 與 hungry 相同，為 y 結尾形容詞，比較級為 thirstier。",
+    "phrases": "feel thirsty (覺得口渴) / thirsty for knowledge (求知若渴) / quench one's thirst (解渴)",
+    "grammar": "作具體身體感覺時指口渴想喝水，作抽象比喻時常接 for 表對某事物的熱切渴望。"
+  },
+  "our": {
+    "forms": "所有格代名詞 ours；主格 we；受格 us；反身代名詞 ourselves",
+    "examPoint": "【會考核心所有格與所有格代名詞辨析考點】：1. our 是所有格，後面必須緊接名詞 (our teacher)。 2. 切勿與所有格代名詞 ours 混淆，ours 後面不可接名詞。",
+    "phrases": "our school (我們的學校) / our daily life (我們的日常生活) / of our own (屬於我們自己的)",
+    "grammar": "our 為形容詞性所有格，具有限定名詞的功能，絕對不能單獨使用或放在句尾。"
+  },
+  "past": {
+    "forms": "動詞/名詞/形容詞/介系詞 past；同義詞 previous (先前的)",
+    "examPoint": "【會考核心一字多性與時間介系詞考點】：1. past 可當介系詞表示「超過/過...」（如 It's ten past five.）。 2. 常考片語 in the past (在過去)，常與過去式或現在完成式連用。",
+    "phrases": "in the past (在過去) / walk past (走過/經過) / past experience (過去的經驗)",
+    "grammar": "當 past 作介系詞表示時間時，意指「超過（某個整點時刻）」，例如 ten past six (六點十分)。"
+  },
+  "poor": {
+    "forms": "比較級 poorer ➔ 最高級 poorest；副詞 poorly (貧乏地/差勁地)；反義詞 rich",
+    "examPoint": "【會考核心一字多義語境辨析考點】：1. poor 除了表示經濟上的「貧窮的」，也常在對話中表示「可憐的」（如 You poor thing!）。 2. 閱讀測驗中常與 rich 進行對比。",
+    "phrases": "poor family (貧困家庭) / poor health (健康狀況不佳) / poor boy (可憐的孩子)",
+    "grammar": "poor 作「貧窮」解時對應 rich；作「品質低劣或表現不佳」解時常修飾 health、results 等名詞。"
+  },
+  "real": {
+    "forms": "副詞 really (真正地/很)；動詞 realize (實現/意識到)；反義詞 fake / unreal",
+    "examPoint": "【會考核心形容詞與副詞詞性轉換考點】：1. real 為形容詞，用來修飾名詞 (a real friend)；其副詞形式為 really，常加在形容詞或動詞前表程度。 2. 閱讀測驗中常考真假的辨析。",
+    "phrases": "in real life (在現實生活中) / a real hero (真正的英雄) / real estate (房地產)",
+    "grammar": "real 作形容詞修飾名詞，而副詞 really 則常用來加強語氣（相當於 very 或 truly）。"
+  },
+  "bridge": {
+    "forms": "複數形 bridges；動詞 bridge (架橋/彌合)",
+    "examPoint": "【會考核心地理景觀與介系詞搭配考點】：1. 穿越橋樑表面常用介系詞 across (walk across the bridge)。 2. 閱讀測驗中常見的地標與交通路線描述單字。",
+    "phrases": "cross the bridge (過橋) / building a bridge (建橋) / bridge the gap (縮小差距)",
+    "grammar": "可數名詞，描述跨越具體橋樑時，動詞常用 walk across 或 go over，不可用 through。"
+  },
+  "traffic": {
+    "forms": "不可數名詞 traffic（無複數形）；形容詞 traffic-free",
+    "examPoint": "【會考核心不可數名詞與交通狀況考點】：1. traffic 在英文中為不可數名詞，形容交通繁忙常用 heavy traffic 或 a lot of traffic，切勿加上 -s。 2. 閱讀測驗與聽力測驗中描述通勤延誤的高頻情境詞。",
+    "phrases": "heavy traffic (交通擁擠) / traffic light (紅綠燈) / traffic jam (交通大阻塞)",
+    "grammar": "traffic 是不可數名詞，前面不能直接加不定冠詞 a，也不會有複數形 traffics。"
+  }
+};
+
+    // 3. Pronunciation Override Mapping (Speech Correction)
+    const pronunciationOverrides = {
+      "I": "eye",
+      "Mr.": "Mister",
+      "Mrs.": "Missus",
+      "Ms.": "Mizz",
+      "Miss": "Miss",
+      "sir": "sir",
+      "MRT": "M R T",
+      "USA": "U S A",
+      "U.S.A.": "U S A",
+      "UK": "U K",
+      "U.K.": "U K",
+      "T-shirt": "T shirt",
+      "e.g.": "for example",
+      "i.e.": "that is"
+    };
+
+    let currentSlideIndex = 0;
+    const totalSlides = rawWords.length + 1; // +1 for Cover
+    let autoSpeechEnabled = true;
+
+    // Web Speech API Voice Selection & State
+    let availableVoices = [];
+    let selectedPreferredVoice = null;
+
+    // DOM Elements
+    const slidesContainer = document.getElementById('slides-container');
+    const slideSelector = document.getElementById('slide-selector');
+    const slideIndicator = document.getElementById('slide-indicator');
+    const progressBarFill = document.getElementById('progress-bar-fill');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+
+    function applySpeechFixes(text) {
+      if (!text) return "";
+      let processed = text;
+      Object.keys(pronunciationOverrides).forEach(key => {
+        const escapedKey = key.replace(/\./g, '\\.');
+        const regex = new RegExp(`\\b${escapedKey}\\b`, 'g');
+        processed = processed.replace(regex, pronunciationOverrides[key]);
+      });
+      return processed;
+    }
+
+    // iOS & Desktop Voice Selection Priority Filter
+    function initVoices() {
+      if (!('speechSynthesis' in window)) return;
+      availableVoices = window.speechSynthesis.getVoices();
+      if (!availableVoices || availableVoices.length === 0) return;
+
+      // 1. 優先尋找 iOS 的 Samantha / Ava 高品質版本（Enhanced 或 Premium）
+      const enhancedAppleVoice = availableVoices.find(v => 
+        v.lang.startsWith("en") && 
+        (v.name.toLowerCase().includes("samantha") || v.name.toLowerCase().includes("ava")) &&
+        (v.name.toLowerCase().includes("enhanced") || v.name.toLowerCase().includes("premium"))
+      );
+
+      // 2. 尋找 Google US English
+      const googleVoice = availableVoices.find(v => 
+        v.name.includes("Google") && (v.name.includes("US English") || v.lang === "en-US")
+      );
+
+      // 3. 尋找一般 Samantha / Ava（避開 Compact 機械音）
+      const normalAppleVoice = availableVoices.find(v => 
+        v.lang.startsWith("en") && 
+        (v.name.toLowerCase().includes("samantha") || v.name.toLowerCase().includes("ava")) &&
+        !v.name.toLowerCase().includes("compact")
+      );
+
+      // 4. 次選其他 en-US 語音
+      const anyUSVoice = availableVoices.find(v => v.lang === "en-US");
+
+      // 判定最終採用的語音
+      selectedPreferredVoice = enhancedAppleVoice || googleVoice || normalAppleVoice || anyUSVoice || availableVoices[0] || null;
+      if (selectedPreferredVoice) {
+        console.log("當前使用的語音：", selectedPreferredVoice.name);
+      }
+    }
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = initVoices;
+    }
+
+    // Web Speech API speak function using selected preferred voice
+    function speakText(text) {
+      return new Promise((resolve) => {
+        if (!('speechSynthesis' in window)) {
+          resolve();
+          return;
+        }
+
+        window.speechSynthesis.cancel(); // Cancel any ongoing speech
+
+        const cleanText = applySpeechFixes(text).trim();
+        if (!cleanText) {
+          resolve();
+          return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        if (selectedPreferredVoice) {
+          utterance.voice = selectedPreferredVoice;
+        }
+        utterance.lang = 'en-US';
+        utterance.rate = 0.92;
+
+        utterance.onend = () => { resolve(); };
+        utterance.onerror = () => { resolve(); };
+
+        window.speechSynthesis.speak(utterance);
+      });
+    }
+
+    function speakSentence(sentence) {
+      speakText(sentence);
+    }
+
+    async function playWordAndSentenceSequence(word, sentence) {
+      await speakText(word);
+      await new Promise(r => setTimeout(r, 450));
+      await speakText(sentence);
+    }
+
+    function speakCurrentWord() {
+      if (currentSlideIndex === 0) {
+        speakText("Welcome to English vocabulary practice!");
+        return;
+      }
+      const currentSlide = document.querySelectorAll('.slide-view')[currentSlideIndex];
+      if (currentSlide) {
+        const word = currentSlide.dataset.word;
+        const sentence = currentSlide.dataset.sentence;
+        if (word && sentence) {
+          playWordAndSentenceSequence(word, sentence);
+        } else if (word) {
+          speakText(word);
+        }
+      }
+    }
+
+    function buildSlides() {
+      // 1. Cover option in select
+      const coverOpt = document.createElement('option');
+      coverOpt.value = "0";
+      coverOpt.textContent = "00. 封面 - 2026 一起背單字 (國中組)";
+      slideSelector.appendChild(coverOpt);
+
+      // 2. Generate each word slide
+      rawWords.forEach((item, idx) => {
+        const slideNum = idx + 1;
+        const supp = supplementaryData[item.word] || {
+          forms: "常規形態變化",
+          grammar: "國中基礎核心必考單字。",
+          phrases: item.collocations,
+          examPoint: "注意單字拼寫與句子搭配用法。"
+        };
+
+        // Dropdown Option
+        const opt = document.createElement('option');
+        opt.value = slideNum.toString();
+        opt.textContent = `${String(slideNum).padStart(2, '0')}. Day ${item.day} - ${item.word} (${item.zh})`;
+        slideSelector.appendChild(opt);
+
+        // Word Slide Section
+        const slideEl = document.createElement('section');
+        slideEl.className = "slide-view p-4 md:p-7 flex flex-col justify-between";
+        slideEl.dataset.title = `${item.word} (${item.zh})`;
+        slideEl.dataset.day = `Day ${item.day}`;
+        slideEl.dataset.category = item.category;
+        slideEl.dataset.word = item.word;
+        slideEl.dataset.sentence = item.sentence;
+
+        slideEl.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-5 h-full items-stretch mobile-deck-grid">
+            
+            <!-- LEFT COLUMN (Word + Collocations + Sentence) -->
+            <div class="md:col-span-7 flex flex-col justify-between gap-3 md:gap-0 md:h-[510px] mobile-card-fix">
+              
+              <!-- Word Title & POS Badge Row -->
+              <div class="flex items-center justify-between bg-white/95 px-4 md:px-6 py-2.5 md:py-3.5 rounded-2xl border-2 border-sky-200 card-shadow shrink-0">
+                <div class="flex items-baseline gap-2 md:gap-4 flex-wrap">
+                  <span class="text-4xl sm:text-5xl md:text-[58px] font-black text-orange-600 tracking-tight leading-none drop-shadow-sm font-['Fredoka']">
+                    ${item.word}
+                  </span>
+                  <div class="px-3 md:px-4 py-1 md:py-1.5 rounded-full bg-sky-100/90 text-sky-800 border border-sky-300 font-bold text-lg sm:text-xl md:text-[26px] shadow-sm flex items-center gap-1.5">
+                    <span class="text-sky-950 font-bold">${item.zh}</span>
+                    <span class="text-sky-600 font-medium text-sm sm:text-base md:text-[22px] ml-1 bg-sky-200/60 px-2.5 py-0.5 rounded-md">${item.pos}</span>
+                  </div>
+                </div>
+                <button onclick="speakText('${item.word}')" class="p-2 md:p-3 bg-orange-500 hover:bg-orange-600 active:scale-95 text-white rounded-2xl shadow-md transition-transform flex items-center justify-center shrink-0" title="朗讀單字 (Web Speech API)">
+                  <i data-lucide="volume-2" class="w-5 h-5 md:w-7 md:h-7"></i>
+                </button>
+              </div>
+
+              <!-- Collocation Card (Desktop Height: 185px) -->
+              <div class="bg-gradient-to-br from-white to-sky-50/60 p-3 md:p-4 rounded-2xl border-2 border-sky-100 card-shadow flex flex-col justify-center md:h-[185px] shrink-0">
+                <div class="flex items-center gap-2 mb-1.5 md:mb-2">
+                  <span class="p-1 md:p-1.5 bg-sky-600 text-white rounded-lg flex items-center justify-center shadow-xs">
+                    <i data-lucide="link-2" class="w-3.5 h-3.5 md:w-4 md:h-4"></i>
+                  </span>
+                  <h3 class="text-lg md:text-[24px] font-extrabold text-sky-900 tracking-tight">常用搭配詞 (Collocations)</h3>
+                </div>
+                <div class="text-base sm:text-lg md:text-[23px] font-semibold text-slate-700 bg-white/80 p-2.5 md:p-3 rounded-xl border border-sky-100 leading-snug">
+                  ${item.collocations}
+                </div>
+              </div>
+
+              <!-- Sentence Card (Desktop Height: 225px) -->
+              <div class="bg-gradient-to-br from-white to-amber-50/40 p-3 md:p-4 rounded-2xl border-2 border-orange-100 card-shadow flex flex-col justify-center md:h-[225px] shrink-0">
+                <div class="flex items-center justify-between mb-1.5 md:mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="p-1 md:p-1.5 bg-orange-500 text-white rounded-lg flex items-center justify-center shadow-xs">
+                      <i data-lucide="message-square-quote" class="w-3.5 h-3.5 md:w-4 md:h-4"></i>
+                    </span>
+                    <h3 class="text-lg md:text-[24px] font-extrabold text-orange-950 tracking-tight">實用例句 (Example Sentence)</h3>
+                  </div>
+                  <button onclick="speakSentence('${item.sentence.replace(/'/g, "\\'")}')" class="text-orange-600 hover:text-orange-800 text-xs font-bold flex items-center gap-1 bg-orange-100/80 px-2 md:px-2.5 py-1 rounded-lg">
+                    <i data-lucide="volume-1" class="w-3.5 h-3.5"></i>
+                    <span>朗讀例句</span>
+                  </button>
+                </div>
+                <div class="bg-white/80 p-2.5 md:p-3 rounded-xl border border-orange-100 flex flex-col gap-1 md:gap-1.5 justify-center flex-1">
+                  <p class="text-base sm:text-lg md:text-[25px] font-bold text-slate-800 leading-snug tracking-normal">
+                    ${item.sentence}
+                  </p>
+                  <p class="text-sm sm:text-base md:text-[23px] font-medium text-slate-600 leading-tight">
+                    ${item.sentenceZh}
+                  </p>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN (Supplementary Panel: Desktop Width 440px, Height 510px) -->
+            <div class="md:col-span-5 w-full md:h-[510px] bg-white rounded-2xl border-2 border-sky-300 card-shadow flex flex-col p-4 md:p-5 justify-between mobile-card-fix">
+              
+              <!-- Header -->
+              <div class="flex items-center gap-2 pb-2 border-b border-sky-200 shrink-0">
+                <span class="p-1 md:p-1.5 bg-sky-700 text-white rounded-lg">
+                  <i data-lucide="graduation-cap" class="w-4 h-4 md:w-5 md:h-5"></i>
+                </span>
+                <h3 class="text-lg md:text-[25px] font-black text-sky-900 tracking-tight">國中重點補充 (Exam Focus)</h3>
+              </div>
+
+              <!-- Content items -->
+              <div class="flex-1 overflow-y-auto pr-1 py-2 flex flex-col gap-2.5 md:gap-3 custom-scroll">
+                
+                <!-- Forms / Changes -->
+                <div class="bg-sky-50/80 p-2.5 md:p-3 rounded-xl border border-sky-200">
+                  <div class="text-base md:text-[25px] font-black text-sky-900 flex items-center gap-1.5 mb-1">
+                    <span>🔹</span> <span>變化 / 格位 / 形態</span>
+                  </div>
+                  <div class="text-sm sm:text-base md:text-[23px] font-medium text-slate-700 leading-snug">
+                    ${supp.forms}
+                  </div>
+                </div>
+
+                <!-- Exam Focus Point -->
+                <div class="bg-orange-50/80 p-2.5 md:p-3 rounded-xl border border-orange-200">
+                  <div class="text-base md:text-[25px] font-black text-orange-950 flex items-center gap-1.5 mb-1">
+                    <span>🎯</span> <span>會考常考要點</span>
+                  </div>
+                  <div class="text-sm sm:text-base md:text-[23px] font-medium text-slate-700 leading-snug">
+                    ${supp.examPoint}
+                  </div>
+                </div>
+
+                <!-- Useful Phrases & Grammar -->
+                <div class="bg-slate-50 p-2.5 md:p-3 rounded-xl border border-slate-200">
+                  <div class="text-base md:text-[25px] font-black text-slate-900 flex items-center gap-1.5 mb-1">
+                    <span>💡</span> <span>常用片語與文法</span>
+                  </div>
+                  <div class="text-sm sm:text-base md:text-[23px] font-medium text-slate-700 leading-snug">
+                    ${supp.phrases}
+                  </div>
+                  ${supp.grammar ? `<div class="text-xs sm:text-sm md:text-[21px] text-slate-500 mt-1 border-t border-slate-200 pt-1 leading-tight">${supp.grammar}</div>` : ''}
+                </div>
+
+              </div>
+
+              <!-- Footer Tag in Panel -->
+              <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-xs font-semibold text-slate-400 shrink-0">
+                <span>單字編號：W05-D5-#${slideNum}</span>
+                <span class="bg-sky-50 text-sky-600 px-2.5 py-0.5 rounded-full font-bold">會考必備單字</span>
+              </div>
+
+            </div>
+
+          </div>
+        `;
+        slidesContainer.appendChild(slideEl);
+      });
+
+      // Render Lucide icons
+      lucide.createIcons();
+    }
+
+    function updateSlideUI() {
+      const slides = document.querySelectorAll('.slide-view');
+      slides.forEach((slide, idx) => {
+        if (idx === currentSlideIndex) {
+          slide.classList.add('active');
+          if (window.innerWidth < 768) {
+            slide.scrollTop = 0; // Reset scroll on mobile
+          }
+        } else {
+          slide.classList.remove('active');
+        }
+      });
+
+      slideSelector.value = currentSlideIndex.toString();
+      slideIndicator.textContent = `${currentSlideIndex} / ${totalSlides - 1}`;
+      if (currentSlideIndex === 0) {
+        slideIndicator.textContent = `封面 / ${totalSlides - 1}`;
+      }
+
+      const progressPercent = (currentSlideIndex / (totalSlides - 1)) * 100;
+      progressBarFill.style.width = `${progressPercent}%`;
+
+      prevBtn.disabled = currentSlideIndex === 0;
+      nextBtn.disabled = currentSlideIndex === totalSlides - 1;
+
+      const currentSlide = slides[currentSlideIndex];
+
+      if (autoSpeechEnabled && currentSlideIndex > 0) {
+        const wordToSpeak = currentSlide.dataset.word;
+        const sentenceToSpeak = currentSlide.dataset.sentence;
+        if (wordToSpeak && sentenceToSpeak) {
+          playWordAndSentenceSequence(wordToSpeak, sentenceToSpeak);
+        } else if (wordToSpeak) {
+          speakText(wordToSpeak);
+        }
+      }
+    }
+
+    function goToSlide(index) {
+      if (index >= 0 && index < totalSlides) {
+        currentSlideIndex = index;
+        updateSlideUI();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlideIndex > 0) {
+        goToSlide(currentSlideIndex - 1);
+      }
+    }
+
+    function nextSlide() {
+      if (currentSlideIndex < totalSlides - 1) {
+        goToSlide(currentSlideIndex + 1);
+      }
+    }
+
+    function fitPresentationStage() {
+      const stage = document.getElementById('presentation-stage');
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+
+      // Disable transform scale for mobile portrait (< 768px)
+      if (windowWidth < 768) {
+        stage.style.transform = 'none';
+        return;
+      }
+
+      const baseWidth = 1200;
+      const baseHeight = 675;
+
+      const scaleX = (windowWidth * 0.96) / baseWidth;
+      const scaleY = (windowHeight * 0.96) / baseHeight;
+      const scale = Math.min(scaleX, scaleY, 1.15);
+
+      stage.style.transform = `scale(${scale})`;
+    }
+
+    function toggleFullScreen() {
+      const doc = window.document;
+      const docEl = doc.documentElement;
+
+      const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+      const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+
+      if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+        if (requestFullScreen) {
+          requestFullScreen.call(docEl);
+        }
+      } else {
+        if (cancelFullScreen) {
+          cancelFullScreen.call(doc);
+        }
+      }
+    }
+
+    function updateFullscreenIcon() {
+      const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+      const btn = document.getElementById('fullscreen-btn');
+      if (!btn) return;
+      
+      btn.innerHTML = isFullscreen 
+        ? `<i data-lucide="minimize" class="w-4 h-4"></i>` 
+        : `<i data-lucide="maximize" class="w-4 h-4"></i>`;
+      lucide.createIcons();
+    }
+
+    function initInteractions() {
+      // Keyboard shortcuts
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'Space' || e.key === 'PageDown') {
+          e.preventDefault();
+          nextSlide();
+        } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+          e.preventDefault();
+          prevSlide();
+        } else if (e.key === 'Home') {
+          e.preventDefault();
+          goToSlide(0);
+        } else if (e.key === 'End') {
+          e.preventDefault();
+          goToSlide(totalSlides - 1);
+        } else if (e.key === 'f' || e.key === 'F') {
+          e.preventDefault();
+          toggleFullScreen();
+        }
+      });
+
+      // Fullscreen change events
+      ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(ev => {
+        document.addEventListener(ev, () => {
+          updateFullscreenIcon();
+          setTimeout(fitPresentationStage, 100);
+        });
+      });
+
+      // Touch swipe gestures
+      let touchStartX = 0;
+      let touchStartY = 0;
+      const stage = document.getElementById('presentation-stage');
+
+      stage.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+      }, { passive: true });
+
+      stage.addEventListener('touchend', (e) => {
+        const touchEndX = e.changedTouches[0].screenX;
+        const touchEndY = e.changedTouches[0].screenY;
+        const diffX = touchEndX - touchStartX;
+        const diffY = touchEndY - touchStartY;
+
+        // Horizontal swipe detection
+        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 45) {
+          if (diffX < 0) {
+            nextSlide();
+          } else {
+            prevSlide();
+          }
+        }
+      }, { passive: true });
+
+      window.addEventListener('resize', fitPresentationStage);
+      window.addEventListener('orientationchange', () => {
+        setTimeout(fitPresentationStage, 200);
+      });
+    }
+
+    window.onload = function() {
+      initVoices();
+      buildSlides();
+      fitPresentationStage();
+      initInteractions();
+      updateSlideUI();
+    };
+  </script>
+</body>
+</html>
