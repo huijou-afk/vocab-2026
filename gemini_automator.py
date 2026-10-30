@@ -584,12 +584,32 @@ end tell
                     vocab_kws = list(expected_keywords)
 
                 if vocab_kws:
-                    low_json = candidate_slice.lower()
-                    matched_vocab = [kw for kw in vocab_kws if kw.strip() and kw.strip().lower() in low_json]
-                    required = min(2, len(vocab_kws))
+                    # 必須精準提取 JSON 中宣告的「單字字串 (word)」集合，嚴格禁止任意子字串比對（防止比對到 icon 名稱如 fa-hand-back-fist 或舊對話的零星文字）
+                    words_in_json = set()
+                    if isinstance(data, dict):
+                        items = data.get("enrichments") or data.get("vocab_data") or []
+                        if isinstance(items, list):
+                            for it in items:
+                                if isinstance(it, dict) and "word" in it:
+                                    words_in_json.add(str(it["word"]).strip().lower())
+                        supp = data.get("supplementaryData")
+                        if isinstance(supp, dict):
+                            for k in supp.keys():
+                                words_in_json.add(str(k).strip().lower())
+                        for k, v in data.items():
+                            if isinstance(v, dict) and any(f in v for f in ["forms", "examPoint", "phrases", "grammar", "icon", "tip"]):
+                                words_in_json.add(str(k).strip().lower())
+                    elif isinstance(data, list):
+                        for it in data:
+                            if isinstance(it, dict) and "word" in it:
+                                words_in_json.add(str(it["word"]).strip().lower())
+
+                    expected_clean = [kw.strip().lower() for kw in vocab_kws if kw.strip()]
+                    matched_vocab = [kw for kw in expected_clean if kw in words_in_json]
+                    required = min(3, len(expected_clean))
                     if len(matched_vocab) < required:
-                        return False, f"未包含當天單字 ({vocab_kws[:3]})"
-                    return True, f"JSON AI 創意資料驗證通過 (單字: [{', '.join(matched_vocab[:3])}])"
+                        return False, f"未包含足夠當週目標單字 (預期: {expected_clean[:3]}, 匹配: {matched_vocab})"
+                    return True, f"JSON AI 創意資料驗證通過 (單字: [{', '.join(matched_vocab)}])"
 
                 return True, "JSON AI 創意資料驗證通過"
 
@@ -706,7 +726,7 @@ end tell
         const idxEndBrace = txt.lastIndexOf('}');
         if (idxBrace !== -1 && idxEndBrace > idxBrace) {
             const cleanBrace = txt.substring(idxBrace, idxEndBrace + 1).trim();
-            if (cleanBrace.length > 50 && (cleanBrace.includes('supplementary') || cleanBrace.includes('enrichments') || cleanBrace.includes('week_tags') || cleanBrace.includes('category_tags') || cleanBrace.includes('word'))) {
+            if (cleanBrace.length > 50 && (cleanBrace.includes('supplementary') || cleanBrace.includes('enrichments') || cleanBrace.includes('week_tags') || cleanBrace.includes('category_tags') || cleanBrace.includes('"word"'))) {
                 return cleanBrace;
             }
         }
@@ -736,6 +756,7 @@ end tell
         return null;
     }
 
+    const seen = new Set();
     /* A. 優先掃描 Gemini 的對話組件 (code-block, message-content, model-response 等) */
     const selectors = [
         'code-block',
@@ -753,7 +774,8 @@ end tell
     for (let i = elements.length - 1; i >= 0; i--) {
         const rawText = elements[i].innerText || elements[i].textContent || '';
         const snippet = cleanSnippet(rawText);
-        if (snippet) {
+        if (snippet && !seen.has(snippet)) {
+            seen.add(snippet);
             results.push(snippet);
         }
     }
