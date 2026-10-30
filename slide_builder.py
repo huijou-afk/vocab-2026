@@ -222,32 +222,50 @@ def build_lightweight_prompt_junior(track_id, words_text):
     return prompt, week_title, parsed_words
 
 def extract_json_data(enrichment_json_str):
-    """強效解析 JSON：相容 markdown 圍欄、開頭語言標籤 (JSON\n) 以及周圍多餘文字"""
+    """強效解析 JSON：相容 markdown 圍欄、開頭語言標籤 (JSON\n)、包含多餘 HTML 等雜訊"""
     if not enrichment_json_str:
         return None
     clean_str = str(enrichment_json_str).strip()
+
+    # 1. 優先嘗試正規表達式提取 ```json ... ```
     m = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', clean_str, re.IGNORECASE)
     if m:
-        clean_str = m.group(1).strip()
-    if not (clean_str.startswith('{') or clean_str.startswith('[')):
-        idx_b = clean_str.find('{')
-        idx_bk = clean_str.find('[')
-        start = -1
-        if idx_b != -1 and idx_bk != -1:
-            start = min(idx_b, idx_bk)
-        elif idx_b != -1:
-            start = idx_b
-        elif idx_bk != -1:
-            start = idx_bk
-        if start != -1:
-            end = max(clean_str.rfind('}'), clean_str.rfind(']'))
-            if end > start:
-                clean_str = clean_str[start:end+1].strip()
-    try:
-        return json.loads(clean_str)
-    except Exception as e:
-        print(f"⚠️ 解析 Gemini JSON 失敗: {e}")
-        return None
+        candidate = m.group(1).strip()
+        try:
+            return json.loads(candidate)
+        except Exception:
+            pass
+
+    # 2. 尋找第 1 個 '{' 或 '['，使用 raw_decode 提取第一個完整合法的 JSON 物件
+    idx_b = clean_str.find('{')
+    idx_bk = clean_str.find('[')
+    start_idx = -1
+    if idx_b != -1 and idx_bk != -1:
+        start_idx = min(idx_b, idx_bk)
+    elif idx_b != -1:
+        start_idx = idx_b
+    elif idx_bk != -1:
+        start_idx = idx_bk
+
+    if start_idx != -1:
+        try:
+            decoder = json.JSONDecoder()
+            obj, _ = decoder.raw_decode(clean_str, start_idx)
+            if isinstance(obj, (dict, list)):
+                return obj
+        except Exception:
+            pass
+
+        # 3. 備用方案：若 raw_decode 失敗，嘗試切片
+        end_idx = max(clean_str.rfind('}'), clean_str.rfind(']'))
+        if end_idx > start_idx:
+            sub = clean_str[start_idx:end_idx+1].strip()
+            try:
+                return json.loads(sub)
+            except Exception:
+                pass
+
+    return None
 
 def assemble_html(track_id, week_title, parsed_words, enrichment_json_str):
     if track_id == "junior":
@@ -263,7 +281,7 @@ def assemble_html_elem(week_title, parsed_words, enrichment_json_str):
     if enrichment_json_str:
         data = extract_json_data(enrichment_json_str)
         if isinstance(data, dict):
-            if "week_tags" in data and isinstance(data["week_tags"], list) and not extracted_categories:
+            if "week_tags" in data and isinstance(data["week_tags"], list) and data["week_tags"]:
                 week_tags = data["week_tags"]
             items = data.get("enrichments") or data.get("vocab_data") or []
             for it in items:
