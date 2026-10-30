@@ -28,6 +28,115 @@ def get_template_path(track_id):
 
     raise FileNotFoundError(f"找不到 {folder_name}/ 目錄下的 HTML 範本檔案。")
 
+# 常見無效 / Pro 圖示與其對應之 Font Awesome Free 最佳替代圖示
+ICON_ALIASES = {
+    # 針對本次問題
+    "elephant": "fa-mountain",
+    "fa-elephant": "fa-mountain",
+    "sparkles": "fa-wand-magic-sparkles",
+    "fa-sparkles": "fa-wand-magic-sparkles",
+    # 動物類 (Font Awesome Free 無專屬 icon 之常見動物)
+    "rabbit": "fa-paw",
+    "fa-rabbit": "fa-paw",
+    "butterfly": "fa-dove",
+    "fa-butterfly": "fa-dove",
+    "whale": "fa-fish",
+    "fa-whale": "fa-fish",
+    "dolphin": "fa-fish",
+    "fa-dolphin": "fa-fish",
+    "lion": "fa-paw",
+    "fa-lion": "fa-paw",
+    "tiger": "fa-paw",
+    "fa-tiger": "fa-paw",
+    "bear": "fa-paw",
+    "fa-bear": "fa-paw",
+    "monkey": "fa-paw",
+    "fa-monkey": "fa-paw",
+    "giraffe": "fa-paw",
+    "fa-giraffe": "fa-paw",
+    "dinosaur": "fa-dragon",
+    "fa-dinosaur": "fa-dragon",
+    "turtle": "fa-shield-halved",
+    "fa-turtle": "fa-shield-halved",
+    "snake": "fa-worm",
+    "fa-snake": "fa-worm",
+    "duck": "fa-feather",
+    "fa-duck": "fa-feather",
+    "balloon": "fa-heart",
+    "fa-balloon": "fa-heart",
+    "kite": "fa-wind",
+    "fa-kite": "fa-wind",
+    "sandwich": "fa-burger",
+    "fa-sandwich": "fa-burger",
+    "donut": "fa-cookie",
+    "fa-donut": "fa-cookie",
+}
+
+_FA_FREE_ICONS_SET = None
+
+def get_fa_free_icons():
+    global _FA_FREE_ICONS_SET
+    if _FA_FREE_ICONS_SET is None:
+        possible_paths = [
+            Path(__file__).parent / "fa_free_icons.json",
+            Path.cwd() / "fa_free_icons.json",
+            BASE_DIR / "fa_free_icons.json"
+        ]
+        for p in possible_paths:
+            if p.exists():
+                try:
+                    with open(p, "r", encoding="utf-8") as f:
+                        _FA_FREE_ICONS_SET = set(json.load(f))
+                        break
+                except Exception:
+                    pass
+        if _FA_FREE_ICONS_SET is None:
+            _FA_FREE_ICONS_SET = set()
+    return _FA_FREE_ICONS_SET
+
+def sanitize_icon(raw_icon, word=""):
+    """確保圖示名稱為有效之 FontAwesome Free 圖示，避免網頁出現空白"""
+    if not raw_icon:
+        raw_icon = ""
+    clean = str(raw_icon).strip()
+    if clean.startswith("fa-solid "):
+        clean = clean.replace("fa-solid ", "").strip()
+    if clean.startswith("fa-regular "):
+        clean = clean.replace("fa-regular ", "").strip()
+
+    # 1. 先查別名字典
+    if clean in ICON_ALIASES:
+        return ICON_ALIASES[clean]
+    
+    full_name = clean if clean.startswith("fa-") else f"fa-{clean}"
+    if full_name in ICON_ALIASES:
+        return ICON_ALIASES[full_name]
+
+    # 2. 檢查官方 FA Free 集合
+    free_set = get_fa_free_icons()
+    if free_set:
+        if full_name in free_set:
+            return full_name
+    else:
+        if full_name.startswith("fa-"):
+            return full_name
+
+    # 3. 根據常用關鍵字備援
+    w = str(word).strip().lower()
+    if w in ("big", "huge", "large"):
+        return "fa-mountain"
+    if w in ("new", "fresh", "bright"):
+        return "fa-wand-magic-sparkles"
+    if w in ("small", "tiny", "little"):
+        return "fa-seedling"
+    if w in ("happy", "glad"):
+        return "fa-face-smile"
+    if w in ("sad", "sorry"):
+        return "fa-face-frown"
+
+    # 4. 保底圖示
+    return "fa-star"
+
 def parse_input_words(raw_text):
     """
     解析使用者輸入的文字檔 (Tab/多空格分隔)，精準支援兩種欄位格式：
@@ -41,12 +150,21 @@ def parse_input_words(raw_text):
 
     for line in lines:
         # 1. Date / Week Header Line
-        if line.startswith("[") or "2026" in line or "日期" in line or "週次" in line:
-            m = re.search(r'(\[?W\d+\]?.*?\d{4}/\d{1,2}/\d{1,2}(?:\([一二三四五六日]\))?~?\d{0,4}/?\d{1,2}/?\d{1,2})', line)
+        if line.startswith("[") or line.startswith("［") or "2026" in line or "日期" in line or "週次" in line:
+            m = re.search(r'(\[?[WwＷｗ]0*\d+\]?.*?\d{4}/\d{1,2}/\d{1,2}(?:\([一二三四五六日]\))?~?\d{0,4}/?\d{1,2}/?\d{1,2})', line)
             if m:
-                week_title = m.group(1)
-            elif "[" in line:
-                week_title = line
+                raw_title = m.group(1)
+            elif "[" in line or "［" in line:
+                raw_title = line
+            else:
+                raw_title = line
+            
+            # 自動標準化週次標籤：[W010] 或 ［Ｗ010］ 統一標準化為 [W10]
+            week_title = re.sub(
+                r'[\[［]?[WwＷｗ]0*(\d+)[\]］]?',
+                lambda x: f"[W{int(x.group(1)):02d}]",
+                raw_title
+            ).strip()
             continue
 
         # 2. Split line by Tab or multiple spaces
@@ -148,7 +266,7 @@ def build_lightweight_prompt_elem(track_id, words_text):
     prompt = f"""你是一位精通兒童美語教學與單字卡設計的專家。請根據下方提供的一週單字清單，為每個單字設計 4 個創意學習欄位：
 1. posChinese: 包含中文與英文詞性縮寫的對應標籤（例如 "樹 n."、"帽子 n."、"灰色的 adj."、"重的是 adj."，若原始資料未附詞性請補上 n./v./adj./adv. 標籤，請勿顯示 IPA 音標）。
 2. category: 大分類名稱（請沿用單字清單中的分類，或對應歸納出的 week_tags 主題之一）。
-3. icon: 最符合單字語意且適合國小生認知的 FontAwesome v6.4 (free) 圖示 class 名稱（只需寫名稱本身，不要包含 `fa-solid` 前綴，如 "fa-tree", "fa-hat-cowboy", "fa-shirt"）。
+3. icon: 最符合單字語意且適合國小生認知的 FontAwesome v6.4 (free) 圖示 class 名稱（必須使用 FontAwesome Free 免費圖示，如 "fa-mountain", "fa-wand-magic-sparkles", "fa-tree", "fa-sun"，切勿使用 Pro 圖示如 fa-sparkles, fa-elephant）。
 4. badge: 4字以內的可愛情境徽章標籤（如 "綠意盎然", "保暖遮陽"）。
 5. themeTag: 4字以內的主題標籤（如 "自然植物", "穿著配件"）。
 6. tip: 20~45 字的「趣味聯想記憶法」，必須以 `💡 ` 開頭（包含燈泡 Emoji 與空格）。內容需親切可愛。
@@ -299,9 +417,7 @@ def assemble_html_elem(week_title, parsed_words, enrichment_json_str):
         w_clean = re.sub(r'[^a-zA-Z0-9\s\-]', '', item["word"]).strip().lower()
         e = enrichments_dict.get(w_clean, {})
 
-        icon_val = e.get("icon", "fa-star")
-        if icon_val.startswith("fa-solid "):
-            icon_val = icon_val.replace("fa-solid ", "")
+        icon_val = sanitize_icon(e.get("icon", ""), item["word"])
 
         pos_cn = e.get("posChinese") or item["posChinese"]
         category_val = item.get("category") or e.get("category") or week_tags[0]
@@ -322,8 +438,8 @@ def assemble_html_elem(week_title, parsed_words, enrichment_json_str):
     template_path = get_template_path("elem")
     template_code = template_path.read_text(encoding="utf-8")
 
-    week_tag_match = re.search(r'\[?(W\d+)\]?', week_title)
-    w_tag = week_tag_match.group(1).upper() if week_tag_match else "W01"
+    w_match = re.search(r'[WwＷｗ]0*(\d+)', week_title)
+    w_tag = f"W{int(w_match.group(1)):02d}" if w_match else "W01"
 
     template_code = re.sub(
         r'<title>.*?</title>',
@@ -332,7 +448,7 @@ def assemble_html_elem(week_title, parsed_words, enrichment_json_str):
     )
 
     template_code = re.sub(
-        r'\[W\d+\]\d{4}/\d{2}/\d{2}~\d{2}/\d{2}',
+        r'\[W\d+\]\d{4}/\d{1,2}/\d{1,2}~\d{1,2}/\d{1,2}',
         week_title,
         template_code
     )
@@ -368,7 +484,7 @@ def assemble_html_junior(week_title, parsed_words, enrichment_json_str):
         category_tags = [f"🏷️ {c}" for c in extracted] if extracted else ["🏷️ 會考核心單字", "🏷️ 實用單字庫"]
 
     week_num = 1
-    w_match = re.search(r'W(\d+)', week_title, re.I)
+    w_match = re.search(r'[WwＷｗ]0*(\d+)', week_title)
     if w_match:
         week_num = int(w_match.group(1))
 

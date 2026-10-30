@@ -412,16 +412,16 @@ class AppAPI:
         threading.Thread(target=_worker, daemon=True).start()
         return {"status": "started"}
 
-    def regenerate_current(self):
-        """使用者點擊『重新生成』時，放棄當前產出並重新啟動生成"""
+    def regenerate_current(self, custom_track=None, custom_words=None, custom_filename=None):
+        """使用者點擊『重新生成』時，放棄當前產出並重新啟動生成（優先採用前端最新修改的文字與檔名）"""
         if self.is_running:
             return {"status": "busy", "message": "目前有工作正在執行中，請稍候..."}
 
         self.window.evaluate_js("window.setPendingConfirmState(false)")
         self._log_js("🔄 使用者選擇重新生成，正在重新觸發自動生成流程...")
-        track = self.pending_track or self.active_track
-        words = self.pending_words
-        fn = self.pending_filename
+        track = custom_track or self.pending_track or self.active_track
+        words = custom_words if (custom_words and custom_words.strip()) else self.pending_words
+        fn = custom_filename if (custom_filename and custom_filename.strip()) else self.pending_filename
         return self.start_generation(track, words, fn)
 
     def cancel_pending_upload(self):
@@ -1118,9 +1118,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       
       if (currentTrack === 'junior') {
         // 國中組：[W03]2026/09/18(五) -> 2026_w03d5
-        const match = text.match(/(?:日期[：:])?\s*\[?([Ww]\d{1,2})\]?\s*(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})(?:\(([\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u65e5])\))?/);
+        const match = text.match(/(?:日期[：:])?\s*[\[［]?[WwＷｗ]0*(\d+)[\]］]?\s*(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})(?:\(([\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u65e5])\))?/);
         if (match) {
-          const week = match[1].toLowerCase();
+          const weekNum = match[1].padStart(2, '0');
+          const week = `w${weekNum}`;
           const year = match[2];
           const weekdayMap = {'一':'d1', '二':'d2', '三':'d3', '四':'d4', '五':'d5', '六':'d6', '日':'d7'};
           const daySuffix = match[5] && weekdayMap[match[5]] ? weekdayMap[match[5]] : '';
@@ -1134,9 +1135,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
       } else {
         // 國小組：[W02]2026/09/07~09/14 -> 2026_ew02
-        const match = text.match(/(?:日期[：:])?\s*\[?([Ww]\d{1,2})\]?\s*(\d{4})/);
+        const match = text.match(/(?:日期[：:])?\s*[\[［]?[WwＷｗ]0*(\d+)[\]］]?\s*(\d{4})/);
         if (match) {
-          const weekNum = match[1].replace(/[Ww]/g, '').padStart(2, '0');
+          const weekNum = match[1].padStart(2, '0');
           const year = match[2];
           fnInput.value = `${year}_ew${weekNum}`;
         }
@@ -1165,6 +1166,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         alert("請先輸入單字資料！");
         return;
       }
+      setPendingConfirmState(false);
       window.pywebview.api.start_generation(currentTrack, words, filename);
     }
 
@@ -1214,7 +1216,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     function onRegenerate() {
       if (confirm("確定要放棄當前產出的投影片並重新生成嗎？")) {
         if (window.pywebview) {
-          window.pywebview.api.regenerate_current();
+          const words = document.getElementById('wordsInput') ? document.getElementById('wordsInput').value : '';
+          const filename = document.getElementById('filenameInput') ? document.getElementById('filenameInput').value : '';
+          setPendingConfirmState(false);
+          window.pywebview.api.regenerate_current(currentTrack, words, filename);
         }
       }
     }
@@ -1302,9 +1307,9 @@ def get_auto_filename_py(text, track_id="junior"):
     if not text:
         return ""
     if track_id == "junior":
-        m = re.search(r'(?:日期[：:])?\s*\[?([Ww]\d{1,2})\]?\s*(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})(?:\(([\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u65e5])\))?', text)
+        m = re.search(r'(?:日期[：:])?\s*[\[［]?[WwＷｗ]0*(\d+)[\]］]?\s*(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})(?:\(([\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u65e5])\))?', text)
         if m:
-            week = m.group(1).lower()
+            week = f"w{m.group(1).zfill(2)}"
             year = m.group(2)
             w_map = {'一':'d1', '二':'d2', '三':'d3', '四':'d4', '五':'d5', '六':'d6', '日':'d7'}
             d_suffix = w_map.get(m.group(5), '') if m.group(5) else ''
@@ -1313,9 +1318,9 @@ def get_auto_filename_py(text, track_id="junior"):
             else:
                 return f"{year}_{week}_{m.group(3).zfill(2)}{m.group(4).zfill(2)}"
     else:
-        m = re.search(r'(?:日期[：:])?\s*\[?([Ww]\d{1,2})\]?\s*(\d{4})', text)
+        m = re.search(r'(?:日期[：:])?\s*[\[［]?[WwＷｗ]0*(\d+)[\]］]?\s*(\d{4})', text)
         if m:
-            w_num = re.sub(r'[Ww]', '', m.group(1)).zfill(2)
+            w_num = m.group(1).zfill(2)
             year = m.group(2)
             return f"{year}_ew{w_num}"
     return ""
