@@ -84,8 +84,7 @@ def build_blooket_quiz_prompt(raw_text, filename=None):
 {words_block}
 
 **規則：**
-1. 請建立一個 50 題的表格，第一列第一欄為："Blooket
-Import Template"，其他空白，第二列欄位標題為：`Question #` | `Question Text` | `Answer 1` | `Answer 2` | `Answer 3` | `Answer 4` | `Time Limit (sec)` | `Correct Answer(s)`
+1. 請建立一個 50 題的表格，第一列第一欄為："Blooket Import Template"（注意："Blooket Import Template" 必須在同一列，切勿換行），其他欄位空白，即第一列完整內容固定為：`"Blooket Import Template",,,,,,,`。第二列欄位標題為：`Question #,Question Text,Answer 1,Answer 2,Answer 3,Answer 4,Time Limit (sec),Correct Answer(s)`
 2. **所有題目的設定：** `Time Limit (sec)` 設為 **20**，`Correct Answer(s)` 設為 **1**（代表 Answer 1 永遠是正確答案），`Answer 4` 設為空白。
 3. **題號 1-10 (英翻中)：**
    - Question Text: [英文單字]
@@ -133,6 +132,8 @@ Import Template"，其他空白，第二列欄位標題為：`Question #` | `Que
 def clean_blooket_csv(raw_csv_text):
     """
     清洗 Gemini 輸出的 CSV 字串
+    確保第一列為 "Blooket Import Template",,,,,,,
+    第二列為 Question #,Question Text,Answer 1,Answer 2,Answer 3,Answer 4,Time Limit (sec),Correct Answer(s)
     """
     if not raw_csv_text:
         return ""
@@ -154,7 +155,17 @@ def clean_blooket_csv(raw_csv_text):
     # 2. 移除任何已存在的 BOM，由存檔時統一指定 utf-8-sig 輸出
     text = text.lstrip("\ufeff").strip()
 
-    # 3. 驗證基本結構
+    # 3. 尋找 Question # 標題行，確保前兩列結構 100% 正確
+    m_header = re.search(r'Question\s*#\s*,\s*Question\s*Text', text, re.IGNORECASE)
+    if m_header:
+        text = '"Blooket Import Template",,,,,,,\n' + text[m_header.start():]
+    else:
+        # 若未找到 Question #，但有 Blooket 開頭，進行修復
+        m_blooket = re.search(r'Blooket[\s\S]*?Import\s*Template[^\n]*\n', text, re.IGNORECASE)
+        if m_blooket:
+            text = '"Blooket Import Template",,,,,,,\n' + text[m_blooket.end():]
+
+    # 4. 驗證基本結構
     lines = [l for l in text.splitlines() if l.strip()]
     if len(lines) < 10:
         return ""
