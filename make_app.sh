@@ -21,10 +21,10 @@ PLIST="$CONTENTS/Info.plist"
 mkdir -p "$MACOS" "$RESOURCES"
 
 # 2. 複製最新 Python 原始碼與設定進 Resources
-for f in app.py gemini_automator.py git_handler.py slide_builder.py config.json fa_free_icons.json words.txt words_junior.txt words_elem.txt VERSION; do
+for f in app.py gemini_automator.py git_handler.py slide_builder.py quiz_builder.py config.json fa_free_icons.json words.txt words_junior.txt words_elem.txt VERSION; do
     [ -f "$f" ] && cp "$f" "$RESOURCES/" && echo "  Syncing $f -> Resources/"
 done
-mkdir -p "$RESOURCES/elem" "$RESOURCES/junior"
+mkdir -p "$RESOURCES/elem" "$RESOURCES/junior" "$RESOURCES/junior/quizzes"
 cp -r elem/*.html "$RESOURCES/elem/" 2>/dev/null && echo "  Syncing elem/*.html -> Resources/elem/" || true
 cp -r junior/*.html "$RESOURCES/junior/" 2>/dev/null && echo "  Syncing junior/*.html -> Resources/junior/" || true
 [ -f ".gitignore" ] && cp ".gitignore" "$RESOURCES/" 2>/dev/null || true

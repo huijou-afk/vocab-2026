@@ -417,14 +417,45 @@ return "NO_TAB"
             pass
         return False
 
-    def _ensure_gemini_tab_open(self, target_url):
-        """確保使用者現有的 Chrome 視窗正開啟在指定的 target_url 對話頁面上"""
+    def _ensure_gemini_tab_open(self, target_url, force_new_chat=False):
+        """確保使用者現有的 Chrome 視窗正開啟在指定的 target_url 對話頁面上（支援 force_new_chat 開新對話）"""
         dest = target_url or self.gemini_url
+        if force_new_chat:
+            dest = "https://gemini.google.com/app"
         target_id = ""
-        if "/app/" in dest:
+        if not force_new_chat and "/app/" in dest:
             target_id = dest.split("/app/")[-1].strip()
 
-        script = f'''
+        if force_new_chat:
+            script = f'''
+tell application "Google Chrome"
+    activate
+    -- 強制開新對話：若已有 gemini.google.com 分頁，將其重整至新對話頁面
+    repeat with w in windows
+        set tabIdx to 1
+        repeat with t in tabs of w
+            if URL of t contains "gemini.google.com" then
+                set active tab index of w to tabIdx
+                set index of w to 1
+                set URL of t to "https://gemini.google.com/app"
+                return "NAVIGATED_TAB"
+            end if
+            set tabIdx to tabIdx + 1
+        end repeat
+    end repeat
+    
+    if (count of windows) is 0 then
+        make new window
+    end if
+    tell window 1
+        make new tab with properties {{URL:"https://gemini.google.com/app"}}
+    end tell
+    return "NEW_TAB"
+end tell
+return "NO_CHROME"
+'''
+        else:
+            script = f'''
 tell application "Google Chrome"
     activate
     -- 1. 優先尋找網址與 target_url 完全一致或包含 target_id 的分頁
@@ -470,7 +501,8 @@ return "NO_CHROME"
             res = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=8)
             out = res.stdout.strip()
             if "NAVIGATED_TAB" in out or "NEW_TAB" in out:
-                self._log(f"🌐 正在將 Chrome 導向至指定 Gemini 對話頁面: {dest}")
+                msg_target = "新對話 (https://gemini.google.com/app)" if force_new_chat else dest
+                self._log(f"🌐 正在將 Chrome 導向至指定 Gemini 對話頁面: {msg_target}")
                 time.sleep(3.5)
             return out
         except Exception:
@@ -641,14 +673,26 @@ end tell
             if matched_kw:
                 return True, f"關鍵字 [{', '.join(matched_kw[:3])}]"
 
+        # 3. 驗證 CSV (Blooket 考題) 回應
+        if "blooket" in low or "question #" in low or "question text" in low:
+            lines = [l for l in clean_code.splitlines() if l.strip()]
+            if len(lines) >= 15:
+                vocab_kws = expected_keywords.get("vocab_keywords", []) if isinstance(expected_keywords, dict) else []
+                if vocab_kws:
+                    matched = [kw for kw in vocab_kws if kw.lower() in low]
+                    if len(matched) < min(3, len(vocab_kws)):
+                        return False, f"CSV 考題未包含足夠目標單字 (預期: {vocab_kws[:3]}, 匹配: {matched})"
+                    return True, f"Blooket 考題 CSV 驗證通過 (共 {len(lines)} 行，單字: [{', '.join(matched)}])"
+                return True, f"Blooket 考題 CSV 驗證通過 (共 {len(lines)} 行)"
+
         return False, "未包含指定內容"
 
-    def _generate_via_applescript(self, prompt, target_url=None, timeout_seconds=300, expected_keywords=None):
-        """利用 AppleScript 直連操控使用者畫面上已開啟的 Chrome 分頁，零新視窗！"""
+    def _generate_via_applescript(self, prompt, target_url=None, timeout_seconds=300, expected_keywords=None, is_new_chat=False):
+        """利用 AppleScript 直連操控使用者畫面上已開啟的 Chrome 分頁，零新視窗！（支援 is_new_chat 開新對話）"""
         import json, base64
 
         # 1. 確保現有 Chrome 開啟 Gemini 分頁
-        tab_status = self._ensure_gemini_tab_open(target_url)
+        tab_status = self._ensure_gemini_tab_open(target_url, force_new_chat=is_new_chat)
         if "NO_CHROME" in tab_status or "ERROR" in tab_status:
             return None
 
@@ -666,7 +710,9 @@ end tell
         # 補上強效指示：要求直接在對話框中輸出 Markdown 程式碼區塊，避開 Canvas
         full_prompt_text = prompt.strip()
         if "請勿開啟或使用 Canvas 模式" not in full_prompt_text:
-            if "json" in full_prompt_text.lower():
+            if "csv" in full_prompt_text.lower():
+                full_prompt_text += "\n\n【重要指示】：請務必將完整的 CSV 內容直接在對話框中用 ```csv 與 ``` 程式碼區塊包覆輸出，請勿開啟或使用 Canvas 模式，亦請勿輸出任何 HTML 代碼或額外說明文字。"
+            elif "json" in full_prompt_text.lower():
                 full_prompt_text += "\n\n【重要指示】：請務必將乾淨的 JSON 直接在對話框中用 ```json 與 ``` 程式碼區塊包覆輸出，請勿開啟或使用 Canvas 模式，亦請勿輸出任何 HTML 代碼或額外說明文字。"
             else:
                 full_prompt_text += "\n\n【重要指示】：請務必將完整的 HTML 原始碼直接在對話框中用 ```html 與 ``` 程式碼區塊包覆輸出，請勿開啟或使用 Canvas 模式。"
@@ -753,6 +799,21 @@ end tell
                   txt.match(/(<!DOCTYPE html[\s\S]*?<\/html>)/i) ||
                   txt.match(/(<html[\s\S]*?<\/html>)/i);
         if (m && m[1] && m[1].length > 200) return m[1];
+
+        // 3. 檢查 CSV (Blooket 考題) codeblock
+        const mCsv = txt.match(/```(?:csv)?\s*([\s\S]*?)(?:```|$)/i);
+        if (mCsv && mCsv[1]) {
+            const cleanCsv = mCsv[1].trim();
+            if (cleanCsv.includes('Question #') || cleanCsv.includes('Blooket') || cleanCsv.includes('Time Limit') || cleanCsv.includes('Question Text')) {
+                return cleanCsv;
+            }
+        }
+        if (txt.includes('Blooket') && (txt.includes('Question #') || txt.includes('Question Text'))) {
+            const idxStart = txt.indexOf('Blooket');
+            if (idxStart !== -1) {
+                return txt.substring(idxStart).replace(/```\s*$/, '').trim();
+            }
+        }
         return null;
     }
 
@@ -837,8 +898,20 @@ end tell
 
             time.sleep(2)
 
-        self._log("⚠️ 逾時未在您現有的 Chrome 視窗中擷取到符合單字/週次的 HTML 代碼。")
+        self._log("⚠️ 逾時未在您現有的 Chrome 視窗中擷取到符合單字/週次的 HTML 代碼或 CSV。")
         return None
+
+    def generate_csv(self, prompt, timeout_seconds=300, expected_keywords=None):
+        """專用於透過 Gemini 新對話生成考題 CSV 的方法"""
+        self._ensure_profile_dir()
+        self._status("連線 Chrome 瀏覽器並開啟 Gemini 新對話...", 0.1)
+        return self._generate_via_applescript(
+            prompt,
+            target_url="https://gemini.google.com/app",
+            timeout_seconds=timeout_seconds,
+            expected_keywords=expected_keywords,
+            is_new_chat=True
+        )
 
     def generate_html(self, prompt, target_url=None, headless=False, timeout_seconds=300, expected_keywords=None):
         """傳送提示詞並等待抽取生成好的 HTML"""
@@ -1269,7 +1342,12 @@ end tell
             except Exception:
                 pass
 
-        # 2. 如果是 HTML codeblock 或標準 markdown
+        # 3. 如果是 CSV codeblock
+        m_csv = re.search(r'```(?:csv)?\s*([\s\S]*?)\s*```', text, re.IGNORECASE)
+        if m_csv and ("blooket" in m_csv.group(1).lower() or "question #" in m_csv.group(1).lower()):
+            return m_csv.group(1).strip()
+
+        # 4. 如果是 HTML codeblock 或標準 markdown
         m = re.match(r'^```[a-zA-Z0-9_-]*\s*\n?([\s\S]*?)\n?```$', text)
         if m:
             return m.group(1).strip()
@@ -1277,6 +1355,8 @@ end tell
             text = text[7:]
         elif text.startswith("```json"):
             text = text[7:]
+        elif text.startswith("```csv"):
+            text = text[6:]
         elif text.startswith("```"):
             text = text[3:]
         if text.endswith("```"):

@@ -11,6 +11,7 @@ import webview
 from gemini_automator import GeminiAutomator
 from git_handler import GitHandler
 import slide_builder
+import quiz_builder
 
 BASE_DIR = Path(os.environ.get("VOCAB_PROJECT_DIR", Path(__file__).parent.resolve()))
 CONFIG_FILE = BASE_DIR / "config.json"
@@ -26,6 +27,7 @@ class AppAPI:
         self.window = None
         self.is_running = False
         self.latest_html_file = None
+        self.latest_quiz_file = None
         self.is_logged_in = False
         self.active_track = "junior"
         self.current_automator = None
@@ -393,13 +395,20 @@ class AppAPI:
                 )
 
                 self._log_js(f"📤 收到使用者確定指令！開始同步上傳 {target.name} 至 GitHub...")
-                success = git.commit_and_push(target, track=self.pending_track)
+                target_track = self.pending_track
+                target_words = self.pending_words
+                target_filename = self.pending_filename
+                success = git.commit_and_push(target, track=target_track)
 
                 if success:
                     self.pending_file = None
                     self.window.evaluate_js("window.setPendingConfirmState(false)")
                     self._status_js("🎉 成功上傳 GitHub！", 1.0)
                     self._log_js(f"✅ 投影片 {target.name} 已成功 Commit 並 Push 至 GitHub！")
+                    if target_track == "junior":
+                        quiz_fn = quiz_builder.get_quiz_filename(target_words, target_filename or target.name)
+                        safe_quiz_fn = json.dumps(quiz_fn)
+                        self.window.evaluate_js(f"window.showQuizPromptModal({safe_quiz_fn})")
                 else:
                     self._status_js("推送至 GitHub 失敗，可稍後重試", 1.0)
             except Exception as e:
@@ -411,6 +420,117 @@ class AppAPI:
 
         threading.Thread(target=_worker, daemon=True).start()
         return {"status": "started"}
+
+    def generate_blooket_quiz(self, custom_words=None):
+        """透過 Gemini 開啟新對話，生成國中版 50 題 Blooket 考題 CSV"""
+        if self.is_running:
+            return {"status": "busy", "message": "目前有工作正在執行中，請稍候..."}
+
+        words = custom_words if (custom_words and custom_words.strip()) else self.pending_words
+        if not words or not words.strip():
+            sample_file = BASE_DIR / "words_junior.txt"
+            if sample_file.exists():
+                words = sample_file.read_text(encoding="utf-8").strip()
+
+        if not words or not words.strip():
+            self._log_js("❌ 未提供任何單字資料，無法生成考題！")
+            return {"status": "error", "message": "未提供單字資料"}
+
+        quiz_filename = quiz_builder.get_quiz_filename(words, self.pending_filename)
+        prompt, parsed_words = quiz_builder.build_blooket_quiz_prompt(words, filename=quiz_filename)
+
+        if not parsed_words:
+            self._log_js("❌ 無法解析單字資料，請確認格式！")
+            return {"status": "error", "message": "無法解析單字資料"}
+
+        self.is_running = True
+        self.window.evaluate_js("window.setRunningState(true, '正在生成 Blooket 考題 CSV...')")
+        self._log_js(f"📝 開始生成 Blooket 考題 CSV ({quiz_filename})...")
+        self._log_js(f"💡 將透過 Gemini 新對話視窗獨立生成，不影響既有投影片設定。")
+        self._status_js("正在連線 Gemini 新對話生成考題...", 0.1)
+
+        def _worker():
+            try:
+                cfg = {}
+                if CONFIG_FILE.exists():
+                    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                        cfg = json.load(f)
+
+                automator = GeminiAutomator(
+                    cfg,
+                    status_callback=self._status_js,
+                    log_callback=self._log_js
+                )
+                self.current_automator = automator
+
+                expected_keywords = {
+                    "vocab_keywords": [p["word"] for p in parsed_words[:5]]
+                }
+
+                raw_csv = automator.generate_csv(
+                    prompt,
+                    timeout_seconds=300,
+                    expected_keywords=expected_keywords
+                )
+
+                if not raw_csv:
+                    self._status_js("考題生成失敗或未能擷取回應", 0.0)
+                    self._log_js("❌ 未能成功取得 Gemini 的考題 CSV 回應。")
+                    return
+
+                cleaned_csv = quiz_builder.clean_blooket_csv(raw_csv)
+                
+                quiz_dir = BASE_DIR / "junior" / "quizzes"
+                quiz_dir.mkdir(parents=True, exist_ok=True)
+                quiz_path = quiz_dir / quiz_filename
+
+                with open(quiz_path, "w", encoding="utf-8-sig") as f:
+                    f.write(cleaned_csv)
+
+                self.latest_quiz_file = quiz_path
+                line_count = len(cleaned_csv.strip().splitlines())
+                self._log_js(f"🎉 考題 CSV 生成成功！共 {line_count - 1} 行資料（含標題），已儲存至：junior/quizzes/{quiz_filename}")
+                self._status_js("考題 CSV 生成完成！", 1.0)
+
+                safe_fn = json.dumps(quiz_filename)
+                self.window.evaluate_js(f"window.setQuizCompleteState(true, {safe_fn})")
+
+            except Exception as e:
+                self._log_js(f"❌ 生成考題時發生錯誤: {str(e)}")
+                self._status_js(f"考題生成錯誤: {str(e)}", 0.0)
+            finally:
+                self.is_running = False
+                self.window.evaluate_js("window.setRunningState(false)")
+
+        threading.Thread(target=_worker, daemon=True).start()
+        return {"status": "started", "filename": quiz_filename}
+
+    def open_latest_quiz(self):
+        """開啟最近生成的考題 CSV 檔案"""
+        target = self.latest_quiz_file
+        if not target or not target.exists():
+            quiz_dir = BASE_DIR / "junior" / "quizzes"
+            if quiz_dir.exists():
+                csvs = list(quiz_dir.glob("*.csv"))
+                if csvs:
+                    csvs.sort(key=lambda x: x.stat().st_mtime, reverse=True)
+                    target = csvs[0]
+
+        if target and target.exists():
+            subprocess.run(["open", str(target)])
+            self._log_js(f"📄 已開啟考題檔案: {target.name}")
+            return {"success": True, "file": str(target)}
+        else:
+            self._log_js("⚠️ 尚未找到已生成的考題檔案。")
+            return {"success": False, "message": "尚未生成任何考題檔案"}
+
+    def open_quizzes_folder(self):
+        """在 Finder 中開啟考題目錄 junior/quizzes/"""
+        quiz_dir = BASE_DIR / "junior" / "quizzes"
+        quiz_dir.mkdir(parents=True, exist_ok=True)
+        subprocess.run(["open", str(quiz_dir)])
+        self._log_js(f"📂 已在 Finder 開啟考題資料夾: junior/quizzes/")
+        return {"success": True}
 
     def regenerate_current(self, custom_track=None, custom_words=None, custom_filename=None):
         """使用者點擊『重新生成』時，放棄當前產出並重新啟動生成（優先採用前端最新修改的文字與檔名）"""
@@ -886,6 +1006,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       <div class="card-header">
         <span id="editorTitle">📝 國中組單字資料填寫區</span>
         <div style="display: flex; gap: 6px;">
+          <button class="btn btn-outline" id="btnGenerateQuiz" onclick="onStartGenerateQuiz()" style="padding: 4px 10px; font-size: 0.75rem; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);" title="透過 Gemini 新對話生成 50 題 Blooket 考題 CSV">📝 生成 Blooket 考題</button>
           <button class="btn btn-outline" onclick="onLoadSample()" style="padding: 4px 8px; font-size: 0.75rem;">📋 載入範例</button>
           <button class="btn btn-outline" onclick="onClearWords()" style="padding: 4px 8px; font-size: 0.75rem;">🗑️ 清空</button>
         </div>
@@ -948,6 +1069,26 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           </div>
         </div>
 
+        <!-- 考題生成完成通知橫幅 -->
+        <div id="quizCompleteBanner" class="pending-banner" style="display: none; background: rgba(30, 58, 138, 0.6); border-color: #3b82f6;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="font-weight: 700; font-size: 0.88rem; color: #93c5fd; display: flex; align-items: center; gap: 6px;">
+              <span>📝 Blooket 考題已生成：</span>
+              <span id="quizFilenameText" style="color: #67e8f9; font-family: monospace;">--</span>
+            </div>
+            <button class="btn btn-outline" onclick="setQuizCompleteState(false)" style="padding: 2px 6px; font-size: 0.7rem;">✕</button>
+          </div>
+          <div style="font-size: 0.78rem; color: #cbd5e1;">50 題 Blooket Import Template CSV 已存入 junior/quizzes/，可直接匯入 Blooket。</div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary" onclick="onOpenLatestQuiz()" style="padding: 6px 12px; font-size: 0.78rem; flex: 1;">
+              📄 開啟考題 CSV
+            </button>
+            <button class="btn btn-secondary" onclick="onOpenQuizzesFolder()" style="padding: 6px 12px; font-size: 0.78rem; flex: 1;">
+              📂 開啟考題夾
+            </button>
+          </div>
+        </div>
+
         <div class="log-container" id="logContainer">
           <div class="log-line" style="color: #64748b;">[系統] 應用程式已初始化，等待作業...</div>
         </div>
@@ -958,6 +1099,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           </button>
           <button class="btn btn-secondary" onclick="onOpenFolder()" style="flex: 1;">
             📂 開啟存放資料夾
+          </button>
+          <button class="btn btn-secondary" id="btnBottomQuizzes" onclick="onOpenQuizzesFolder()" style="flex: 1; display: none;">
+            📝 開啟考題夾
           </button>
         </div>
       </div>
@@ -993,6 +1137,33 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeSettingsModal()">取消</button>
         <button class="btn btn-primary" onclick="saveSettings()">儲存變更</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 考題生成詢問彈窗 (上傳 GitHub 後彈出) -->
+  <div class="modal-overlay" id="quizPromptModal">
+    <div class="modal" style="max-width: 480px;">
+      <div class="modal-header">
+        <span>📝 國中組考題生成確認</span>
+        <button class="btn btn-outline" onclick="closeQuizPromptModal()" style="padding: 2px 8px;">✕</button>
+      </div>
+      <div class="modal-body" style="gap: 12px;">
+        <div style="font-size: 0.95rem; font-weight: 600; color: #f8fafc;">
+          🎉 投影片已成功推送至 GitHub！
+        </div>
+        <div style="color: var(--text-muted); line-height: 1.5;">
+          是否要立即開啟 <b style="color: #38bdf8;">Gemini 新對話</b> 為這批單字生成 50 題 Blooket 考題 CSV？
+        </div>
+        <div style="background: #0b1120; border: 1px solid var(--card-border); border-radius: 8px; padding: 10px; font-size: 0.82rem; font-family: monospace; color: #38bdf8;">
+          📄 預計儲存路徑：junior/quizzes/<span id="quizModalFilename">WXX-X.csv</span>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <button class="btn btn-secondary" onclick="closeQuizPromptModal()">稍後再說</button>
+        <button class="btn btn-primary" onclick="confirmGenerateQuizFromModal()">
+          📝 立即生成 Blooket 考題 CSV
+        </button>
       </div>
     </div>
   </div>
@@ -1087,6 +1258,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const genBtn = document.getElementById('generateBtn');
       const urlBadge = document.getElementById('currentGeminiUrlBadge');
       const hint = document.getElementById('filenameHint');
+      const btnQuiz = document.getElementById('btnGenerateQuiz');
+      const btnBottomQuizzes = document.getElementById('btnBottomQuizzes');
 
       if (trackId === 'junior') {
         btnJunior.className = 'track-btn active track-junior';
@@ -1096,6 +1269,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         genBtn.className = 'btn btn-primary btn-large';
         urlBadge.textContent = '連線：國中組專屬對話';
         hint.textContent = '格式建議：2026_w03d5 (依星期自動命名)';
+        if (btnQuiz) btnQuiz.style.display = 'inline-flex';
+        if (btnBottomQuizzes) btnBottomQuizzes.style.display = 'inline-flex';
       } else {
         btnJunior.className = 'track-btn track-junior';
         btnElem.className = 'track-btn active track-elem';
@@ -1104,12 +1279,66 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         genBtn.className = 'btn btn-primary btn-elem-theme btn-large';
         urlBadge.textContent = '連線：國小組專屬對話';
         hint.textContent = '格式建議：2026_ew02 (依週次自動命名)';
+        if (btnQuiz) btnQuiz.style.display = 'none';
+        if (btnBottomQuizzes) btnBottomQuizzes.style.display = 'none';
       }
 
       // 載入該組別文字
       const text = wordsMemory[trackId] || sampleWords[trackId] || "";
       document.getElementById('wordsInput').value = text;
       tryAutoFilename(text);
+    }
+
+    function onStartGenerateQuiz() {
+      const words = document.getElementById('wordsInput').value;
+      if (!words.trim()) {
+        alert("請先輸入國中組單字資料！");
+        return;
+      }
+      setQuizCompleteState(false);
+      window.pywebview.api.generate_blooket_quiz(words);
+    }
+
+    let pendingQuizFilename = "";
+    function showQuizPromptModal(quizFilename) {
+      pendingQuizFilename = quizFilename || "";
+      const fnEl = document.getElementById('quizModalFilename');
+      if (fnEl) fnEl.textContent = pendingQuizFilename;
+      document.getElementById('quizPromptModal').style.display = 'flex';
+    }
+
+    function closeQuizPromptModal() {
+      document.getElementById('quizPromptModal').style.display = 'none';
+    }
+
+    function confirmGenerateQuizFromModal() {
+      closeQuizPromptModal();
+      const words = document.getElementById('wordsInput').value;
+      setQuizCompleteState(false);
+      window.pywebview.api.generate_blooket_quiz(words);
+    }
+
+    function setQuizCompleteState(isComplete, filename) {
+      const banner = document.getElementById('quizCompleteBanner');
+      const filenameText = document.getElementById('quizFilenameText');
+      if (isComplete) {
+        banner.style.display = 'flex';
+        if (filenameText) filenameText.textContent = filename || '';
+      } else {
+        banner.style.display = 'none';
+      }
+    }
+
+    function onOpenLatestQuiz() {
+      if (window.pywebview) {
+        window.pywebview.api.open_latest_quiz();
+      }
+    }
+
+    function onOpenQuizzesFolder() {
+      if (window.pywebview) {
+        window.pywebview.api.open_quizzes_folder();
+      }
     }
 
     function tryAutoFilename(text) {
