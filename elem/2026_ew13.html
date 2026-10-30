@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 一起背單字 (國小組) - [W13]</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Google Fonts: Fredoka & Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            butter: '#fffdf7',
+            cardBg: '#ffffff',
+            sunnyYellow: '#FCD34D',
+            warmOrange: '#ea580c',
+            softOrange: '#ffedd5',
+            skyBlue: '#0284c7',
+            softBlue: '#e0f2fe',
+            leafGreen: '#16a34a',
+            bubblePink: '#f43f5e',
+            cuteBorder: '#fbbf24'
+          },
+          fontFamily: {
+            fredoka: ['Fredoka', 'Noto Sans TC', 'sans-serif'],
+            noto: ['Noto Sans TC', 'sans-serif']
+          },
+          boxShadow: {
+            'cute-3d': '0 8px 0 #eab308, 0 14px 20px rgba(0,0,0,0.06)',
+            'btn-3d': '0 4px 0 #ca8a04',
+            'btn-3d-active': '0 1px 0 #ca8a04',
+            'card-soft': '0 10px 25px -5px rgba(234, 88, 12, 0.07), 0 8px 10px -6px rgba(0, 0, 0, 0.04)',
+            'pill-3d': '0 3px 0 rgba(0,0,0,0.1)'
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: #fffdf7;
+      font-family: 'Fredoka', 'Noto Sans TC', sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* Fixed 16:9 presentation viewport on larger screens (>=768px) */
+    @media (min-width: 768px) {
+      #presentation-viewport {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 74px; /* Space for bottom control bar */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      #presentation-stage {
+        width: 1200px;
+        height: 675px;
+        transform-origin: center center;
+        transition: transform 0.15s ease-out;
+        position: relative;
+        flex-shrink: 0;
+      }
+    }
+
+    /* Responsive mobile layout (<768px) */
+    @media (max-width: 767.98px) {
+      body {
+        overflow-y: auto;
+        height: auto;
+        min-height: 100vh;
+      }
+      #presentation-viewport {
+        position: relative;
+        width: 100%;
+        min-height: calc(100vh - 84px);
+        padding-bottom: 96px; /* Avoid overlapping sticky controls */
+        display: block;
+      }
+      #presentation-stage {
+        width: 100% !important;
+        height: auto !important;
+        transform: none !important;
+        position: relative;
+        padding: 12px;
+      }
+    }
+
+    /* Floating background shapes */
+    .bg-bubble {
+      position: absolute;
+      border-radius: 9999px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Cute 3D Yellow border for slides */
+    .slide-container {
+      background: #ffffff;
+      border: 4px solid #fbbf24;
+      border-radius: 32px;
+      box-shadow: 0 10px 0 #f59e0b, 0 20px 30px rgba(245, 158, 11, 0.12);
+      position: relative;
+      z-index: 10;
+      overflow: hidden;
+    }
+
+    /* Smooth animated transitions */
+    .slide-enter {
+      animation: popIn 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes popIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.96) translateY(12px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    /* Mascot bouncy animation */
+    @keyframes floaty {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-7px) rotate(1.5deg); }
+    }
+    .animate-floaty {
+      animation: floaty 3.5s ease-in-out infinite;
+    }
+
+    /* Pulsing sound ring */
+    @keyframes soundPulse {
+      0% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.4); }
+      70% { box-shadow: 0 0 0 14px rgba(234, 88, 12, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0); }
+    }
+    .speaking-pulse {
+      animation: soundPulse 1.2s infinite;
+    }
+
+    select::-ms-expand {
+      display: none;
+    }
+  </style>
+</head>
+<body class="flex flex-col justify-between select-none bg-[#fffdf7]">
+
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div class="bg-bubble w-72 h-72 bg-amber-100/60 -top-20 -left-20 blur-2xl"></div>
+    <div class="bg-bubble w-96 h-96 bg-orange-100/50 -bottom-24 -right-24 blur-3xl"></div>
+    <div class="bg-bubble w-48 h-48 bg-sky-100/50 top-1/3 right-10 blur-xl"></div>
+    <!-- Starry accents -->
+    <i class="fa-solid fa-star text-amber-300 text-2xl absolute top-8 left-12 opacity-50 animate-pulse"></i>
+    <i class="fa-solid fa-cloud text-amber-200 text-3xl absolute top-16 right-20 opacity-60"></i>
+    <i class="fa-solid fa-sparkles text-orange-300 text-xl absolute bottom-28 left-20 opacity-60"></i>
+  </div>
+
+  <main id="presentation-viewport">
+    <div id="presentation-stage" class="w-full h-full flex items-center justify-center p-2 md:p-4">
+      <div id="slide-content-host" class="w-full h-full">
+        <!-- Dynamically rendered via JavaScript renderSlide() -->
+      </div>
+    </div>
+  </main>
+
+  <footer class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t-2 border-amber-300 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-3 py-2 md:px-6 md:py-2.5">
+    <!-- Progress Bar on top of controls -->
+    <div class="w-full bg-amber-100 h-2 rounded-full mb-2 overflow-hidden">
+      <div id="progress-bar-fill" class="bg-gradient-to-r from-amber-400 to-orange-500 h-full rounded-full transition-all duration-300" style="width: 0%;"></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2 md:gap-4 flex-wrap md:flex-nowrap">
+      <!-- Left Controls: Prev, Jump Select, Next -->
+      <div class="flex items-center gap-1.5 md:gap-3">
+        <button id="btn-prev" onclick="goToPrevSlide()" title="上一頁 (←)" class="bg-amber-400 hover:bg-amber-500 active:translate-y-0.5 text-slate-800 font-bold px-3 py-1.5 md:px-4 md:py-2 rounded-2xl shadow-btn-3d flex items-center gap-1.5 transition text-sm md:text-base border border-amber-500">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span class="hidden sm:inline">上一頁</span>
+        </button>
+
+        <!-- Dropdown Jump Select -->
+        <div class="relative inline-flex items-center">
+          <select id="slide-selector" onchange="onSelectorChange(this.value)" class="bg-amber-50 border-2 border-amber-400 font-bold text-slate-800 text-xs md:text-sm rounded-2xl px-3 py-1.5 md:py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-orange-400 cursor-pointer shadow-sm appearance-none">
+            <!-- Populated dynamically -->
+          </select>
+          <i class="fa-solid fa-chevron-down text-amber-600 text-xs absolute right-3 pointer-events-none"></i>
+        </div>
+
+        <button id="btn-next" onclick="goToNextSlide()" title="下一頁 (→ 或 空白鍵)" class="bg-amber-400 hover:bg-amber-500 active:translate-y-0.5 text-slate-800 font-bold px-3 py-1.5 md:px-4 md:py-2 rounded-2xl shadow-btn-3d flex items-center gap-1.5 transition text-sm md:text-base border border-amber-500">
+          <span class="hidden sm:inline">下一頁</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+
+      <!-- Center Audio Controls -->
+      <div class="flex items-center gap-2 md:gap-3">
+        <!-- Manual Speak Button -->
+        <button id="btn-speak-word" onclick="speakCurrentWord()" title="手動朗讀單字" class="bg-orange-500 hover:bg-orange-600 text-white font-bold px-3 py-1.5 md:px-4 md:py-2 rounded-2xl shadow-md active:translate-y-0.5 flex items-center gap-2 transition text-xs md:text-sm">
+          <i class="fa-solid fa-volume-high"></i>
+          <span>朗讀單字</span>
+        </button>
+
+        <!-- Auto Speak Toggle Switch -->
+        <button id="btn-toggle-auto" onclick="toggleAutoSpeech()" title="切換自動發音" class="bg-emerald-50 hover:bg-emerald-100 border-2 border-emerald-500 text-emerald-800 font-bold px-2.5 py-1.5 md:px-3.5 md:py-2 rounded-2xl flex items-center gap-1.5 transition text-xs md:text-sm">
+          <i id="auto-speak-icon" class="fa-solid fa-toggle-on text-emerald-600 text-base"></i>
+          <span id="auto-speak-text">自動發音: 開</span>
+        </button>
+      </div>
+
+      <!-- Right Controls: Slide indicator & Fullscreen -->
+      <div class="flex items-center gap-2">
+        <span id="slide-indicator" class="text-xs md:text-sm font-bold text-amber-900/70 bg-amber-100/80 px-2.5 py-1 rounded-xl hidden lg:inline-block">
+          封面
+        </span>
+
+        <!-- Fullscreen Button -->
+        <button id="btn-fullscreen" onclick="toggleFullscreen()" title="切換全螢幕 (快速鍵: F)" class="bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 font-bold px-3 py-1.5 md:px-3.5 md:py-2 rounded-2xl transition active:scale-95 flex items-center gap-1.5 text-xs md:text-sm">
+          <i id="fullscreen-icon" class="fa-solid fa-expand"></i>
+          <span class="hidden sm:inline">全螢幕</span>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Speech pronunciation correction dictionary */
+    const SPEECH_CORRECTIONS = {
+      'Mr.': 'Mister',
+      'Mrs.': 'Missus',
+      'MRT': 'M R T',
+      'women': 'wimin',
+      'I': 'eye',
+      'Dr.': 'Doctor',
+      'sir': 'sir',
+      'bus stop': 'bus stop'
+    };
+
+    /* Category tags for W03 */
+    const WEEK_TAGS = ["房屋結構", "家具家電", "餐具器皿"];
+
+    /* 20 Vocabulary entries for [W13]2026/12/08~12/14 */
+    const VOCAB_DATA = [
+  {
+    "word": "door",
+    "posChinese": "門 n.",
+    "category": "房屋與家具",
+    "collocation": {
+      "en": "open the door",
+      "cn": "開門",
+      "extraEn": "front door",
+      "extraCn": "前門"
+    },
+    "sentence": {
+      "en": "Please close the front door when you leave the house.",
+      "cn": "你離開房子時請把前門關上。"
+    },
+    "icon": "fa-door-open",
+    "badge": "歡迎光臨",
+    "themeTag": "房屋結構",
+    "tip": "💡 輕輕推開木製的 door，歡迎好朋友進來家裡玩耍！"
+  },
+  {
+    "word": "fan",
+    "posChinese": "電扇/迷 n.",
+    "category": "房屋與家具",
+    "collocation": {
+      "en": "electric fan",
+      "cn": "電風扇",
+      "extraEn": "big fan",
+      "extraCn": "狂熱粉絲"
+    },
+    "sentence": {
+      "en": "Turn on the fan to cool down the warm room.",
+      "cn": "把電風扇打開讓溫暖的房間涼快一點。"
+    },
+    "icon": "fa-fan",
+    "badge": "涼爽微風",
+    "themeTag": "家具家電",
+    "tip": "💡 夏天打開 fan 呼呼吹，轉動扇葉送來涼爽微風！"
+  },
+  {
+    "word": "clock",
+    "posChinese": "時鐘 n.",
+    "category": "房屋與家具",
+    "collocation": {
+      "en": "alarm clock",
+      "cn": "鬧鐘",
+      "extraEn": "around the clock",
+      "extraCn": "日夜不停地"
+    },
+    "sentence": {
+      "en": "The wall clock in the living room stopped working.",
+      "cn": "客廳的壁鐘停止走動了。"
+    },
+    "icon": "fa-clock",
+    "badge": "滴答報時",
+    "themeTag": "居家擺設",
+    "tip": "💡 牆上的 clock 滴答滴答走，提醒大家早睡早起守時！"
+  },
+  {
+    "word": "key",
+    "posChinese": "鑰匙 n.",
+    "category": "房屋與家具",
+    "collocation": {
+      "en": "room key",
+      "cn": "房間鑰匙",
+      "extraEn": "key role",
+      "extraCn": "關鍵角色"
+    },
+    "sentence": {
+      "en": "I forgot to bring the door key when I went out.",
+      "cn": "我出門時忘記帶大門鑰匙了。"
+    },
+    "icon": "fa-key",
+    "badge": "開鎖小將",
+    "themeTag": "生活配件",
+    "tip": "💡 轉動小巧的 key 喀噠一聲，打開大門平安回到家！"
+  },
+  {
+    "word": "table",
+    "posChinese": "桌子 n.",
+    "category": "房屋與家具",
+    "collocation": {
+      "en": "dining table",
+      "cn": "餐桌",
+      "extraEn": "set the table",
+      "extraCn": "擺餐具"
+    },
+    "sentence": {
+      "en": "Mother set the dining table for five people.",
+      "cn": "媽媽擺好了五人份的餐桌餐具。"
+    },
+    "icon": "fa-table",
+    "badge": "圍坐用餐",
+    "themeTag": "家具家電",
+    "tip": "💡 一家人圍在木頭 table 旁，吃晚餐寫作業好溫馨！"
+  },
+  {
+    "word": "telephone",
+    "posChinese": "電話 n.",
+    "category": "房屋與家具",
+    "collocation": {
+      "en": "answer the telephone",
+      "cn": "接電話",
+      "extraEn": "telephone number",
+      "extraCn": "電話號碼"
+    },
+    "sentence": {
+      "en": "The telephone rang loudly while we were having dinner.",
+      "cn": "我們在吃晚餐時電話大聲地響了。"
+    },
+    "icon": "fa-phone",
+    "badge": "叮鈴通話",
+    "themeTag": "通訊設備",
+    "tip": "💡 拿起 telephone 撥號碼，跟遠方的爺爺奶奶開心聊天！"
+  },
+  {
+    "word": "TV",
+    "posChinese": "電視 n.",
+    "category": "房屋與家具",
+    "collocation": {
+      "en": "watch TV",
+      "cn": "看電視",
+      "extraEn": "TV program",
+      "extraCn": "電視節目"
+    },
+    "sentence": {
+      "en": "Don't spend too much time watching TV every evening.",
+      "cn": "每天晚上不要花太多時間看電視。"
+    },
+    "icon": "fa-tv",
+    "badge": "精彩螢幕",
+    "themeTag": "家具家電",
+    "tip": "💡 客廳裡的 TV 播卡通，全家人一起看逗得哈哈大笑！"
+  },
+  {
+    "word": "bed",
+    "posChinese": "床 n.",
+    "category": "房屋與家具",
+    "collocation": {
+      "en": "go to bed",
+      "cn": "上床睡覺",
+      "extraEn": "make the bed",
+      "extraCn": "整理床鋪"
+    },
+    "sentence": {
+      "en": "You should go to bed early to stay energetic tomorrow.",
+      "cn": "你應該早點睡覺，明天才能保持充沛活力。"
+    },
+    "icon": "fa-bed",
+    "badge": "好夢搖籃",
+    "themeTag": "家具家電",
+    "tip": "💡 躺在軟綿綿的 bed 上蓋好被子，祝你有個香甜美夢！"
+  },
+  {
+    "word": "window",
+    "posChinese": "窗戶 n.",
+    "category": "房屋與家具",
+    "collocation": {
+      "en": "open the window",
+      "cn": "開窗",
+      "extraEn": "window seat",
+      "extraCn": "靠窗座位"
+    },
+    "sentence": {
+      "en": "Please open the window to let fresh air into the room.",
+      "cn": "請打開窗戶讓新鮮空氣進到房間裡。"
+    },
+    "icon": "fa-window-maximize",
+    "badge": "採光通風",
+    "themeTag": "房屋結構",
+    "tip": "💡 推開明亮的 window，看見小鳥在外面樹上唱歌！"
+  },
+  {
+    "word": "cup",
+    "posChinese": "杯子 n.",
+    "category": "房屋與家具",
+    "collocation": {
+      "en": "a cup of tea",
+      "cn": "一杯茶",
+      "extraEn": "paper cup",
+      "extraCn": "紙杯"
+    },
+    "sentence": {
+      "en": "Would you like a cup of hot coffee to warm up?",
+      "cn": "你想來杯熱咖啡暖暖身子嗎？"
+    },
+    "icon": "fa-mug-hot",
+    "badge": "喝水好幫",
+    "themeTag": "餐具器皿",
+    "tip": "💡 雙手捧著圓圓的 cup，喝一口溫熱牛奶肚子好暖和！"
+  },
+  {
+    "word": "bottle",
+    "posChinese": "瓶子 n.",
+    "category": "房屋與家具",
+    "collocation": {
+      "en": "a bottle of water",
+      "cn": "一瓶水",
+      "extraEn": "plastic bottle",
+      "extraCn": "塑膠瓶"
+    },
+    "sentence": {
+      "en": "Please bring a reusable water bottle when going hiking.",
+      "cn": "去健行時請攜帶可重複使用的水壺。"
+    },
+    "icon": "fa-bottle-water",
+    "badge": "裝滿解渴",
+    "themeTag": "餐具器皿",
+    "tip": "💡 出門前把水裝進 bottle，咕嚕咕嚕隨時補充水分！"
+  },
+  {
+    "word": "brush",
+    "posChinese": "刷子/刷 n./v.",
+    "category": "房屋與家具",
+    "collocation": {
+      "en": "brush one's teeth",
+      "cn": "刷牙",
+      "extraEn": "hair brush",
+      "extraCn": "髮梳"
+    },
+    "sentence": {
+      "en": "She used a soft brush to clean the dusty painting.",
+      "cn": "她用一把軟刷子清理佈滿灰塵的畫作。"
+    },
+    "icon": "fa-paintbrush",
+    "badge": "刷淨髒污",
+    "themeTag": "清潔用具",
+    "tip": "💡 拿著小 brush 刷刷牙、刷刷鞋，髒污通通變不見！"
+  },
+  {
+    "word": "chopsticks",
+    "posChinese": "筷子 n.",
+    "category": "房屋與家具",
+    "collocation": {
+      "en": "a pair of chopsticks",
+      "cn": "一雙筷子",
+      "extraEn": "use chopsticks",
+      "extraCn": "用筷子"
+    },
+    "sentence": {
+      "en": "Foreign tourists often find it fun to learn how to use chopsticks.",
+      "cn": "外國遊客常常覺得學習如何使用筷子很有趣。"
+    },
+    "icon": "fa-utensils",
+    "badge": "成雙夾菜",
+    "themeTag": "餐具器皿",
+    "tip": "💡 兩隻細長的小木棍是 chopsticks，夾起飯菜最靈巧！"
+  },
+  {
+    "word": "dining room",
+    "posChinese": "餐廳 n.",
+    "category": "房屋與家具",
+    "collocation": {
+      "en": "dining room table",
+      "cn": "餐廳飯桌",
+      "extraEn": "in the dining room",
+      "extraCn": "在餐廳裡"
+    },
+    "sentence": {
+      "en": "The family gathered in the dining room to enjoy dinner together.",
+      "cn": "全家人聚集在餐廳一起享用晚餐。"
+    },
+    "icon": "fa-utensils",
+    "badge": "開飯時光",
+    "themeTag": "空間環境",
+    "tip": "💡 全家人走進香噴噴的 dining room，圍坐一起享用美味晚餐！"
+  },
+  {
+    "word": "dish",
+    "posChinese": "盤子 n.",
+    "category": "房屋與家具",
+    "collocation": {
+      "en": "wash the dishes",
+      "cn": "洗碗盤",
+      "extraEn": "side dish",
+      "extraCn": "配菜；小菜"
+    },
+    "sentence": {
+      "en": "It is my turn to wash the dishes after dinner tonight.",
+      "cn": "今晚晚餐後輪到我洗碗了。"
+    },
+    "icon": "fa-plate-wheat",
+    "badge": "盛裝美食",
+    "themeTag": "餐具器皿",
+    "tip": "💡 圓圓白白的 dish 盛滿可口鬆餅，吃得乾乾淨淨好棒！"
+  },
+  {
+    "word": "floor",
+    "posChinese": "地板 n.",
+    "category": "房屋與家具",
+    "collocation": {
+      "en": "ground floor",
+      "cn": "一樓",
+      "extraEn": "sweep the floor",
+      "extraCn": "掃地"
+    },
+    "sentence": {
+      "en": "Please pick up the trash from the classroom floor.",
+      "cn": "請把教室地板上的垃圾撿起來。"
+    },
+    "icon": "fa-rug",
+    "badge": "光潔平整",
+    "themeTag": "房屋結構",
+    "tip": "💡 把房間的 floor 擦得亮晶晶，赤腳踩上去涼涼的好舒服！"
+  },
+  {
+    "word": "fork",
+    "posChinese": "叉子 n.",
+    "category": "房屋與家具",
+    "collocation": {
+      "en": "knife and fork",
+      "cn": "刀叉",
+      "extraEn": "use a fork",
+      "extraCn": "使用叉子"
+    },
+    "sentence": {
+      "en": "She ate her fruit salad with a small silver fork.",
+      "cn": "她用一把小銀叉吃水果沙拉。"
+    },
+    "icon": "fa-utensils",
+    "badge": "尖尖叉起",
+    "themeTag": "餐具器皿",
+    "tip": "💡 拿著尖尖的小 fork，叉起一塊甜甜西瓜放進嘴裡！"
+  },
+  {
+    "word": "fridge",
+    "posChinese": "冰箱 n.",
+    "category": "房屋與家具",
+    "collocation": {
+      "en": "put in the fridge",
+      "cn": "放進冰箱",
+      "extraEn": "open the fridge",
+      "extraCn": "打開冰箱"
+    },
+    "sentence": {
+      "en": "Keep the leftover soup in the fridge so it won't spoil.",
+      "cn": "把剩湯放進冰箱裡，這樣才不會壞掉。"
+    },
+    "icon": "fa-kitchen-set",
+    "badge": "冰涼保鮮",
+    "themeTag": "家具家電",
+    "tip": "💡 打開大大的 fridge 吹來冷氣，裡面冰著好多新鮮布丁！"
+  },
+  {
+    "word": "glass",
+    "posChinese": "玻璃杯 n.",
+    "category": "房屋與家具",
+    "collocation": {
+      "en": "a glass of water",
+      "cn": "一杯水",
+      "extraEn": "broken glass",
+      "extraCn": "碎玻璃"
+    },
+    "sentence": {
+      "en": "Would you like a glass of fresh orange juice?",
+      "cn": "你想來一杯新鮮柳橙汁嗎？"
+    },
+    "icon": "fa-glass-water",
+    "badge": "晶瑩剔透",
+    "themeTag": "餐具器皿",
+    "tip": "💡 透亮透明的 glass 裝滿果汁，陽光照過來閃閃發光！"
+  },
+  {
+    "word": "house",
+    "posChinese": "房子 n.",
+    "category": "房屋與家具",
+    "collocation": {
+      "en": "build a house",
+      "cn": "蓋房子",
+      "extraEn": "at my house",
+      "extraCn": "在我家"
+    },
+    "sentence": {
+      "en": "There is a beautiful small house near the green lake.",
+      "cn": "在綠色湖泊附近有一座美麗的小房子。"
+    },
+    "icon": "fa-house",
+    "badge": "幸福城堡",
+    "themeTag": "空間環境",
+    "tip": "💡 三角屋頂加上紅磚牆，溫馨的 house 是我們最愛的家！"
+  }
+];
+
+    /* Presentation state variables */
+    let currentSlide = 0; // 0 = Cover, 1..20 = Vocabulary
+    const totalSlides = VOCAB_DATA.length + 1; // 21 slides in total
+    let autoSpeakEnabled = true;
+    let isSpeaking = false;
+  </script>
+
+  <script>
+    /* Initialize slide jump dropdown options */
+    function initSelectorOptions() {
+      const selector = document.getElementById('slide-selector');
+      selector.innerHTML = '';
+
+      // Cover option
+      const coverOpt = document.createElement('option');
+      coverOpt.value = '0';
+      coverOpt.textContent = '封面：2026 一起背單字';
+      selector.appendChild(coverOpt);
+
+      // Word options
+      VOCAB_DATA.forEach((item, idx) => {
+        const opt = document.createElement('option');
+        const num = String(idx + 1).padStart(2, '0');
+        opt.value = String(idx + 1);
+        opt.textContent = `${num}. ${item.word}`;
+        selector.appendChild(opt);
+      });
+    }
+
+    /* Render current active slide */
+    function renderSlide() {
+      const container = document.getElementById('slide-content-host');
+      const progressBar = document.getElementById('progress-bar-fill');
+      const selector = document.getElementById('slide-selector');
+      const indicator = document.getElementById('slide-indicator');
+
+      // Update progress bar
+      const progressPercent = (currentSlide / (totalSlides - 1)) * 100;
+      progressBar.style.width = `${progressPercent}%`;
+
+      // Update dropdown selector
+      selector.value = String(currentSlide);
+
+      if (currentSlide === 0) {
+        indicator.textContent = '封面';
+        container.innerHTML = renderCoverSlide();
+      } else {
+        const item = VOCAB_DATA[currentSlide - 1];
+        const numStr = String(currentSlide).padStart(2, '0');
+        const totalStr = String(VOCAB_DATA.length).padStart(2, '0');
+        indicator.textContent = `${numStr} / ${totalStr}`;
+        container.innerHTML = renderWordSlide(item, numStr, totalStr);
+      }
+
+      // If auto-speak enabled & not cover slide, pronounce the word
+      if (autoSpeakEnabled && currentSlide > 0) {
+        const currentItem = VOCAB_DATA[currentSlide - 1];
+        setTimeout(() => {
+          speakText(currentItem.word, 'word');
+        }, 180);
+      }
+    }
+
+    /* Render Cover slide */
+    function renderCoverSlide() {
+      const tagPills = WEEK_TAGS.map(tag => `
+        <span class="px-5 py-2.5 rounded-full bg-amber-100 text-amber-900 border-2 border-amber-300 font-bold text-lg md:text-xl shadow-pill-3d tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-star text-amber-500 text-sm"></i> ${tag}
+        </span>
+      `).join('');
+
+      return `
+        <div class="slide-container slide-enter w-full h-full flex flex-col justify-between p-8 md:p-12 relative">
+          <!-- Top decorative badge row -->
+          <div class="flex justify-between items-center z-10">
+            <span class="bg-amber-400 text-amber-950 font-black px-4 py-1.5 rounded-2xl text-base md:text-lg tracking-wider shadow-sm flex items-center gap-2 border border-amber-500">
+              <i class="fa-solid fa-graduation-cap"></i> 國小美語專欄
+            </span>
+            <div class="text-amber-500 text-2xl flex gap-2">
+              <i class="fa-solid fa-star animate-bounce"></i>
+              <i class="fa-solid fa-sparkles"></i>
+            </div>
+          </div>
+
+          <!-- Main center hero content -->
+          <div class="flex flex-col items-center justify-center text-center my-auto z-10">
+            <!-- Cute Mascot Floating Icon -->
+            <div class="w-24 h-24 md:w-32 md:h-32 bg-gradient-to-tr from-amber-400 to-orange-400 rounded-full flex items-center justify-center text-white text-5xl md:text-6xl shadow-cute-3d mb-6 animate-floaty border-4 border-white">
+              <i class="fa-solid fa-book-open-reader"></i>
+            </div>
+
+            <!-- Big Title -->
+            <h1 class="text-4xl md:text-6xl lg:text-7xl font-black text-slate-800 tracking-tight mb-4 drop-shadow-sm font-fredoka">
+              2026 一起背單字 <span class="text-warmOrange">(國小組)</span>
+            </h1>
+
+            <!-- Subtitle strictly following user format -->
+            <div class="inline-block bg-orange-100 border-2 border-orange-400 text-orange-800 font-black px-6 py-2 rounded-2xl text-2xl md:text-3xl mb-8 shadow-sm font-fredoka">
+              [W13]2026/12/08~12/14
+            </div>
+
+            <!-- Pure category capsules -->
+            <div class="flex flex-wrap justify-center items-center gap-3 md:gap-4 max-w-4xl">
+              ${tagPills}
+            </div>
+          </div>
+
+          <!-- Bottom Action Prompt -->
+          <div class="flex justify-center items-center z-10">
+            <button onclick="goToNextSlide()" class="bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-slate-900 font-black text-xl md:text-2xl px-8 py-3.5 rounded-3xl shadow-btn-3d flex items-center gap-3 transition transform active:scale-95 border-2 border-amber-500">
+              <span>開始翻卡學習</span>
+              <i class="fa-solid fa-circle-arrow-right text-2xl"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    /* Render Word slide */
+    function renderWordSlide(item, numStr, totalStr) {
+      return `
+        <div class="slide-container slide-enter w-full h-full flex flex-col justify-between p-6 md:p-8">
+          <!-- Top Row: Category Tag & Slide Counter (Strictly 20px) -->
+          <div class="flex justify-between items-center mb-2">
+            <span class="bg-amber-100 text-amber-900 border-2 border-amber-400 font-bold px-4 py-1.5 rounded-2xl shadow-sm flex items-center gap-2" style="font-size: 20px;">
+              <i class="fa-solid fa-tag text-amber-600"></i> ${item.category}
+            </span>
+            <span class="font-black tracking-widest text-slate-600 bg-slate-100 px-4 py-1.5 rounded-2xl border border-slate-300" style="font-size: 20px;">
+              ${numStr} / ${totalStr}
+            </span>
+          </div>
+
+          <!-- Main 2-Column Content -->
+          <div class="flex-1 flex flex-col md:flex-row gap-6 md:gap-8 items-stretch justify-center my-auto">
+            
+            <!-- Left Column: Word, Collocation & Sentence -->
+            <div class="flex-1 flex flex-col justify-between space-y-4">
+              
+              <!-- Word Header Row -->
+              <div class="flex flex-wrap items-center gap-4">
+                <h2 class="font-black tracking-tight text-warmOrange font-fredoka flex items-center gap-4" style="font-size: 64px; line-height: 1;">
+                  ${item.word}
+                </h2>
+                <!-- Pronounce Button -->
+                <button onclick="speakText('${item.word}', 'word')" title="發音" class="w-14 h-14 rounded-full bg-amber-100 hover:bg-amber-200 border-2 border-amber-400 text-warmOrange flex items-center justify-center text-2xl shadow-md transition transform active:scale-90 flex-shrink-0">
+                  <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <!-- Part of Speech & Chinese Capsule (26px) -->
+                <div class="bg-softBlue text-skyBlue border-2 border-sky-400 font-bold px-5 py-2 rounded-full shadow-sm" style="font-size: 26px;">
+                  ${item.posChinese}
+                </div>
+              </div>
+
+              <!-- Card 1: Common Collocations -->
+              <div class="bg-amber-50/70 border-2 border-amber-300 rounded-3xl p-4 md:p-5 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center gap-2 font-bold text-amber-900 mb-2" style="font-size: 24px;">
+                  <i class="fa-solid fa-puzzle-piece text-amber-600"></i>
+                  <span>常用搭配詞</span>
+                </div>
+                <div class="text-slate-800 space-y-2" style="font-size: 23px; line-height: 1.4;">
+                  <div class="flex items-baseline gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block flex-shrink-0"></span>
+                    <span class="font-semibold font-fredoka text-slate-900">${item.collocation.en}</span>
+                    <span class="text-slate-600 font-normal">(${item.collocation.cn})</span>
+                  </div>
+                  ${item.collocation.extraEn ? `
+                  <div class="flex items-baseline gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block flex-shrink-0"></span>
+                    <span class="font-semibold font-fredoka text-slate-900">${item.collocation.extraEn}</span>
+                    <span class="text-slate-600 font-normal">(${item.collocation.extraCn})</span>
+                  </div>
+                  ` : ''}
+                </div>
+              </div>
+
+              <!-- Card 2: Practical Example Sentence -->
+              <div class="bg-orange-50/70 border-2 border-orange-300 rounded-3xl p-4 md:p-5 shadow-sm hover:shadow-md transition">
+                <div class="flex justify-between items-center mb-2">
+                  <div class="flex items-center gap-2 font-bold text-orange-950" style="font-size: 24px;">
+                    <i class="fa-solid fa-comment-dots text-orange-600"></i>
+                    <span>實用例句</span>
+                  </div>
+                  <!-- Dedicated Sentence Pronunciation Button -->
+                  <button onclick="speakText(\`${item.sentence.en.replace(/'/g, "\\'")}\`, 'sentence')" title="聆聽完整例句" class="px-3.5 py-1 rounded-xl bg-orange-200 hover:bg-orange-300 text-orange-900 text-sm font-bold flex items-center gap-1.5 transition active:scale-95 border border-orange-400">
+                    <i class="fa-solid fa-volume-low"></i> 聽例句
+                  </button>
+                </div>
+                <div class="space-y-1.5">
+                  <p class="font-fredoka text-slate-900 font-medium tracking-wide" style="font-size: 25px; line-height: 1.35;">
+                    ${item.sentence.en}
+                  </p>
+                  <p class="text-slate-600 font-normal" style="font-size: 23px; line-height: 1.35;">
+                    ${item.sentence.cn}
+                  </p>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Right Column: Fun Association Panel (Desktop fixed 440px width x 500px height) -->
+            <div class="w-full md:w-[440px] md:h-[500px] flex-shrink-0 bg-gradient-to-b from-amber-50 via-white to-orange-50 border-4 border-amber-300 rounded-3xl p-6 flex flex-col justify-between items-center text-center shadow-cute-3d">
+              
+              <!-- Top Badges (20px) -->
+              <div class="w-full flex justify-between items-center" style="font-size: 20px;">
+                <span class="bg-amber-400 text-amber-950 font-black px-4 py-1 rounded-full shadow-sm flex items-center gap-1.5 border border-amber-500">
+                  <i class="fa-solid fa-lightbulb"></i> 趣味聯想
+                </span>
+                <span class="bg-orange-100 text-orange-800 font-bold px-3.5 py-1 rounded-full border border-orange-300">
+                  # ${item.themeTag}
+                </span>
+              </div>
+
+              <!-- Center Cute Big Icon -->
+              <div class="my-auto py-4 flex flex-col items-center justify-center">
+                <div class="w-36 h-36 md:w-40 md:h-40 rounded-3xl bg-gradient-to-tr from-amber-300 to-orange-400 text-white flex items-center justify-center text-7xl md:text-8xl shadow-lg animate-floaty border-4 border-white">
+                  <i class="fa-solid ${item.icon}"></i>
+                </div>
+                <div class="mt-3 px-4 py-1 bg-amber-200/80 text-amber-900 font-black rounded-xl text-base tracking-wider">
+                  ${item.badge}
+                </div>
+              </div>
+
+              <!-- Bottom Mascot Tip (Strictly 24px on desktop, 20px on mobile) -->
+              <div class="w-full bg-white border-2 border-amber-300 rounded-2xl p-4 shadow-sm">
+                <p class="text-amber-950 font-medium tracking-wide text-[20px] md:text-[24px] leading-relaxed">
+                  ${item.tip}
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      `;
+    }
+  </script>
+
+  <script>
+    /* Responsive stage scaling algorithm */
+    function fitPresentationStage() {
+      const stage = document.getElementById('presentation-stage');
+      const viewport = document.getElementById('presentation-viewport');
+      if (!stage || !viewport) return;
+
+      const viewportWidth = viewport.clientWidth;
+      const viewportHeight = viewport.clientHeight;
+
+      // Mobile check: width < 768px -> release fixed scale, switch to fluid RWD
+      if (window.innerWidth < 768) {
+        stage.style.transform = 'none';
+        stage.style.width = '100%';
+        stage.style.height = 'auto';
+        return;
+      }
+
+      // Desktop / Landscape: 1200 x 675 (16:9)
+      const baseWidth = 1200;
+      const baseHeight = 675;
+
+      stage.style.width = `${baseWidth}px`;
+      stage.style.height = `${baseHeight}px`;
+
+      // Allow 24px margin
+      const padding = 24;
+      const availableW = viewportWidth - padding;
+      const availableH = viewportHeight - padding;
+
+      const scaleX = availableW / baseWidth;
+      const scaleY = availableH / baseHeight;
+      const scale = Math.min(scaleX, scaleY, 1.25);
+
+      stage.style.transform = `scale(${scale})`;
+    }
+
+    window.addEventListener('resize', fitPresentationStage);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(fitPresentationStage, 200);
+    });
+  </script>
+
+  <script>
+    let selectedPreferredVoice = null;
+    let availableVoices = [];
+
+    function applySpeechFixes(text) {
+      if (!text) return "";
+      let cleaned = text.trim();
+      if (SPEECH_CORRECTIONS[cleaned]) {
+        cleaned = SPEECH_CORRECTIONS[cleaned];
+      } else {
+        Object.keys(SPEECH_CORRECTIONS).forEach(key => {
+          const regex = new RegExp(`\\b${key}\\b`, 'g');
+          cleaned = cleaned.replace(regex, SPEECH_CORRECTIONS[key]);
+        });
+      }
+      return cleaned;
+    }
+
+    function initVoices() {
+      if (!('speechSynthesis' in window)) return;
+      availableVoices = window.speechSynthesis.getVoices();
+      if (!availableVoices || availableVoices.length === 0) return;
+
+      // 1. 優先尋找 iOS 的 Samantha / Ava 高品質版本（Enhanced 或 Premium）
+      const enhancedAppleVoice = availableVoices.find(v => 
+        v.lang.startsWith("en") && 
+        (v.name.toLowerCase().includes("samantha") || v.name.toLowerCase().includes("ava")) &&
+        (v.name.toLowerCase().includes("enhanced") || v.name.toLowerCase().includes("premium"))
+      );
+
+      // 2. 尋找 Google US English
+      const googleVoice = availableVoices.find(v => 
+        v.name.includes("Google") && (v.name.includes("US English") || v.lang === "en-US")
+      );
+
+      // 3. 尋找一般 Samantha / Ava（避開 Compact 機械音）
+      const normalAppleVoice = availableVoices.find(v => 
+        v.lang.startsWith("en") && 
+        (v.name.toLowerCase().includes("samantha") || v.name.toLowerCase().includes("ava")) &&
+        !v.name.toLowerCase().includes("compact")
+      );
+
+      // 4. 次選其他 en-US 語音
+      const anyUSVoice = availableVoices.find(v => v.lang === "en-US");
+
+      // 判定最終採用的語音
+      selectedPreferredVoice = enhancedAppleVoice || googleVoice || normalAppleVoice || anyUSVoice || availableVoices[0] || null;
+      if (selectedPreferredVoice) {
+        console.log("當前使用的語音：", selectedPreferredVoice.name);
+      }
+    }
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = initVoices;
+      initVoices();
+    }
+
+    /* Pronounce text with word correction table */
+    function speakText(rawText, type = 'word') {
+      return new Promise((resolve) => {
+        if (!('speechSynthesis' in window)) {
+          resolve();
+          return;
+        }
+
+        window.speechSynthesis.cancel(); // Stop any pending speech
+
+        const cleanText = applySpeechFixes(rawText);
+        if (!cleanText) {
+          resolve();
+          return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        if (!selectedPreferredVoice && availableVoices.length === 0) initVoices();
+        if (selectedPreferredVoice) {
+          utterance.voice = selectedPreferredVoice;
+        }
+        utterance.lang = 'en-US';
+        utterance.rate = type === 'word' ? 0.85 : 0.92;
+
+        const speakBtn = document.getElementById('btn-speak-word');
+        utterance.onstart = () => {
+          isSpeaking = true;
+          if (speakBtn) speakBtn.classList.add('speaking-pulse');
+        };
+        utterance.onend = () => {
+          isSpeaking = false;
+          if (speakBtn) speakBtn.classList.remove('speaking-pulse');
+          resolve();
+        };
+        utterance.onerror = () => {
+          isSpeaking = false;
+          if (speakBtn) speakBtn.classList.remove('speaking-pulse');
+          resolve();
+        };
+
+        window.speechSynthesis.speak(utterance);
+      });
+    }
+
+    function speakCurrentWord() {
+      if (currentSlide === 0) {
+        speakText("Welcome to English vocabulary class!");
+      } else {
+        const item = VOCAB_DATA[currentSlide - 1];
+        speakText(item.word, 'word');
+      }
+    }
+
+    function toggleAutoSpeech() {
+      autoSpeakEnabled = !autoSpeakEnabled;
+      const icon = document.getElementById('auto-speak-icon');
+      const text = document.getElementById('auto-speak-text');
+      const btn = document.getElementById('btn-toggle-auto');
+
+      if (autoSpeakEnabled) {
+        icon.className = 'fa-solid fa-toggle-on text-emerald-600 text-base';
+        text.textContent = '自動發音: 開';
+        btn.classList.remove('border-slate-300', 'bg-slate-50', 'text-slate-600');
+        btn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-800');
+        speakCurrentWord();
+      } else {
+        icon.className = 'fa-solid fa-toggle-off text-slate-400 text-base';
+        text.textContent = '自動發音: 關';
+        btn.classList.remove('border-emerald-500', 'bg-emerald-50', 'text-emerald-800');
+        btn.classList.add('border-slate-300', 'bg-slate-50', 'text-slate-600');
+      }
+    }
+  </script>
+
+  <script>
+    function goToSlide(index) {
+      if (index < 0) index = 0;
+      if (index >= totalSlides) index = totalSlides - 1;
+      currentSlide = index;
+      renderSlide();
+    }
+
+    function goToNextSlide() {
+      if (currentSlide < totalSlides - 1) {
+        goToSlide(currentSlide + 1);
+      } else {
+        goToSlide(0);
+      }
+    }
+
+    function goToPrevSlide() {
+      if (currentSlide > 0) {
+        goToSlide(currentSlide - 1);
+      }
+    }
+
+    function onSelectorChange(val) {
+      goToSlide(parseInt(val, 10));
+    }
+
+    /* Keyboard navigation: Left, Right, Spacebar, F, S */
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
+
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        goToNextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        goToPrevSlide();
+      } else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleFullscreen();
+      } else if (e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        speakCurrentWord();
+      }
+    });
+
+    /* Touch swipe gesture for tablet & mobile */
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+
+    window.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      touchEndY = e.changedTouches[0].screenY;
+      handleSwipeGesture();
+    }, { passive: true });
+
+    function handleSwipeGesture() {
+      const diffX = touchEndX - touchStartX;
+      const diffY = touchEndY - touchStartY;
+      const threshold = 55;
+
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > threshold) {
+        if (diffX < 0) {
+          goToNextSlide();
+        } else {
+          goToPrevSlide();
+        }
+      }
+    }
+
+    /* Fullscreen API Handling */
+    function toggleFullscreen() {
+      const icon = document.getElementById('fullscreen-icon');
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().then(() => {
+          if (icon) icon.className = 'fa-solid fa-compress';
+        }).catch(err => {
+          console.warn('Fullscreen error:', err);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().then(() => {
+            if (icon) icon.className = 'fa-solid fa-expand';
+          });
+        }
+      }
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+      const icon = document.getElementById('fullscreen-icon');
+      if (!icon) return;
+      if (document.fullscreenElement) {
+        icon.className = 'fa-solid fa-compress';
+      } else {
+        icon.className = 'fa-solid fa-expand';
+      }
+      fitPresentationStage();
+    });
+
+    /* Initialize application on DOM ready */
+    window.addEventListener('DOMContentLoaded', () => {
+      initSelectorOptions();
+      renderSlide();
+      fitPresentationStage();
+    });
+  </script>
+</body>
+</html>
