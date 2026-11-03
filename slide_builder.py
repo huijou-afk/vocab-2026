@@ -137,6 +137,50 @@ def sanitize_icon(raw_icon, word=""):
     # 4. 保底圖示
     return "fa-star"
 
+def is_date_header_line(line):
+    """
+    精準判斷該列是否為日期 / 週次標題列，避免單字包含「日期」（如 date、calendar、schedule）或例句含「2026」時被誤判為標題。
+    """
+    clean = line.strip()
+    if not clean:
+        return False
+
+    # 若以 Tab 或多空格切割後欄位數 >= 3，絕對是單字資料列，絕非標題列
+    parts = clean.split("\t")
+    if len(parts) < 2:
+        parts = [p.strip() for p in re.split(r'\s{2,}', clean) if p.strip()]
+
+    if len(parts) >= 3:
+        return False
+
+    # 若剛好 2 個欄位，檢查是否為「英文單字 \t 中文釋義」，若是則為單字資料
+    if len(parts) == 2:
+        if re.match(r'^[a-zA-Z\s\-]+$', parts[0]) and re.search(r'[\u4e00-\u9fa5]', parts[1]):
+            return False
+
+    # 正式標題列特徵判斷：
+    # 1. 包含 [W09] 或 ［Ｗ09］ 格式之週次標籤
+    if re.search(r'[\[［]\s*[WwＷｗ]0*\d+\s*[\]］]', clean):
+        return True
+
+    # 2. 開頭為明確的標題前綴：日期：、日期:、週次：、週次:、Week:、Date:
+    if re.match(r'^(?:日期|週次|Week|Date)\s*[：:]', clean, re.IGNORECASE):
+        return True
+
+    # 3. 開頭為「日期」或「週次」且緊接著週次或日期數字
+    if re.match(r'^(?:日期|週次)\s+[\[［]?[WwＷｗ]0*\d+', clean):
+        return True
+
+    # 4. 開頭為年份日期格式：如 2026/11/09 或 2026-11-09
+    if re.match(r'^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}', clean):
+        return True
+
+    # 5. 純週次代碼：如 W09 或 [W09]
+    if re.match(r'^[\[［]?[WwＷｗ]0*\d+[\]］]?\s*$', clean):
+        return True
+
+    return False
+
 def parse_input_words(raw_text):
     """
     解析使用者輸入的文字檔 (Tab/多空格分隔)，精準支援兩種欄位格式：
@@ -147,17 +191,20 @@ def parse_input_words(raw_text):
     lines = [l.strip() for l in raw_text.strip().splitlines() if l.strip()]
     week_title = "[W01]"
     parsed_words = []
+    header_found = False
 
     for line in lines:
-        # 1. Date / Week Header Line
-        if line.startswith("[") or line.startswith("［") or "2026" in line or "日期" in line or "週次" in line:
-            m = re.search(r'(\[?[WwＷｗ]0*\d+\]?.*?\d{4}/\d{1,2}/\d{1,2}(?:\([一二三四五六日]\))?~?\d{0,4}/?\d{1,2}/?\d{1,2})', line)
+        # 1. Date / Week Header Line (僅在尚未確認標題時提取，且嚴格檢驗避免誤判單字)
+        if not header_found and is_date_header_line(line):
+            m = re.search(r'([\[［]?[WwＷｗ]0*\d+[\]］]?\s*.*?\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}\s*(?:\([一二三四五六日]\))?(?:\s*~\s*(?:\d{4}[\/\-])?\d{1,2}[\/\-]\d{1,2})?)', line)
             if m:
-                raw_title = m.group(1)
-            elif "[" in line or "［" in line:
-                raw_title = line
+                raw_title = m.group(1).strip()
             else:
-                raw_title = line
+                m_simple = re.search(r'([\[［]?[WwＷｗ]0*\d+[\]］]?)', line)
+                if m_simple:
+                    raw_title = m_simple.group(1).strip()
+                else:
+                    raw_title = re.sub(r'^(?:日期|週次|Week|Date)\s*[：:\s]\s*', '', line).strip()
             
             # 自動標準化週次標籤：[W010] 或 ［Ｗ010］ 統一標準化為 [W10]
             week_title = re.sub(
@@ -165,6 +212,7 @@ def parse_input_words(raw_text):
                 lambda x: f"[W{int(x.group(1)):02d}]",
                 raw_title
             ).strip()
+            header_found = True
             continue
 
         # 2. Split line by Tab or multiple spaces
@@ -448,7 +496,7 @@ def assemble_html_elem(week_title, parsed_words, enrichment_json_str):
     )
 
     template_code = re.sub(
-        r'\[W\d+\]\d{4}/\d{1,2}/\d{1,2}~\d{1,2}/\d{1,2}',
+        r'\[W\d+\]\s*\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}\s*~\s*(?:\d{4}[\/\-])?\d{1,2}[\/\-]\d{1,2}',
         week_title,
         template_code
     )
@@ -555,7 +603,7 @@ def assemble_html_junior(week_title, parsed_words, enrichment_json_str):
     )
 
     template_code = re.sub(
-        r'📅\s*\[W\d+\][^\n<]+',
+        r'📅\s*[^\n<]+',
         f'📅 {week_title}',
         template_code
     )
