@@ -72,6 +72,742 @@ ICON_ALIASES = {
     "fa-donut": "fa-cookie",
 }
 
+# 國中教育會考核心單字詞性資料庫 (台灣教育部標準常用詞性)
+JUNIOR_VOCAB_POS_MAP = {
+    # W09 當週重點字
+    "water": "n. | v.",
+    "kite": "n.",
+    "toy": "n.",
+    "ball": "n.",
+    "holiday": "n.",
+    "jog": "v.",
+    "program": "n.",
+    "race": "n. | v.",
+    "tie": "n. | v.",
+    "suit": "n. | v.",
+    "yo-yo": "n.",
+    "fun": "n.",
+    "swim": "v.",
+    "baseball": "n.",
+    "soccer": "n.",
+    "surf": "v. | n.",
+    "team": "n.",
+    "after": "prep. | conj.",
+    "swimsuit": "n.",
+    "underwear": "n.",
+    "basketball": "n.",
+    "birthday": "n.",
+    "date": "n. | v.",
+    "week": "n.",
+    "day": "n.",
+    "ago": "adv.",
+    "before": "prep. | conj. | adv.",
+    "eve": "n.",
+    "earrings": "n.",
+    "sneakers": "n.",
+    "january": "n.",
+    "february": "n.",
+    "march": "n.",
+    "april": "n.",
+    "hour": "n.",
+    "noon": "n.",
+    "once": "adv. | conj.",
+    "soon": "adv.",
+    "hard-working": "adj.",
+    "skinny": "adj.",
+    "may": "n.",
+    "june": "n.",
+    "july": "n.",
+    "august": "n.",
+    "still": "adv.",
+    "then": "adv.",
+    "twice": "adv.",
+    "yet": "adv. | conj.",
+    "naughty": "adj.",
+    "curious": "adj.",
+    # 其他國中高頻字彙
+    "short": "adj.",
+    "small": "adj.",
+    "thin": "adj.",
+    "clean": "adj. | v.",
+    "dark": "adj. | n.",
+    "dear": "adj. | n.",
+    "else": "adv. | adj.",
+    "fat": "adj. | n.",
+    "monster": "n.",
+    "record": "n. | v.",
+    "warm": "adj. | v.",
+    "cold": "adj. | n.",
+    "cool": "adj. | v.",
+    "hot": "adj.",
+    "weather": "n.",
+    "something": "pron.",
+    "them": "pron.",
+    "us": "pron.",
+    "him": "pron.",
+    "her": "pron. | adj.",
+    "me": "pron.",
+    "you": "pron.",
+    "it": "pron.",
+    "we": "pron.",
+    "they": "pron.",
+    "road": "n.",
+    "scene": "n.",
+    "rectangle": "n.",
+    "run": "v. | n.",
+    "walk": "v. | n.",
+    "jump": "v. | n.",
+    "eat": "v.",
+    "drink": "v. | n.",
+    "sleep": "v. | n.",
+    "read": "v.",
+    "write": "v.",
+    "sing": "v.",
+    "dance": "v. | n.",
+    "play": "v. | n.",
+    "study": "v. | n.",
+    "learn": "v.",
+    "teach": "v.",
+    "speak": "v.",
+    "talk": "v. | n.",
+    "listen": "v.",
+    "hear": "v.",
+    "see": "v.",
+    "look": "v. | n.",
+    "watch": "v. | n.",
+    "buy": "v.",
+    "sell": "v.",
+    "make": "v.",
+    "cook": "v. | n.",
+    "help": "v. | n.",
+    "love": "v. | n.",
+    "like": "v. | prep.",
+    "hate": "v. | n.",
+    "want": "v.",
+    "need": "v. | n.",
+    "know": "v.",
+    "think": "v.",
+    "feel": "v.",
+    "tell": "v.",
+    "ask": "v.",
+    "answer": "v. | n.",
+    "work": "v. | n.",
+    "live": "v. | adj.",
+    "stay": "v. | n.",
+    "stand": "v. | n.",
+    "sit": "v.",
+    "wait": "v. | n.",
+    "stop": "v. | n.",
+    "start": "v. | n.",
+    "begin": "v.",
+    "finish": "v. | n.",
+    "open": "v. | adj.",
+    "close": "v. | adj.",
+    "turn": "v. | n.",
+    "move": "v. | n.",
+    "change": "v. | n.",
+    "show": "v. | n.",
+    "give": "v.",
+    "take": "v.",
+    "bring": "v.",
+    "get": "v.",
+    "find": "v.",
+    "keep": "v.",
+    "put": "v.",
+    "call": "v. | n.",
+    "try": "v. | n.",
+    "use": "v. | n.",
+    "leave": "v.",
+    "meet": "v. | n.",
+    "fly": "v. | n.",
+    "drive": "v. | n.",
+    "ride": "v. | n.",
+    "catch": "v. | n.",
+    "hold": "v.",
+    "send": "v.",
+    "build": "v.",
+    "draw": "v.",
+    "paint": "v. | n.",
+    "climb": "v. | n.",
+    "shine": "v. | n.",
+    "rain": "n. | v.",
+    "snow": "n. | v.",
+    "wind": "n.",
+    "smile": "v. | n.",
+    "laugh": "v. | n.",
+    "cry": "v. | n.",
+    "shout": "v. | n.",
+    "wash": "v. | n.",
+    "brush": "v. | n.",
+    "touch": "v. | n.",
+    "smell": "v. | n.",
+    "taste": "v. | n.",
+    "sound": "v. | n.",
+    "wear": "v.",
+    "dress": "n. | v.",
+    "cross": "v. | n.",
+    "pass": "v. | n.",
+    "cut": "v. | n.",
+    "break": "v. | n.",
+    "fall": "v. | n.",
+    "drop": "v. | n.",
+    "lose": "v.",
+    "win": "v. | n.",
+    "pay": "v. | n.",
+    "spend": "v.",
+    "cost": "v. | n.",
+    "save": "v.",
+    "grow": "v.",
+    "plant": "n. | v.",
+    "feed": "v.",
+    "ring": "v. | n.",
+    "knock": "v. | n.",
+    "push": "v. | n.",
+    "pull": "v. | n.",
+    "lock": "v. | n.",
+    "pack": "v. | n.",
+    "check": "v. | n.",
+    "cheer": "v. | n.",
+    "hope": "v. | n.",
+    "wish": "v. | n.",
+    "fear": "v. | n.",
+    "worry": "v. | n.",
+    "care": "v. | n.",
+    "mind": "v. | n.",
+    "forget": "v.",
+    "remember": "v.",
+    "understand": "v.",
+    "believe": "v.",
+    "agree": "v.",
+    "decide": "v.",
+    "choose": "v.",
+    "prepare": "v.",
+    "practice": "v. | n.",
+    "exercise": "v. | n.",
+    "invite": "v.",
+    "visit": "v. | n.",
+    "travel": "v. | n.",
+    "arrive": "v.",
+    "enter": "v.",
+    "return": "v. | n.",
+    "follow": "v.",
+    "lead": "v. | n.",
+    "guide": "v. | n.",
+    "order": "v. | n.",
+    "point": "v. | n.",
+    "mark": "v. | n.",
+    "score": "v. | n.",
+    "set": "v. | n.",
+    "hit": "v. | n.",
+    "kick": "v. | n.",
+    "throw": "v. | n.",
+    "blow": "v. | n.",
+    "hang": "v.",
+    "fix": "v.",
+    "repair": "v. | n.",
+    "collect": "v.",
+    "borrow": "v.",
+    "lend": "v.",
+    "share": "v. | n.",
+    "protect": "v.",
+    "waste": "v. | n.",
+    "enjoy": "v.",
+    "miss": "v.",
+    "surprise": "v. | n.",
+    "excite": "v.",
+    "bore": "v.",
+    "tire": "v.",
+    "hurt": "v. | adj.",
+    "burn": "v. | n.",
+    "bite": "v. | n.",
+    "hide": "v.",
+    "fight": "v. | n.",
+    "kill": "v.",
+    "die": "v.",
+    "born": "adj.",
+    "happen": "v.",
+    "appear": "v.",
+    "disappear": "v.",
+    "seem": "v.",
+    "become": "v.",
+    "belong": "v.",
+    "mean": "v. | adj.",
+    "matter": "v. | n.",
+    "depend": "v.",
+    "allow": "v.",
+    "cause": "v. | n.",
+    "create": "v.",
+    "invent": "v.",
+    "discover": "v.",
+    "produce": "v.",
+    "provide": "v.",
+    "offer": "v. | n.",
+    "suggest": "v.",
+    "explain": "v.",
+    "describe": "v.",
+    "express": "v.",
+    "repeat": "v. | n.",
+    "remind": "v.",
+    "warn": "v.",
+    "promise": "v. | n.",
+    "refuse": "v.",
+    "accept": "v.",
+    "receive": "v.",
+    "admit": "v.",
+    "avoid": "v.",
+    "escape": "v. | n.",
+    "fail": "v. | n.",
+    "succeed": "v.",
+    "manage": "v.",
+    "afford": "v.",
+    "imagine": "v.",
+    "wonder": "v. | n.",
+    "doubt": "v. | n.",
+    "trust": "v. | n.",
+    "respect": "v. | n.",
+    "admire": "v.",
+    "praise": "v. | n.",
+    "blame": "v. | n.",
+    "punish": "v.",
+    "forgive": "v.",
+    "apologize": "v.",
+    "thank": "v.",
+    "welcome": "v. | adj. | n.",
+    "greet": "v.",
+    "introduce": "v.",
+    "shake": "v. | n.",
+    "wave": "v. | n.",
+    "nod": "v. | n.",
+    "bow": "v. | n.",
+    "hug": "v. | n.",
+    "kiss": "v. | n.",
+    "carry": "v.",
+    "lift": "v. | n.",
+    "pick": "v. | n.",
+    "select": "v.",
+    "gather": "v.",
+    "spread": "v. | n.",
+    "cover": "v. | n.",
+    "fill": "v.",
+    "empty": "adj. | v.",
+    "pour": "v.",
+    "spill": "v. | n.",
+    "mix": "v. | n.",
+    "stir": "v.",
+    "boil": "v. | n.",
+    "bake": "v.",
+    "roast": "v. | adj.",
+    "fry": "v. | n.",
+    "grill": "v. | n.",
+    "freeze": "v.",
+    "melt": "v.",
+    "smoke": "n. | v.",
+    "breathe": "v.",
+    "cough": "v. | n.",
+    "sneeze": "v. | n.",
+    "bleed": "v.",
+    "heal": "v.",
+    "cure": "v. | n.",
+    "treat": "v. | n.",
+    "operate": "v.",
+    "examine": "v.",
+    "test": "v. | n.",
+    "measure": "v. | n.",
+    "weigh": "v.",
+    "count": "v. | n.",
+    "calculate": "v.",
+    "add": "v.",
+    "subtract": "v.",
+    "multiply": "v.",
+    "divide": "v.",
+    "equal": "adj. | v.",
+    "match": "v. | n.",
+    "fit": "v. | adj.",
+    "differ": "v.",
+    "compare": "v.",
+    "prefer": "v.",
+    "always": "adv.",
+    "usually": "adv.",
+    "often": "adv.",
+    "sometimes": "adv.",
+    "seldom": "adv.",
+    "never": "adv.",
+    "ever": "adv.",
+    "already": "adv.",
+    "just": "adv. | adj.",
+    "almost": "adv.",
+    "nearly": "adv.",
+    "quite": "adv.",
+    "very": "adv.",
+    "too": "adv.",
+    "so": "adv. | conj.",
+    "well": "adv. | adj. | n.",
+    "fast": "adj. | adv.",
+    "hard": "adj. | adv.",
+    "late": "adj. | adv.",
+    "early": "adj. | adv.",
+    "here": "adv.",
+    "there": "adv.",
+    "away": "adv.",
+    "out": "adv. | prep.",
+    "in": "prep. | adv.",
+    "on": "prep. | adv.",
+    "at": "prep.",
+    "by": "prep. | adv.",
+    "with": "prep.",
+    "without": "prep.",
+    "about": "prep. | adv.",
+    "for": "prep. | conj.",
+    "from": "prep.",
+    "to": "prep.",
+    "into": "prep.",
+    "onto": "prep.",
+    "through": "prep. | adv.",
+    "across": "prep. | adv.",
+    "along": "prep. | adv.",
+    "around": "prep. | adv.",
+    "behind": "prep. | adv.",
+    "between": "prep.",
+    "among": "prep.",
+    "above": "prep. | adv.",
+    "below": "prep. | adv.",
+    "over": "prep. | adv.",
+    "under": "prep. | adv.",
+    "near": "prep. | adj. | adv.",
+    "far": "adj. | adv.",
+    "next": "adj. | adv.",
+    "since": "prep. | conj. | adv.",
+    "until": "prep. | conj.",
+    "till": "prep. | conj.",
+    "during": "prep.",
+    "because": "conj.",
+    "although": "conj.",
+    "though": "conj. | adv.",
+    "if": "conj.",
+    "whether": "conj.",
+    "while": "conj. | n.",
+    "when": "conj. | adv.",
+    "as": "prep. | conj. | adv.",
+    "and": "conj.",
+    "but": "conj. | prep.",
+    "or": "conj.",
+    "nor": "conj.",
+    "either": "conj. | adv. | adj.",
+    "neither": "conj. | adv. | adj.",
+    "both": "adj. | pron. | conj.",
+    "all": "adj. | pron. | adv.",
+    "each": "adj. | pron.",
+    "every": "adj.",
+    "any": "adj. | pron.",
+    "some": "adj. | pron.",
+    "none": "pron.",
+    "many": "adj. | pron.",
+    "much": "adj. | pron. | adv.",
+    "few": "adj. | pron.",
+    "little": "adj. | adv.",
+    "more": "adj. | adv. | pron.",
+    "most": "adj. | adv. | pron.",
+    "less": "adj. | adv. | pron.",
+    "least": "adj. | adv. | pron.",
+    "good": "adj.",
+    "bad": "adj.",
+    "big": "adj.",
+    "large": "adj.",
+    "huge": "adj.",
+    "tall": "adj.",
+    "high": "adj. | adv.",
+    "low": "adj. | adv.",
+    "long": "adj. | adv.",
+    "wide": "adj.",
+    "narrow": "adj.",
+    "deep": "adj. | adv.",
+    "shallow": "adj.",
+    "heavy": "adj.",
+    "light": "adj. | n. | v.",
+    "thick": "adj.",
+    "bright": "adj.",
+    "sunny": "adj.",
+    "cloudy": "adj.",
+    "rainy": "adj.",
+    "snowy": "adj.",
+    "windy": "adj.",
+    "stormy": "adj.",
+    "foggy": "adj.",
+    "wet": "adj.",
+    "dry": "adj. | v.",
+    "dirty": "adj.",
+    "neat": "adj.",
+    "messy": "adj.",
+    "happy": "adj.",
+    "glad": "adj.",
+    "sad": "adj.",
+    "angry": "adj.",
+    "mad": "adj.",
+    "afraid": "adj.",
+    "scared": "adj.",
+    "proud": "adj.",
+    "brave": "adj.",
+    "shy": "adj.",
+    "nervous": "adj.",
+    "calm": "adj. | v.",
+    "excited": "adj.",
+    "exciting": "adj.",
+    "bored": "adj.",
+    "boring": "adj.",
+    "tired": "adj.",
+    "tiring": "adj.",
+    "interested": "adj.",
+    "interesting": "adj.",
+    "surprised": "adj.",
+    "surprising": "adj.",
+    "worried": "adj.",
+    "rich": "adj.",
+    "poor": "adj.",
+    "cheap": "adj.",
+    "expensive": "adj.",
+    "easy": "adj.",
+    "difficult": "adj.",
+    "simple": "adj.",
+    "safe": "adj. | n.",
+    "dangerous": "adj.",
+    "healthy": "adj.",
+    "sick": "adj.",
+    "ill": "adj.",
+    "strong": "adj.",
+    "weak": "adj.",
+    "smart": "adj.",
+    "clever": "adj.",
+    "wise": "adj.",
+    "stupid": "adj.",
+    "silly": "adj.",
+    "foolish": "adj.",
+    "kind": "adj. | n.",
+    "nice": "adj.",
+    "friendly": "adj.",
+    "polite": "adj.",
+    "rude": "adj.",
+    "cruel": "adj.",
+    "honest": "adj.",
+    "true": "adj.",
+    "false": "adj.",
+    "right": "adj. | adv. | n.",
+    "wrong": "adj. | adv.",
+    "correct": "adj. | v.",
+    "same": "adj. | pron.",
+    "different": "adj.",
+    "similar": "adj.",
+    "special": "adj.",
+    "common": "adj.",
+    "ordinary": "adj.",
+    "strange": "adj.",
+    "famous": "adj.",
+    "popular": "adj.",
+    "important": "adj.",
+    "necessary": "adj.",
+    "possible": "adj.",
+    "impossible": "adj.",
+    "main": "adj.",
+    "primary": "adj.",
+    "final": "adj. | n.",
+    "last": "adj. | adv. | v.",
+    "first": "adj. | adv. | n.",
+    "second": "adj. | n.",
+    "third": "adj. | n.",
+    "busy": "adj.",
+    "free": "adj. | v.",
+    "ready": "adj.",
+    "sure": "adj. | adv.",
+    "certain": "adj.",
+    "clear": "adj. | v.",
+    "full": "adj.",
+    "sweet": "adj. | n.",
+    "sour": "adj.",
+    "bitter": "adj.",
+    "salty": "adj.",
+    "delicious": "adj.",
+    "yummy": "adj.",
+    "fresh": "adj.",
+    "stale": "adj.",
+    "loud": "adj. | adv.",
+    "quiet": "adj.",
+    "silent": "adj.",
+    "quick": "adj. | adv.",
+    "slow": "adj. | v.",
+    "sharp": "adj.",
+    "soft": "adj.",
+    "smooth": "adj.",
+    "rough": "adj.",
+    "flat": "adj. | n.",
+    "straight": "adj. | adv.",
+    "round": "adj. | prep. | adv. | n.",
+    "square": "adj. | n.",
+    "red": "adj. | n.",
+    "blue": "adj. | n.",
+    "yellow": "adj. | n.",
+    "green": "adj. | n.",
+    "orange": "adj. | n.",
+    "purple": "adj. | n.",
+    "pink": "adj. | n.",
+    "brown": "adj. | n.",
+    "black": "adj. | n.",
+    "white": "adj. | n.",
+    "gray": "adj. | n.",
+    "grey": "adj. | n.",
+    "gold": "n. | adj.",
+    "silver": "n. | adj.",
+}
+
+def clean_zh_and_extract_pos(zh_raw):
+    """
+    從中文欄位中提取可能附帶的中英文詞性標記，並傳回 (clean_zh, extracted_pos)
+    例如:
+      "[介系詞] 在…以後(之後)" -> ("在…以後(之後)", "prep.")
+      "游泳 (v.)" -> ("游泳", "v.")
+      "矮的 adj." -> ("矮的", "adj.")
+    """
+    if not zh_raw:
+        return "", ""
+    text = zh_raw.strip()
+    extracted_pos = ""
+
+    cn_pos_map = {
+        "動詞": "v.",
+        "名詞": "n.",
+        "形容詞": "adj.",
+        "副詞": "adv.",
+        "介系詞": "prep.",
+        "連接詞": "conj.",
+        "代名詞": "pron.",
+        "感嘆詞": "int.",
+        "受格": "pron."
+    }
+
+    # 1. 偵測中文括號中的詞性標籤 [介系詞], (動詞) 等
+    m_cn = re.search(r'\[([^\]]+)\]|\(([^)]+)\)', text)
+    if m_cn:
+        inner = (m_cn.group(1) or m_cn.group(2) or "").strip()
+        for k, v in cn_pos_map.items():
+            if k in inner:
+                extracted_pos = v
+                text = text[:m_cn.start()] + text[m_cn.end():]
+                text = text.strip()
+                break
+
+    # 2. 偵測英文詞性標籤 (如 n., v., adj., adv., prep., conj., pron., 或其組合)
+    m_en = re.search(r'([a-zA-Z]+\.?(?:\s*[\/\|]\s*[a-zA-Z]+\.?)?)', text)
+    if m_en:
+        candidate = m_en.group(1).strip()
+        low_c = candidate.lower().rstrip('.')
+        if any(low_c.startswith(prefix) for prefix in ['n', 'v', 'adj', 'adv', 'prep', 'conj', 'pron']):
+            extracted_pos = candidate
+            text = text[:m_en.start()] + text[m_en.end():]
+            text = text.strip()
+
+    # 清理殘留的空白括號
+    text = re.sub(r'[\(\[\{]\s*[\)\]\}]', '', text).strip()
+    return text.strip(), extracted_pos
+
+def normalize_pos_string(pos_str):
+    """將詞性字串規範化為標準形式，如 'n. | v.'"""
+    if not pos_str:
+        return ""
+    parts = re.split(r'[\/\|\,]+', pos_str)
+    valid_map = {
+        "n": "n.", "noun": "n.",
+        "v": "v.", "verb": "v.",
+        "adj": "adj.", "adjective": "adj.", "a": "adj.",
+        "adv": "adv.", "adverb": "adv.",
+        "prep": "prep.", "preposition": "prep.",
+        "conj": "conj.", "conjunction": "conj.",
+        "pron": "pron.", "pronoun": "pron.",
+        "int": "int.", "interjection": "int.",
+        "aux": "aux. v.", "modal": "aux. v."
+    }
+    normalized = []
+    for p in parts:
+        clean_p = p.strip().lower().rstrip('.')
+        if clean_p in valid_map:
+            val = valid_map[clean_p]
+            if val not in normalized:
+                normalized.append(val)
+        elif p.strip():
+            token = p.strip()
+            if not token.endswith('.'):
+                token += '.'
+            if token not in normalized:
+                normalized.append(token)
+    return " | ".join(normalized) if normalized else ""
+
+def determine_junior_pos(word, zh_clean="", extracted_pos="", sd=None):
+    """
+    精準推斷國中單字之詞性 (pos)
+    優先順序:
+      1. Gemini 生成的明確 pos
+      2. 使用者輸入中文欄位附帶的中英文詞性
+      3. 國中常用核心字庫 JUNIOR_VOCAB_POS_MAP
+      4. 從 forms / grammar / examPoint 關鍵字推斷
+      5. 中文釋義特徵推斷 (如 '的' -> adj, '地' -> adv)
+      6. 預設 'n.'
+    """
+    # 1. Gemini explicit pos
+    if sd and isinstance(sd, dict):
+        g_pos = sd.get("pos", "")
+        norm_g = normalize_pos_string(g_pos)
+        if norm_g:
+            return norm_g
+
+    # 2. Extracted pos from user input
+    if extracted_pos:
+        norm_ext = normalize_pos_string(extracted_pos)
+        if norm_ext:
+            return norm_ext
+
+    # 3. Built-in vocabulary map
+    clean_w = word.strip().lower()
+    if clean_w in JUNIOR_VOCAB_POS_MAP:
+        return JUNIOR_VOCAB_POS_MAP[clean_w]
+
+    # 4. Text corpus analysis from forms / grammar / examPoint
+    if sd and isinstance(sd, dict):
+        text_corpus = f"{sd.get('forms', '')} {sd.get('examPoint', '')} {sd.get('grammar', '')}"
+        has_v = "動詞三態" in text_corpus or "不及物動詞" in text_corpus or "及物動詞" in text_corpus or "現在分詞" in text_corpus
+        has_n = "名詞複數" in text_corpus or "可數名詞" in text_corpus or "不可數名詞" in text_corpus
+        has_adj = "比較級" in text_corpus or "形容詞" in text_corpus or "多音節複合形容詞" in text_corpus
+        has_adv = "時間副詞" in text_corpus or "頻率副詞" in text_corpus or "次數副詞" in text_corpus or "副詞" in text_corpus
+        has_prep = "介系詞" in text_corpus
+        has_conj = "連接詞" in text_corpus
+
+        if has_adj and has_n:
+            return "adj. | n."
+        elif has_adj and has_v:
+            return "adj. | v."
+        elif has_v and has_n:
+            return "n. | v."
+        elif has_prep and has_conj:
+            return "prep. | conj."
+        elif has_adv and has_conj:
+            return "adv. | conj."
+        elif has_v:
+            return "v."
+        elif has_adj:
+            return "adj."
+        elif has_adv:
+            return "adv."
+        elif has_prep:
+            return "prep."
+        elif has_conj:
+            return "conj."
+
+    # 5. Chinese heuristics
+    if zh_clean:
+        if zh_clean.endswith("的") or "……的" in zh_clean:
+            return "adj."
+        if zh_clean.endswith("地") or zh_clean in ["仍然", "然後", "尚未", "兩次", "很快地", "很久"]:
+            return "adv."
+
+    # 6. Default fallback
+    return "n."
+
 _FA_FREE_ICONS_SET = None
 
 def get_fa_free_icons():
@@ -354,7 +1090,8 @@ def build_lightweight_prompt_junior(track_id, words_text):
 
     prompt = f"""你是一位專業的國中英文會考輔導專家。請根據下方提供的一週單字清單，以「國中教育會考核心重點」為基準，為每個單字生成 `supplementaryData` 會考補充庫：
 
-請以每個單字為 key（如 "warm"），生成包含以下四個欄位的物件：
+請以每個單字為 key（如 "warm"），生成包含以下五個欄位的物件：
+- pos（詞性縮寫）：請根據國中教育會考規範，精準標註該單字與中文意思對應的詞性縮寫（如 n., v., adj., adv., prep., conj., pron.）。若該單字在國中階段兼具兩種常見核心詞性（例如 tie 兼具名詞與動詞、clean 兼具形容詞與動詞、dark 兼具形容詞與名詞、swim 兼具動詞與名詞、after 兼具介系詞與連接詞），請用直線符號分隔，如 "n. | v."、"adj. | v."、"v. | n."、"prep. | conj."、"adv. | conj."。
 - forms（變化 / 格位 / 形態）：詳細列出該字的所有三態變化、名複、比較級最高級、詞性衍生字（如動詞轉名詞/形容詞/副詞）、反義詞等。
 - examPoint（🎯 會考常考要點）：鎖定台灣國中會考常見考點（例如：連綴動詞搭配、後置修飾、反義字語境辨析、易混淆字、閱讀測驗高頻慣用語、介系詞搭配等），標題統一格式為 【會考核心...考點】：1. ... 2. ...。
 - phrases（常用片語）：列出 3~4 個該單字最常考的慣用語或動詞片語（需附中文）。
@@ -372,6 +1109,7 @@ def build_lightweight_prompt_junior(track_id, words_text):
   ],
   "supplementaryData": {{
     "warm": {{
+      "pos": "adj. | v.",
       "forms": "比較級 warmer ➔ 最高級 warmest；名詞 warmth (溫暖)；動詞 warm up (熱身)",
       "examPoint": "【會考核心連綴動詞考點】：1. keep warm 句型中 keep 為連綴動詞，後接形容詞 warm... 2. ...",
       "phrases": "warm up (熱身/暖和起來) / warm heart (熱心)",
@@ -468,6 +1206,10 @@ def assemble_html_elem(week_title, parsed_words, enrichment_json_str):
         icon_val = sanitize_icon(e.get("icon", ""), item["word"])
 
         pos_cn = e.get("posChinese") or item["posChinese"]
+        if not re.search(r'[a-zA-Z]+\.?', pos_cn):
+            clean_zh, ext_pos = clean_zh_and_extract_pos(pos_cn)
+            elem_pos = ext_pos or JUNIOR_VOCAB_POS_MAP.get(item["word"].lower(), "n.")
+            pos_cn = f"{clean_zh} {elem_pos}".strip()
         category_val = item.get("category") or e.get("category") or week_tags[0]
 
         vocab_entry = {
@@ -536,14 +1278,34 @@ def assemble_html_junior(week_title, parsed_words, enrichment_json_str):
     if w_match:
         week_num = int(w_match.group(1))
 
+    # 1. 優先建立 supp_data_map，讓單字可對照 Gemini 生成資料 (含 pos 詞性)
+    supp_data_map = {}
+    if isinstance(supp_data, dict):
+        for k, v in supp_data.items():
+            if isinstance(v, dict):
+                k_str = str(k).strip()
+                k_clean = re.sub(r'[^a-zA-Z0-9\s\-]', '', k_str).lower()
+                supp_data_map[k_str] = v
+                supp_data_map[k_str.lower()] = v
+                supp_data_map[k_clean] = v
+
     raw_words_data = []
+    final_supp_data = {}
+
     for item in parsed_words:
-        pos_val = "n."
-        zh_text = item["posChinese"]
-        pos_match = re.search(r'([a-zA-Z]+\.?(?:\s*\|\s*[a-zA-Z]+\.?)?)', zh_text)
-        if pos_match:
-            pos_val = pos_match.group(1).strip()
-            zh_text = re.sub(r'[a-zA-Z]+\.?(?:\s*\|\s*[a-zA-Z]+\.?)?', '', zh_text).strip()
+        w = item["word"]
+        w_clean = re.sub(r'[^a-zA-Z0-9\s\-]', '', w).strip().lower()
+        w_lower = str(w).strip().lower()
+        sd = (
+            supp_data_map.get(w_clean)
+            or supp_data_map.get(w_lower)
+            or supp_data_map.get(w.strip())
+            or (supp_data.get(w) if isinstance(supp_data, dict) else {})
+            or {}
+        )
+
+        clean_zh, extracted_pos = clean_zh_and_extract_pos(item["posChinese"])
+        pos_val = determine_junior_pos(w, zh_clean=clean_zh, extracted_pos=extracted_pos, sd=sd)
 
         collocation_str = ""
         if item["collocation"]["en"]:
@@ -555,7 +1317,7 @@ def assemble_html_junior(week_title, parsed_words, enrichment_json_str):
             "week": week_num,
             "day": 5,
             "word": item["word"],
-            "zh": zh_text or item["posChinese"],
+            "zh": clean_zh or item["posChinese"],
             "pos": pos_val,
             "category": item["category"] or "國中核心單字",
             "collocations": collocation_str,
@@ -563,29 +1325,8 @@ def assemble_html_junior(week_title, parsed_words, enrichment_json_str):
             "sentenceZh": item["sentence"]["cn"]
         })
 
-    supp_data_map = {}
-    if isinstance(supp_data, dict):
-        for k, v in supp_data.items():
-            if isinstance(v, dict):
-                k_str = str(k).strip()
-                k_clean = re.sub(r'[^a-zA-Z0-9\s\-]', '', k_str).lower()
-                supp_data_map[k_str] = v
-                supp_data_map[k_str.lower()] = v
-                supp_data_map[k_clean] = v
-
-    final_supp_data = {}
-    for item in parsed_words:
-        w = item["word"]
-        w_clean = re.sub(r'[^a-zA-Z0-9\s\-]', '', w).strip().lower()
-        w_lower = str(w).strip().lower()
-        sd = (
-            supp_data_map.get(w_clean)
-            or supp_data_map.get(w_lower)
-            or supp_data_map.get(w.strip())
-            or supp_data.get(w)
-            or {}
-        )
         final_supp_data[w] = {
+            "pos": pos_val,
             "forms": sd.get("forms") or f"三態 / 變化 / 衍生詞",
             "examPoint": sd.get("examPoint") or f"【會考核心考點】：1. 掌握 {w} 的核心語意與主要例句搭配；2. 注意標點與修飾位置。",
             "phrases": sd.get("phrases") or (item["collocation"]["en"] + f" ({item['collocation']['cn']})") if item["collocation"]["en"] else f"{w} 的常用片語",
