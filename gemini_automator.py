@@ -565,136 +565,158 @@ end tell
         except Exception:
             pass
 
-    def _validate_candidate_html(self, code, expected_keywords):
-        """強校驗函數：驗證 HTML 或 JSON 是否有效且包含指定關鍵字"""
+    def _validate_candidate_html(self, code, expected_keywords, expected_format=None):
+        """強校驗函數：驗證 HTML、JSON 或 CSV 是否有效且包含指定關鍵字"""
         if not code or len(code) < 30:
             return False, ""
 
         clean_code = code.strip()
-        
+        low = clean_code.lower()
+
+        # 0. 若明確指定只要 CSV 格式（Blooket 考題）
+        if expected_format == "csv":
+            if "blooket" in low or "question #" in low or "question text" in low:
+                lines = [l for l in clean_code.splitlines() if l.strip()]
+                # Blooket 50 題考題加標題至少需要 45 行以上才算完整
+                if len(lines) >= 45:
+                    vocab_kws = expected_keywords.get("vocab_keywords", []) if isinstance(expected_keywords, dict) else []
+                    if vocab_kws:
+                        matched = [kw for kw in vocab_kws if kw.lower() in low]
+                        if len(matched) < min(3, len(vocab_kws)):
+                            return False, f"CSV 考題未包含足夠目標單字 (預期: {vocab_kws[:3]}, 匹配: {matched})"
+                        return True, f"Blooket 考題 CSV 驗證通過 (共 {len(lines)} 行，單字: [{', '.join(matched)}])"
+                    return True, f"Blooket 考題 CSV 驗證通過 (共 {len(lines)} 行)"
+            return False, "非有效完整 Blooket CSV 考題"
+
         # 1. 驗證 JSON 回應
-        temp_json_str = clean_code
-        m_fence = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', temp_json_str, re.IGNORECASE)
-        if m_fence:
-            temp_json_str = m_fence.group(1).strip()
-        idx_b = temp_json_str.find('{')
-        idx_bk = temp_json_str.find('[')
-        start_idx = -1
-        if idx_b != -1 and idx_bk != -1:
-            start_idx = min(idx_b, idx_bk)
-        elif idx_b != -1:
-            start_idx = idx_b
-        elif idx_bk != -1:
-            start_idx = idx_bk
+        if expected_format in (None, "json"):
+            temp_json_str = clean_code
+            m_fence = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', temp_json_str, re.IGNORECASE)
+            if m_fence:
+                temp_json_str = m_fence.group(1).strip()
+            idx_b = temp_json_str.find('{')
+            idx_bk = temp_json_str.find('[')
+            start_idx = -1
+            if idx_b != -1 and idx_bk != -1:
+                start_idx = min(idx_b, idx_bk)
+            elif idx_b != -1:
+                start_idx = idx_b
+            elif idx_bk != -1:
+                start_idx = idx_bk
 
-        if start_idx != -1:
-            data = None
-            candidate_slice = ""
-            try:
-                import json
-                decoder = json.JSONDecoder()
-                data, end_pos = decoder.raw_decode(temp_json_str, start_idx)
-                candidate_slice = temp_json_str[start_idx:end_pos]
-            except Exception:
-                end_idx = max(temp_json_str.rfind('}'), temp_json_str.rfind(']'))
-                if end_idx > start_idx:
-                    candidate_slice = temp_json_str[start_idx:end_idx+1].strip()
-                    try:
-                        import json
-                        data = json.loads(candidate_slice)
-                    except Exception:
-                        pass
+            if start_idx != -1:
+                data = None
+                candidate_slice = ""
+                try:
+                    import json
+                    decoder = json.JSONDecoder()
+                    data, end_pos = decoder.raw_decode(temp_json_str, start_idx)
+                    candidate_slice = temp_json_str[start_idx:end_pos]
+                except Exception:
+                    end_idx = max(temp_json_str.rfind('}'), temp_json_str.rfind(']'))
+                    if end_idx > start_idx:
+                        candidate_slice = temp_json_str[start_idx:end_idx+1].strip()
+                        try:
+                            import json
+                            data = json.loads(candidate_slice)
+                        except Exception:
+                            pass
 
-            if isinstance(data, (dict, list)):
-                if not expected_keywords:
-                    return True, "JSON AI 創意資料驗證通過"
+                if isinstance(data, (dict, list)):
+                    if not expected_keywords:
+                        return True, "JSON AI 創意資料驗證通過"
 
-                vocab_kws = []
-                if isinstance(expected_keywords, dict):
-                    vocab_kws = expected_keywords.get("vocab_keywords", [])
-                elif isinstance(expected_keywords, (list, set, tuple)):
-                    vocab_kws = list(expected_keywords)
+                    vocab_kws = []
+                    if isinstance(expected_keywords, dict):
+                        vocab_kws = expected_keywords.get("vocab_keywords", [])
+                    elif isinstance(expected_keywords, (list, set, tuple)):
+                        vocab_kws = list(expected_keywords)
 
-                if vocab_kws:
-                    # 必須精準提取 JSON 中宣告的「單字字串 (word)」集合，嚴格禁止任意子字串比對（防止比對到 icon 名稱如 fa-hand-back-fist 或舊對話的零星文字）
-                    words_in_json = set()
-                    if isinstance(data, dict):
-                        items = data.get("enrichments") or data.get("vocab_data") or []
-                        if isinstance(items, list):
-                            for it in items:
+                    if vocab_kws:
+                        # 必須精準提取 JSON 中宣告的「單字字串 (word)」集合，嚴格禁止任意子字串比對（防止比對到 icon 名稱如 fa-hand-back-fist 或舊對話的零星文字）
+                        words_in_json = set()
+                        if isinstance(data, dict):
+                            items = data.get("enrichments") or data.get("vocab_data") or []
+                            if isinstance(items, list):
+                                for it in items:
+                                    if isinstance(it, dict) and "word" in it:
+                                        words_in_json.add(str(it["word"]).strip().lower())
+                            supp = data.get("supplementaryData")
+                            if isinstance(supp, dict):
+                                for k in supp.keys():
+                                    words_in_json.add(str(k).strip().lower())
+                            for k, v in data.items():
+                                if isinstance(v, dict) and any(f in v for f in ["forms", "examPoint", "phrases", "grammar", "icon", "tip"]):
+                                    words_in_json.add(str(k).strip().lower())
+                        elif isinstance(data, list):
+                            for it in data:
                                 if isinstance(it, dict) and "word" in it:
                                     words_in_json.add(str(it["word"]).strip().lower())
-                        supp = data.get("supplementaryData")
-                        if isinstance(supp, dict):
-                            for k in supp.keys():
-                                words_in_json.add(str(k).strip().lower())
-                        for k, v in data.items():
-                            if isinstance(v, dict) and any(f in v for f in ["forms", "examPoint", "phrases", "grammar", "icon", "tip"]):
-                                words_in_json.add(str(k).strip().lower())
-                    elif isinstance(data, list):
-                        for it in data:
-                            if isinstance(it, dict) and "word" in it:
-                                words_in_json.add(str(it["word"]).strip().lower())
 
-                    expected_clean = [kw.strip().lower() for kw in vocab_kws if kw.strip()]
-                    matched_vocab = [kw for kw in expected_clean if kw in words_in_json]
-                    required = min(3, len(expected_clean))
-                    if len(matched_vocab) < required:
-                        return False, f"未包含足夠當週目標單字 (預期: {expected_clean[:3]}, 匹配: {matched_vocab})"
-                    return True, f"JSON AI 創意資料驗證通過 (單字: [{', '.join(matched_vocab)}])"
+                        expected_clean = [kw.strip().lower() for kw in vocab_kws if kw.strip()]
+                        matched_vocab = [kw for kw in expected_clean if kw in words_in_json]
+                        required = min(3, len(expected_clean))
+                        if len(matched_vocab) < required:
+                            return False, f"未包含足夠當週目標單字 (預期: {expected_clean[:3]}, 匹配: {matched_vocab})"
+                        return True, f"JSON AI 創意資料驗證通過 (單字: [{', '.join(matched_vocab)}])"
 
-                return True, "JSON AI 創意資料驗證通過"
+                    return True, "JSON AI 創意資料驗證通過"
 
         # 2. 驗證 HTML 回應
-        low = clean_code.lower()
-        if "<html" in low or "<!doctype html>" in low:
-            if not expected_keywords:
-                return True, "無關鍵字限制"
+        if expected_format in (None, "html"):
+            if "<html" in low or "<!doctype html>" in low:
+                if not expected_keywords:
+                    return True, "無關鍵字限制"
 
-            if isinstance(expected_keywords, dict):
-                date_kws = expected_keywords.get("date_keywords", [])
-                vocab_kws = expected_keywords.get("vocab_keywords", [])
+                if isinstance(expected_keywords, dict):
+                    date_kws = expected_keywords.get("date_keywords", [])
+                    vocab_kws = expected_keywords.get("vocab_keywords", [])
 
-                specific_dates = [kw for kw in date_kws if "/" in kw]
-                if specific_dates:
-                    matched_specific = [kw for kw in specific_dates if kw.lower() in low]
-                    if not matched_specific:
-                        return False, f"未包含當天具體日期 ({specific_dates[:2]})"
+                    specific_dates = [kw for kw in date_kws if "/" in kw]
+                    if specific_dates:
+                        matched_specific = [kw for kw in specific_dates if kw.lower() in low]
+                        if not matched_specific:
+                            return False, f"未包含當天具體日期 ({specific_dates[:2]})"
 
-                if vocab_kws:
-                    matched_vocab = [kw for kw in vocab_kws if kw.lower() in low]
-                    if not matched_vocab:
-                        return False, f"未包含當天單字 ({vocab_kws[:3]})"
-                    return True, f"日期 [{', '.join(specific_dates[:2])}] 與單字 [{', '.join(matched_vocab[:3])}]"
+                    if vocab_kws:
+                        matched_vocab = [kw for kw in vocab_kws if kw.lower() in low]
+                        if not matched_vocab:
+                            return False, f"未包含當天單字 ({vocab_kws[:3]})"
+                        return True, f"日期 [{', '.join(specific_dates[:2])}] 與單字 [{', '.join(matched_vocab[:3])}]"
 
-                return True, f"日期 [{', '.join(specific_dates[:2])}]"
+                    return True, f"日期 [{', '.join(specific_dates[:2])}]"
 
-            matched_kw = [kw for kw in expected_keywords if kw.lower() in low]
-            if matched_kw:
-                return True, f"關鍵字 [{', '.join(matched_kw[:3])}]"
+                matched_kw = [kw for kw in expected_keywords if kw.lower() in low]
+                if matched_kw:
+                    return True, f"關鍵字 [{', '.join(matched_kw[:3])}]"
 
-        # 3. 驗證 CSV (Blooket 考題) 回應
-        if "blooket" in low or "question #" in low or "question text" in low:
-            lines = [l for l in clean_code.splitlines() if l.strip()]
-            if len(lines) >= 15:
-                vocab_kws = expected_keywords.get("vocab_keywords", []) if isinstance(expected_keywords, dict) else []
-                if vocab_kws:
-                    matched = [kw for kw in vocab_kws if kw.lower() in low]
-                    if len(matched) < min(3, len(vocab_kws)):
-                        return False, f"CSV 考題未包含足夠目標單字 (預期: {vocab_kws[:3]}, 匹配: {matched})"
-                    return True, f"Blooket 考題 CSV 驗證通過 (共 {len(lines)} 行，單字: [{', '.join(matched)}])"
-                return True, f"Blooket 考題 CSV 驗證通過 (共 {len(lines)} 行)"
+        # 3. 驗證 CSV (僅在未指定格式時作為最後備用)
+        if expected_format is None:
+            if "blooket" in low or "question #" in low or "question text" in low:
+                lines = [l for l in clean_code.splitlines() if l.strip()]
+                if len(lines) >= 15:
+                    vocab_kws = expected_keywords.get("vocab_keywords", []) if isinstance(expected_keywords, dict) else []
+                    if vocab_kws:
+                        matched = [kw for kw in vocab_kws if kw.lower() in low]
+                        if len(matched) < min(3, len(vocab_kws)):
+                            return False, f"CSV 考題未包含足夠目標單字 (預期: {vocab_kws[:3]}, 匹配: {matched})"
+                        return True, f"Blooket 考題 CSV 驗證通過 (共 {len(lines)} 行，單字: [{', '.join(matched)}])"
+                    return True, f"Blooket 考題 CSV 驗證通過 (共 {len(lines)} 行)"
 
         return False, "未包含指定內容"
 
-    def _generate_via_applescript(self, prompt, target_url=None, timeout_seconds=300, expected_keywords=None, is_new_chat=False):
-        """利用 AppleScript 直連操控使用者畫面上已開啟的 Chrome 分頁，零新視窗！（支援 is_new_chat 開新對話）"""
+    def _generate_via_applescript(self, prompt, target_url=None, timeout_seconds=300, expected_keywords=None, is_new_chat=False, expected_format=None):
+        """利用 AppleScript 直連操控使用者畫面上已開啟的 Chrome 分頁，零新視窗！（支援 is_new_chat 開新對話與 expected_format 格式隔離）"""
         import json, base64
 
         # 1. 確保現有 Chrome 開啟 Gemini 分頁
         tab_status = self._ensure_gemini_tab_open(target_url, force_new_chat=is_new_chat)
         if "NO_CHROME" in tab_status or "ERROR" in tab_status:
             return None
+
+        if is_new_chat:
+            # 確保新對話頁面 DOM 載入與初始化完成
+            time.sleep(2.0)
 
         # 2. 測試是否可以正常執行 JS
         test_res = self._exec_applescript_js("document.title", target_url=target_url)
@@ -710,9 +732,9 @@ end tell
         # 補上強效指示：要求直接在對話框中輸出 Markdown 程式碼區塊，避開 Canvas
         full_prompt_text = prompt.strip()
         if "請勿開啟或使用 Canvas 模式" not in full_prompt_text:
-            if "csv" in full_prompt_text.lower():
+            if expected_format == "csv" or "csv" in full_prompt_text.lower():
                 full_prompt_text += "\n\n【重要指示】：請務必將完整的 CSV 內容直接在對話框中用 ```csv 與 ``` 程式碼區塊包覆輸出，請勿開啟或使用 Canvas 模式，亦請勿輸出任何 HTML 代碼或額外說明文字。"
-            elif "json" in full_prompt_text.lower():
+            elif expected_format == "json" or "json" in full_prompt_text.lower():
                 full_prompt_text += "\n\n【重要指示】：請務必將乾淨的 JSON 直接在對話框中用 ```json 與 ``` 程式碼區塊包覆輸出，請勿開啟或使用 Canvas 模式，亦請勿輸出任何 HTML 代碼或額外說明文字。"
             else:
                 full_prompt_text += "\n\n【重要指示】：請務必將完整的 HTML 原始碼直接在對話框中用 ```html 與 ``` 程式碼區塊包覆輸出，請勿開啟或使用 Canvas 模式。"
@@ -746,76 +768,116 @@ end tell
         sub_res = self._exec_applescript_js(js_submit, target_url=target_url)
         self._log(f"🚀 提示詞提交結果: {sub_res}")
 
-        # 4. 等待生成與即時輪詢提取 HTML 程式碼
+        # 4. 等待生成與即時輪詢提取代碼
         start_time = time.time()
         last_code_len = 0
         stable_count = 0
 
-        js_extract = """
-(() => {
+        exp_mode_str = expected_format or ""
+        js_extract = f"""
+(() => {{
     const results = [];
+    const expectedMode = "{exp_mode_str}";
 
-    function cleanSnippet(txt) {
+    function cleanSnippet(txt) {{
         if (!txt || txt.length < 30) return null;
         const low = txt.toLowerCase();
 
-        // 1. 優先檢查 JSON codeblock
-        const mJson = txt.match(/```(?:json)?\s*([\s\S]*?)(?:```|$)/i);
-        if (mJson && mJson[1]) {
+        // 1. 若明確要求 csv（Blooket 考題），嚴格只提取 CSV 區塊
+        if (expectedMode === 'csv') {{
+            const mCsv = txt.match(/```(?:csv)?\\s*([\\s\\S]*?)(?:```|$)/i);
+            if (mCsv && mCsv[1]) {{
+                const cleanCsv = mCsv[1].trim();
+                if (cleanCsv.includes('Question #') || cleanCsv.includes('Blooket') || cleanCsv.includes('Time Limit') || cleanCsv.includes('Question Text')) {{
+                    return cleanCsv;
+                }}
+            }}
+            if (txt.includes('Blooket') && (txt.includes('Question #') || txt.includes('Question Text'))) {{
+                const idxStart = txt.indexOf('Blooket');
+                if (idxStart !== -1) {{
+                    return txt.substring(idxStart).replace(/```\\s*$/, '').trim();
+                }}
+            }}
+            return null;
+        }}
+
+        // 2. 若明確要求 json（AI 創意欄位），嚴格只提取 JSON 區塊
+        if (expectedMode === 'json') {{
+            const mJson = txt.match(/```(?:json)?\\s*([\\s\\S]*?)(?:```|$)/i);
+            if (mJson && mJson[1]) {{
+                const cleanJson = mJson[1].trim();
+                if (cleanJson.startsWith('{{') || cleanJson.startsWith('[')) {{
+                    return cleanJson;
+                }}
+            }}
+            const idxBrace = txt.indexOf('{{');
+            const idxEndBrace = txt.lastIndexOf('}}');
+            if (idxBrace !== -1 && idxEndBrace > idxBrace) {{
+                const cleanBrace = txt.substring(idxBrace, idxEndBrace + 1).trim();
+                if (cleanBrace.length > 50 && (cleanBrace.includes('supplementary') || cleanBrace.includes('enrichments') || cleanBrace.includes('week_tags') || cleanBrace.includes('category_tags') || cleanBrace.includes('"word"'))) {{
+                    return cleanBrace;
+                }}
+            }}
+            return null;
+        }}
+
+        // 3. 通用 / 預設情況 (優先 JSON, 次 HTML, 次 CSV)
+        const mJson = txt.match(/```(?:json)?\\s*([\\s\\S]*?)(?:```|$)/i);
+        if (mJson && mJson[1]) {{
             const cleanJson = mJson[1].trim();
-            if (cleanJson.startsWith('{') || cleanJson.startsWith('[')) {
+            if (cleanJson.startsWith('{{') || cleanJson.startsWith('[')) {{
                 return cleanJson;
-            }
-        }
+            }}
+        }}
 
-        const idxBrace = txt.indexOf('{');
-        const idxEndBrace = txt.lastIndexOf('}');
-        if (idxBrace !== -1 && idxEndBrace > idxBrace) {
+        const idxBrace = txt.indexOf('{{');
+        const idxEndBrace = txt.lastIndexOf('}}');
+        if (idxBrace !== -1 && idxEndBrace > idxBrace) {{
             const cleanBrace = txt.substring(idxBrace, idxEndBrace + 1).trim();
-            if (cleanBrace.length > 50 && (cleanBrace.includes('supplementary') || cleanBrace.includes('enrichments') || cleanBrace.includes('week_tags') || cleanBrace.includes('category_tags') || cleanBrace.includes('"word"'))) {
+            if (cleanBrace.length > 50 && (cleanBrace.includes('supplementary') || cleanBrace.includes('enrichments') || cleanBrace.includes('week_tags') || cleanBrace.includes('category_tags') || cleanBrace.includes('"word"'))) {{
                 return cleanBrace;
-            }
-        }
+            }}
+        }}
 
-        // 2. 檢查 HTML codeblock
+        // 檢查 HTML codeblock
         const idx = low.indexOf('<!doctype html');
         const idx2 = low.indexOf('<html');
         let startPos = -1;
         if (idx !== -1 && (idx2 === -1 || idx < idx2)) startPos = idx;
         else if (idx2 !== -1) startPos = idx2;
 
-        if (startPos !== -1) {
+        if (startPos !== -1) {{
             let clean = txt.substring(startPos);
             const endIdx = clean.toLowerCase().lastIndexOf('</html>');
-            if (endIdx !== -1) {
+            if (endIdx !== -1) {{
                 clean = clean.substring(0, endIdx + 7);
-            }
-            clean = clean.replace(/```\s*$/, '').trim();
+            }}
+            clean = clean.replace(/```\\s*$/, '').trim();
             if (clean.length > 200) return clean;
-        }
+        }}
 
-        const m = txt.match(/```(?:html)?\s*(<!DOCTYPE html[\s\S]*?)(?:```|$)/i) ||
-                  txt.match(/```(?:html)?\s*(<html[\s\S]*?)(?:```|$)/i) ||
-                  txt.match(/(<!DOCTYPE html[\s\S]*?<\/html>)/i) ||
-                  txt.match(/(<html[\s\S]*?<\/html>)/i);
+        const m = txt.match(/```(?:html)?\\s*(<!DOCTYPE html[\\s\\S]*?)(?:```|$)/i) ||
+                  txt.match(/```(?:html)?\\s*(<html[\\s\\S]*?)(?:```|$)/i) ||
+                  txt.match(/(<!DOCTYPE html[\\s\\S]*?<\\/html>)/i) ||
+                  txt.match(/(<html[\\s\\S]*?<\\/html>)/i);
         if (m && m[1] && m[1].length > 200) return m[1];
 
-        // 3. 檢查 CSV (Blooket 考題) codeblock
-        const mCsv = txt.match(/```(?:csv)?\s*([\s\S]*?)(?:```|$)/i);
-        if (mCsv && mCsv[1]) {
+        // 檢查 CSV (Blooket 考題) codeblock
+        const mCsv = txt.match(/```(?:csv)?\\s*([\\s\\S]*?)(?:```|$)/i);
+        if (mCsv && mCsv[1]) {{
             const cleanCsv = mCsv[1].trim();
-            if (cleanCsv.includes('Question #') || cleanCsv.includes('Blooket') || cleanCsv.includes('Time Limit') || cleanCsv.includes('Question Text')) {
+            if (cleanCsv.includes('Question #') || cleanCsv.includes('Blooket') || cleanCsv.includes('Time Limit') || cleanCsv.includes('Question Text')) {{
                 return cleanCsv;
-            }
-        }
-        if (txt.includes('Blooket') && (txt.includes('Question #') || txt.includes('Question Text'))) {
+            }}
+        }}
+        if (txt.includes('Blooket') && (txt.includes('Question #') || txt.includes('Question Text'))) {{
             const idxStart = txt.indexOf('Blooket');
-            if (idxStart !== -1) {
-                return txt.substring(idxStart).replace(/```\s*$/, '').trim();
-            }
-        }
+            if (idxStart !== -1) {{
+                return txt.substring(idxStart).replace(/```\\s*$/, '').trim();
+            }}
+        }}
         return null;
-    }
+    }}
 
     const seen = new Set();
     /* A. 優先掃描 Gemini 的對話組件 (code-block, message-content, model-response 等) */
@@ -832,31 +894,31 @@ end tell
     ];
 
     const elements = Array.from(document.querySelectorAll(selectors.join(',')));
-    for (let i = elements.length - 1; i >= 0; i--) {
+    for (let i = elements.length - 1; i >= 0; i--) {{
         const rawText = elements[i].innerText || elements[i].textContent || '';
         const snippet = cleanSnippet(rawText);
-        if (snippet && !seen.has(snippet)) {
+        if (snippet && !seen.has(snippet)) {{
             seen.add(snippet);
             results.push(snippet);
-        }
-    }
+        }}
+    }}
 
     /* B. 其次掃描 Monaco Editor 編輯器 */
-    if (window.monaco && window.monaco.editor) {
-        try {
+    if (window.monaco && window.monaco.editor) {{
+        try {{
             const models = window.monaco.editor.getModels();
-            for (let i = models.length - 1; i >= 0; i--) {
+            for (let i = models.length - 1; i >= 0; i--) {{
                 const val = models[i].getValue();
                 const snippet = cleanSnippet(val);
-                if (snippet) {
+                if (snippet) {{
                     results.push(snippet);
-                }
-            }
-        } catch(e) {}
-    }
+                }}
+            }}
+        }} catch(e) {{}}
+    }}
 
     return JSON.stringify(results);
-})()
+}})()
 """
 
         while time.time() - start_time < timeout_seconds:
@@ -874,7 +936,7 @@ end tell
             matched_code = None
             validation_msg = ""
             for code in candidates:
-                valid, msg = self._validate_candidate_html(code, expected_keywords)
+                valid, msg = self._validate_candidate_html(code, expected_keywords, expected_format=expected_format)
                 if valid:
                     matched_code = self._clean_markdown_codeblock(code)
                     validation_msg = msg
@@ -882,10 +944,12 @@ end tell
 
             if matched_code:
                 curr_len = len(matched_code)
-                if curr_len > 1000 and curr_len == last_code_len:
+                min_len_thresh = 500 if expected_format == "csv" else 1000
+                if curr_len > min_len_thresh and curr_len == last_code_len:
                     stable_count += 1
                     if stable_count >= 2:
-                        self._log(f"🎉 成功從您現有的 Chrome 視窗提取最新 HTML 投影片（{validation_msg} 驗證通過，長度: {curr_len} 字元）！")
+                        format_name = "考題 CSV" if expected_format == "csv" else ("JSON AI 創意資料" if expected_format == "json" else "HTML 投影片")
+                        self._log(f"🎉 成功從您現有的 Chrome 視窗提取最新 {format_name}（{validation_msg} 驗證通過，長度: {curr_len} 字元）！")
                         self._close_chrome_tab_and_focus_app()
                         return matched_code
                 else:
@@ -910,18 +974,25 @@ end tell
             target_url="https://gemini.google.com/app",
             timeout_seconds=timeout_seconds,
             expected_keywords=expected_keywords,
-            is_new_chat=True
+            is_new_chat=True,
+            expected_format="csv"
         )
 
     def generate_html(self, prompt, target_url=None, headless=False, timeout_seconds=300, expected_keywords=None):
-        """傳送提示詞並等待抽取生成好的 HTML"""
+        """傳送提示詞並等待抽取生成好的 HTML 或 JSON"""
         self._ensure_profile_dir()
         self._status("連線 Chrome 瀏覽器中...", 0.1)
         
         dest_url = target_url or self.gemini_url
 
         # 優先嘗試透過 AppleScript 直接操控您畫面上現有的 Chrome 視窗 (零新視窗！)
-        as_html = self._generate_via_applescript(prompt, target_url=dest_url, timeout_seconds=timeout_seconds, expected_keywords=expected_keywords)
+        as_html = self._generate_via_applescript(
+            prompt,
+            target_url=dest_url,
+            timeout_seconds=timeout_seconds,
+            expected_keywords=expected_keywords,
+            expected_format="json"
+        )
         if as_html:
             return as_html
 

@@ -134,6 +134,7 @@ def clean_blooket_csv(raw_csv_text):
     清洗 Gemini 輸出的 CSV 字串
     確保第一列為 "Blooket Import Template",,,,,,,
     第二列為 Question #,Question Text,Answer 1,Answer 2,Answer 3,Answer 4,Time Limit (sec),Correct Answer(s)
+    並校驗每一題皆為標準 8 欄位 (Answer 4 空白, Time Limit 20, Correct Answer 1)
     """
     if not raw_csv_text:
         return ""
@@ -155,19 +156,40 @@ def clean_blooket_csv(raw_csv_text):
     # 2. 移除任何已存在的 BOM，由存檔時統一指定 utf-8-sig 輸出
     text = text.lstrip("\ufeff").strip()
 
-    # 3. 尋找 Question # 標題行，確保前兩列結構 100% 正確
-    m_header = re.search(r'Question\s*#\s*,\s*Question\s*Text', text, re.IGNORECASE)
-    if m_header:
-        text = '"Blooket Import Template",,,,,,,\n' + text[m_header.start():]
-    else:
-        # 若未找到 Question #，但有 Blooket 開頭，進行修復
-        m_blooket = re.search(r'Blooket[\s\S]*?Import\s*Template[^\n]*\n', text, re.IGNORECASE)
-        if m_blooket:
-            text = '"Blooket Import Template",,,,,,,\n' + text[m_blooket.end():]
-
-    # 4. 驗證基本結構
-    lines = [l for l in text.splitlines() if l.strip()]
-    if len(lines) < 10:
+    # 3. 嚴格驗證必須為 Blooket 考題表格格式（絕不接受 JSON 或一般文章）
+    low = text.lower()
+    if "blooket" not in low and "question #" not in low and "question text" not in low:
         return ""
 
-    return text
+    # 4. 使用 csv.reader 解析，提取並校準每道題為標準 8 欄
+    import csv, io
+    reader = csv.reader(io.StringIO(text))
+    question_rows = []
+    for r in reader:
+        if not r:
+            continue
+        first_col = r[0].strip()
+        if first_col.isdigit():
+            q_num = first_col
+            q_text = r[1].strip() if len(r) > 1 else ""
+            ans1 = r[2].strip() if len(r) > 2 else ""
+            ans2 = r[3].strip() if len(r) > 3 else ""
+            ans3 = r[4].strip() if len(r) > 4 else ""
+            ans4 = ""  # 依規定 Answer 4 固定為空白
+            time_limit = "20"
+            correct_ans = "1"
+            question_rows.append([q_num, q_text, ans1, ans2, ans3, ans4, time_limit, correct_ans])
+
+    # 若未成功解析出足夠題目（至少 10 題），表示格式不符
+    if len(question_rows) < 10:
+        return ""
+
+    # 5. 輸出符合 Blooket 標準規範的 CSV
+    out = io.StringIO()
+    # 首列固定輸出 "Blooket Import Template",,,,,,,
+    out.write('"Blooket Import Template",,,,,,,\n')
+    writer = csv.writer(out, lineterminator="\n")
+    # 第二列標題列
+    writer.writerow(["Question #", "Question Text", "Answer 1", "Answer 2", "Answer 3", "Answer 4", "Time Limit (sec)", "Correct Answer(s)"])
+    writer.writerows(question_rows)
+    return out.getvalue().strip()

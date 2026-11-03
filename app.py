@@ -479,6 +479,10 @@ class AppAPI:
                     return
 
                 cleaned_csv = quiz_builder.clean_blooket_csv(raw_csv)
+                if not cleaned_csv:
+                    self._status_js("考題內容驗證失敗", 0.0)
+                    self._log_js("❌ 擷取到的內容非有效 Blooket 考題表格格式。")
+                    return
                 
                 quiz_dir = BASE_DIR / "junior" / "quizzes"
                 quiz_dir.mkdir(parents=True, exist_ok=True)
